@@ -1,0 +1,104 @@
+version: 2.1
+
+commands:
+  build:
+    parameters:
+      path:
+        type: string
+        default: "circleci-env-core"
+      base_image:
+        type: string
+        default: "circleci/php:latest-node"
+      tag:
+        type: string
+        default: "glpi/circleci-env-core:php_latest_fpm-node"
+      push_image:
+        type: boolean
+        default: false
+    steps:
+      - run:
+          name: "Build docker image"
+          command: |
+            docker build -t << parameters.tag >> --build-arg BASE_IMAGE=<< parameters.base_image >> << parameters.path >>
+      - when:
+          condition: << parameters.push_image >>
+          steps:
+            - run:
+                name: "Push docker image"
+                command: |
+                  docker login -u $DOCKER_USER -p $DOCKER_PASS
+                  docker push << parameters.tag >>
+
+jobs:
+  build_all_circleci-env-core:
+    docker:
+      - image: docker:18-git
+    parameters:
+      push_images:
+        type: boolean
+        default: false
+    steps:
+      - checkout
+      - setup_remote_docker:
+          docker_layer_caching: true
+      - build:
+          path: "circleci-env-core"
+          base_image: "circleci/php:5.6-fpm-node"
+          tag: "glpi/circleci-env-core:php_5.6_fpm-node"
+          push_image: << parameters.push_images >>
+      - build:
+          path: "circleci-env-core"
+          base_image: "circleci/php:7.0-fpm-node"
+          tag: "glpi/circleci-env-core:php_7.0_fpm-node"
+          push_image: << parameters.push_images >>
+      - build:
+          path: "circleci-env-core"
+          base_image: "circleci/php:7.1-fpm-node"
+          tag: "glpi/circleci-env-core:php_7.1_fpm-node"
+          push_image: << parameters.push_images >>
+      - build:
+          path: "circleci-env-core"
+          base_image: "circleci/php:7.2-fpm-node"
+          tag: "glpi/circleci-env-core:php_7.2_fpm-node"
+          push_image: << parameters.push_images >>
+      - build:
+          path: "circleci-env-core"
+          base_image: "circleci/php:7.3-fpm-node"
+          tag: "glpi/circleci-env-core:php_7.3_fpm-node"
+          push_image: << parameters.push_images >>
+      - build:
+          path: "circleci-env-core"
+          base_image: "circleci/php:latest-node"
+          tag: "glpi/circleci-env-core:php_latest_fpm-node"
+          push_image: << parameters.push_images >>
+
+workflows:
+  # Build without pushing images every time a PR is created or a branch is updated.
+  pr_build:
+    jobs:
+      - build_all_circleci-env-core:
+          push_images: false
+
+  # Push up to date images to Docker Hub each time master branch is updated.
+  master_build:
+    jobs:
+      - build_all_circleci-env-core:
+          push_images: true
+          filters:
+            branches:
+              only:
+                - master
+
+  # Weekly build to be sure to have latest PHP bugfixes in images
+  # even if no changes were made on master branch.
+  weekly_build:
+    triggers:
+      - schedule:
+          cron: "0 0 * * 0"
+          filters:
+            branches:
+              only:
+                - master
+    jobs:
+      - build_all_circleci-env-core:
+          push_images: true
