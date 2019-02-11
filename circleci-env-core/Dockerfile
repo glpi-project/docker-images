@@ -34,6 +34,9 @@ RUN apt-get update \
   # Update PHP configuration.
   && echo "memory_limit = 512M" >> /usr/local/etc/php/conf.d/docker-php-memory.ini \
   \
+  # Update composer to latest version.
+  && composer self-update --no-interaction --no-progress \
+  \
   # Clean sources list.
   && rm -rf /var/lib/apt/lists/*
 
