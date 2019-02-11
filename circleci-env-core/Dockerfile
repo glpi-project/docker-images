@@ -34,6 +34,9 @@ RUN apt-get update \
   # Update PHP configuration.
   && echo "memory_limit = 512M" >> /usr/local/etc/php/conf.d/docker-php-memory.ini \
   \
+  # Disable xdebug PHP extension.
+  && rm /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
+  \
   # Update composer to latest version.
   && composer self-update --no-interaction --no-progress \
   \
