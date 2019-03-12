@@ -4,7 +4,13 @@ FROM $BASE_IMAGE
 # Switch to root user for installation commands
 USER root
 
-RUN apt-get update \
+RUN \
+  # Clean APT sources list to prevent packages list update error:
+  # E: Could not open file /var/lib/apt/lists/deb.debian.org_debian_dists_buster_main_binary-amd64_Packages.diff_Index - open (2: No such file or directory)
+  rm -rf /var/lib/apt/lists/* \
+  \
+  # Update APT sources list
+  && apt-get update \
   \
   # Install MySQL client.
   && apt-get install --assume-yes --no-install-recommends --quiet mysql-client \
