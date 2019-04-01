@@ -15,6 +15,10 @@ RUN \
   # Install MySQL client.
   && apt-get install --assume-yes --no-install-recommends --quiet mysql-client \
   \
+  # Install mail server and getmail utility.
+  && apt-get install --assume-yes --no-install-recommends --quiet dovecot-imapd dovecot-pop3d getmail4 \
+  && maildirmake.dovecot /home/circleci/Maildir circleci \
+  \
   # Install exif extension.
   && docker-php-ext-install exif \
   \
@@ -22,6 +26,11 @@ RUN \
   && apt-get install --assume-yes --no-install-recommends --quiet libfreetype6-dev libjpeg-dev libpng-dev \
   && docker-php-ext-configure gd --with-freetype-dir=/usr/include/ --with-jpeg-dir=/usr/include/ \
   && docker-php-ext-install gd \
+  \
+  # Install imap PHP extension.
+  && apt-get install --assume-yes --no-install-recommends --quiet libc-client-dev libkrb5-dev \
+  && docker-php-ext-configure imap --with-kerberos --with-imap-ssl \
+  && docker-php-ext-install imap \
   \
   # Install mysqli PHP extension (required only for GLPI prior to 10.0).
   && docker-php-ext-install mysqli \
@@ -51,6 +60,9 @@ RUN \
   \
   # Clean sources list.
   && rm -rf /var/lib/apt/lists/*
+
+# Copy files to container.
+COPY ./files /
 
 # Switch back to circleci user
 USER circleci
