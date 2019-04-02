@@ -16,7 +16,7 @@ commands:
       - run:
           name: "Build docker image"
           command: |
-            docker build -t << parameters.tag >> --build-arg BASE_IMAGE=<< parameters.base_image >> << parameters.path >>
+            docker build --pull --tag << parameters.tag >> --build-arg BASE_IMAGE=<< parameters.base_image >> << parameters.path >>
       - run:
           name: "Push docker image"
           command: |
