@@ -53,10 +53,14 @@ jobs:
           path: "circleci-env-core"
           base_image: "circleci/php:7.3-fpm-node"
           tag: "glpi/circleci-env-core:php_7.3_fpm-node"
-      - build:
-          path: "circleci-env-core"
-          base_image: "circleci/php:latest-node"
-          tag: "glpi/circleci-env-core:php_latest_fpm-node"
+      - run:
+          name: Build PHP 7.4-dev image
+          command: |
+            docker build --pull --tag glpi/circleci-env-core:php_7.4-dev_fpm-node --file circleci-env-core-php_7.4-dev-fpm-node/Dockerfile circleci-env-core
+            if [ "${CIRCLE_BRANCH}" == "master" ]; then
+              docker login -u $DOCKER_USER -p $DOCKER_PASS
+              docker push glpi/circleci-env-core:php_7.4-dev_fpm-node
+            fi
 
 workflows:
   # Build images every time a PR is created or a branch is updated.
