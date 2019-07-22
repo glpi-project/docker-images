@@ -35,19 +35,19 @@ jobs:
           docker_layer_caching: true
       - build:
           path: "circleci-env-core"
-          base_image: "circleci/php:5.6-fpm-node"
+          base_image: "circleci/php:5.6-fpm-stretch-node"
           tag: "glpi/circleci-env-core:php_5.6_fpm-node"
       - build:
           path: "circleci-env-core"
-          base_image: "circleci/php:7.0-fpm-node"
+          base_image: "circleci/php:7.0-fpm-stretch-node"
           tag: "glpi/circleci-env-core:php_7.0_fpm-node"
       - build:
           path: "circleci-env-core"
-          base_image: "circleci/php:7.1-fpm-node"
+          base_image: "circleci/php:7.1-fpm-stretch-node"
           tag: "glpi/circleci-env-core:php_7.1_fpm-node"
       - build:
           path: "circleci-env-core"
-          base_image: "circleci/php:7.2-fpm-node"
+          base_image: "circleci/php:7.2-fpm-stretch-node"
           tag: "glpi/circleci-env-core:php_7.2_fpm-node"
       - build:
           path: "circleci-env-core"
