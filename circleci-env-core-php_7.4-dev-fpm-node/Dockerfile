@@ -1,4 +1,4 @@
-FROM phpdaily/php:7.4.0-dev-fpm-stretch
+FROM php:7.4-rc-fpm-buster
 
 #
 # This DockerFile reproduces build step of official CircleCI PHP 7.3-fpm-node image
@@ -10,8 +10,8 @@ FROM phpdaily/php:7.4.0-dev-fpm-stretch
 
 
 #
-# BEGIN: inclusion of 7.3.6-fpm-stretch/Dockerfile form CircleCI repository
-# https://github.com/CircleCI-Public/circleci-dockerfiles/blob/staging/php/images/7.3.6-fpm-stretch/Dockerfile
+# BEGIN: inclusion of 7.3.7-fpm-buster/Dockerfile form CircleCI repository
+# https://github.com/CircleCI-Public/circleci-dockerfiles/tree/master/php/images/7.3.7-fpm-buster/Dockerfile
 #
 
 
@@ -41,7 +41,7 @@ RUN apt-get update \
   && apt-get install -y \
     git mercurial xvfb apt \
     locales sudo openssh-client ca-certificates tar gzip parallel \
-    net-tools netcat unzip zip bzip2 gnupg curl wget
+    net-tools netcat unzip zip bzip2 gnupg curl wget make
 
 
 # Set timezone to UTC by default
@@ -104,13 +104,17 @@ RUN groupadd --gid 3434 circleci \
 RUN echo 'Defaults    env_keep += "PHP_INI_DIR"' >> /etc/sudoers.d/env_keep
 
 # Install composer
-RUN php -r "copy('https://raw.githubusercontent.com/composer/getcomposer.org/master/web/installer', 'composer-setup.php');" &&     php composer-setup.php &&     php -r "unlink('composer-setup.php');" &&     mv composer.phar /usr/local/bin/composer
+RUN php -r "copy('https://raw.githubusercontent.com/composer/getcomposer.org/master/web/installer', 'composer-setup.php');" && \
+    php composer-setup.php && \
+    php -r "unlink('composer-setup.php');" && \
+    mv composer.phar /usr/local/bin/composer
 
 # Install XDebug
 #RUN (pecl install xdebug || pecl install xdebug-2.5.5 || pecl install xdebug-2.7.1) && docker-php-ext-enable xdebug
 
 # Install common extensions
-RUN apt install -y libicu-dev zlib1g-dev libzip-dev
+RUN apt install -y libicu-dev zlib1g-dev libzip-dev && \
+    rm -rf /var/lib/apt/lists/*
 RUN docker-php-ext-configure intl && docker-php-ext-install intl
 RUN docker-php-ext-install zip
 # END IMAGE CUSTOMIZATIONS
@@ -121,8 +125,8 @@ CMD ["/bin/sh"]
 
 
 #
-# BEGIN: inclusion of 7.3.6-fpm-stretch/node/Dockerfile form CircleCI repository
-# https://github.com/CircleCI-Public/circleci-dockerfiles/blob/staging/php/images/7.3.6-fpm-stretch/node/Dockerfile
+# BEGIN: inclusion of 7.3.7-fpm-buster/node/Dockerfile form CircleCI repository
+# https://github.com/CircleCI-Public/circleci-dockerfiles/blob/master/php/images/7.3.7-fpm-buster/node/Dockerfile
 #
 
 
@@ -219,11 +223,24 @@ RUN \
   # E: Could not open file /var/lib/apt/lists/deb.debian.org_debian_dists_buster_main_binary-amd64_Packages.diff_Index - open (2: No such file or directory)
   rm -rf /var/lib/apt/lists/* \
   \
+  && if [ "$(grep -oP '(?<=^VERSION_CODENAME=).+' /etc/os-release | tr -d '\"')" = "buster" ]; then \
+    # On Buster, install the old freetype6 version to make freetype-config script available
+    # see https://github.com/docker-library/php/issues/865
+    # TODO This may be removed if future PHP versions fixes this
+    echo "\033[0;31m Fallback to old version of freetype6 \033[0m" \
+    && echo "deb http://deb.debian.org/debian stretch main" >> /etc/apt/sources.list.d/stretch.list \
+    && apt-get update && apt-get install --assume-yes --allow-downgrades --no-install-recommends --quiet libfreetype6-dev=2.6.3-3.2 libfreetype6=2.6.3-3.2 \
+    && rm /etc/apt/sources.list.d/stretch.list \
+  ; else \
+    # On Stretch, install the available freetype6 version that contains freetype-config script
+    apt-get update && apt-get install --assume-yes --no-install-recommends --quiet libfreetype6-dev \
+  ; fi \
+  \
   # Update APT sources list
   && apt-get update \
   \
   # Install MySQL client.
-  && apt-get install --assume-yes --no-install-recommends --quiet mysql-client \
+  && apt-get install --assume-yes --no-install-recommends --quiet default-mysql-client \
   \
   # Install mail server and getmail utility.
   && apt-get install --assume-yes --no-install-recommends --quiet dovecot-imapd dovecot-pop3d getmail4 \
@@ -233,7 +250,7 @@ RUN \
   && docker-php-ext-install exif \
   \
   # Install GD PHP extension.
-  && apt-get install --assume-yes --no-install-recommends --quiet libfreetype6-dev libjpeg-dev libpng-dev \
+  && apt-get install --assume-yes --no-install-recommends --quiet libjpeg-dev libpng-dev \
   && docker-php-ext-configure gd --with-freetype-dir=/usr/include/ --with-jpeg-dir=/usr/include/ \
   && docker-php-ext-install gd \
   \
@@ -255,7 +272,7 @@ RUN \
   \
   # Install APCU PHP extension.
   # apcu-4.0.11 is the fallback version for PHP prior to 7.0
-  && pecl install apcu || pecl install apcu-4.0.11 \
+  && (pecl install apcu || pecl install apcu-4.0.11) \
   && docker-php-ext-enable apcu \
   && echo "apc.enable=1" >> /usr/local/etc/php/conf.d/docker-php-ext-apcu.ini \
   && echo "apc.enable_cli=1" >> /usr/local/etc/php/conf.d/docker-php-ext-apcu.ini \
