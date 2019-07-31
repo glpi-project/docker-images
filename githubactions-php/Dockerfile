@@ -24,11 +24,6 @@ RUN \
   && docker-php-ext-configure gd --with-freetype-dir=/usr/include/ --with-jpeg-dir=/usr/include/ \
   && docker-php-ext-install gd \
   \
-  # Install imap PHP extension.
-  && apk add --update imap-dev krb5-dev libressl-dev \
-  && PHP_OPENSSL=yes docker-php-ext-configure imap --with-kerberos --with-imap-ssl \
-  && docker-php-ext-install imap \
-  \
   # Install intl PHP extension.
   && apk add --update icu-dev \
   && docker-php-ext-install intl \
