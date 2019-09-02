@@ -57,12 +57,84 @@ jobs:
           path: "circleci-env-core"
           base_image: "circleci/php:latest-node"
           tag: "glpi/circleci-env-core:php_latest_fpm-node"
+  build_all_githubactions_images:
+    docker:
+      - image: docker:18-git
+    steps:
+      - checkout
+      - setup_remote_docker:
+          docker_layer_caching: true
+      - build:
+          path: "githubactions-php"
+          base_image: "php:5.6-fpm-alpine"
+          tag: "glpi/githubactions-php:5.6"
+      - build:
+          path: "githubactions-php"
+          base_image: "php:7.0-fpm-alpine"
+          tag: "glpi/githubactions-php:7.0"
+      - build:
+          path: "githubactions-php"
+          base_image: "php:7.1-fpm-alpine"
+          tag: "glpi/githubactions-php:7.1"
+      - build:
+          path: "githubactions-php"
+          base_image: "php:7.2-fpm-alpine"
+          tag: "glpi/githubactions-php:7.2"
+      - build:
+          path: "githubactions-php"
+          base_image: "php:7.3-fpm-alpine"
+          tag: "glpi/githubactions-php:7.3"
+      - build:
+          path: "githubactions-php"
+          base_image: "php:7.3-fpm-alpine"
+          tag: "glpi/githubactions-php:latest"
+      - build:
+          path: "githubactions-php"
+          base_image: "php:7.4-rc-fpm-alpine"
+          tag: "glpi/githubactions-php:7.4-rc"
+      - build:
+          path: "githubactions-db"
+          base_image: "mariadb:10.1"
+          tag: "glpi/githubactions-mariadb:10.1"
+      - build:
+          path: "githubactions-db"
+          base_image: "mariadb:10.2"
+          tag: "glpi/githubactions-mariadb:10.2"
+      - build:
+          path: "githubactions-db"
+          base_image: "mariadb:10.3"
+          tag: "glpi/githubactions-mariadb:10.3"
+      - build:
+          path: "githubactions-db"
+          base_image: "mariadb:10.4"
+          tag: "glpi/githubactions-mariadb:10.4"
+      - build:
+          path: "githubactions-db"
+          base_image: "mysql:5.6"
+          tag: "glpi/githubactions-mysql:5.6"
+      - build:
+          path: "githubactions-db"
+          base_image: "mysql:5.7"
+          tag: "glpi/githubactions-mysql:5.7"
+      - build:
+          path: "githubactions-db"
+          base_image: "mysql:8.0"
+          tag: "glpi/githubactions-mysql:8.0"
+      - build:
+          path: "githubactions-dovecot"
+          base_image: "debian:buster-slim"
+          tag: "glpi/githubactions-dovecot:latest"
+      - build:
+          path: "githubactions-openldap"
+          base_image: "alpine"
+          tag: "glpi/githubactions-openldap:latest"
 
 workflows:
   # Build images every time a PR is created or a branch is updated.
   pr_build:
     jobs:
       - build_all_circleci-env-core
+      - build_all_githubactions_images
 
   # Weekly build to be sure to have latest PHP bugfixes in images
   # even if no changes were made on master branch.
@@ -76,3 +148,4 @@ workflows:
                 - master
     jobs:
       - build_all_circleci-env-core
+      - build_all_githubactions_images
