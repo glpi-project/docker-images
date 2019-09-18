@@ -9,19 +9,6 @@ RUN \
   # E: Could not open file /var/lib/apt/lists/deb.debian.org_debian_dists_buster_main_binary-amd64_Packages.diff_Index - open (2: No such file or directory)
   rm -rf /var/lib/apt/lists/* \
   \
-  && if [ "$(grep -oP '(?<=^VERSION_CODENAME=).+' /etc/os-release | tr -d '\"')" = "buster" ]; then \
-    # On Buster, install the old freetype6 version to make freetype-config script available
-    # see https://github.com/docker-library/php/issues/865
-    # TODO This may be removed if future PHP versions fixes this
-    echo "\033[0;31m Fallback to old version of freetype6 \033[0m" \
-    && echo "deb http://deb.debian.org/debian stretch main" >> /etc/apt/sources.list.d/stretch.list \
-    && apt-get update && apt-get install --assume-yes --allow-downgrades --no-install-recommends --quiet libfreetype6-dev=2.6.3-3.2 libfreetype6=2.6.3-3.2 \
-    && rm /etc/apt/sources.list.d/stretch.list \
-  ; else \
-    # On Stretch, install the available freetype6 version that contains freetype-config script
-    apt-get update && apt-get install --assume-yes --no-install-recommends --quiet libfreetype6-dev \
-  ; fi \
-  \
   # Update APT sources list
   && apt-get update \
   \
@@ -36,7 +23,7 @@ RUN \
   && docker-php-ext-install exif \
   \
   # Install GD PHP extension.
-  && apt-get install --assume-yes --no-install-recommends --quiet libjpeg-dev libpng-dev \
+  && apt-get install --assume-yes --no-install-recommends --quiet libfreetype6-dev libjpeg-dev libpng-dev \
   && docker-php-ext-configure gd --with-freetype-dir=/usr/include/ --with-jpeg-dir=/usr/include/ \
   && docker-php-ext-install gd \
   \
