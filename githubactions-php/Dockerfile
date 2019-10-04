@@ -42,6 +42,8 @@ RUN \
   && docker-php-ext-install xmlrpc \
   \
   # Install APCU PHP extension.
+  # pecl is not installed on phpdaily/php:8.0.0-dev-fpm-alpine image
+  && (pecl version || (wget http://pear.php.net/go-pear.phar && php go-pear.phar)) \
   # apcu-4.0.11 is the fallback version for PHP prior to 7.0
   && (pecl install apcu || pecl install apcu-4.0.11) \
   && docker-php-ext-enable apcu \
