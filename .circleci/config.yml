@@ -31,8 +31,7 @@ jobs:
       - image: docker:18-git
     steps:
       - checkout
-      - setup_remote_docker:
-          docker_layer_caching: true
+      - setup_remote_docker
       - build:
           path: "circleci-env-core"
           base_image: "circleci/php:5.6-fpm-stretch-node"
@@ -62,8 +61,7 @@ jobs:
       - image: docker:18-git
     steps:
       - checkout
-      - setup_remote_docker:
-          docker_layer_caching: true
+      - setup_remote_docker
       - build:
           path: "githubactions-php"
           base_image: "php:5.6-fpm-alpine"
