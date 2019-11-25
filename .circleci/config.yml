@@ -88,8 +88,8 @@ jobs:
           tag: "glpi/githubactions-php:latest"
       - build:
           path: "githubactions-php"
-          base_image: "php:7.4-rc-fpm-alpine"
-          tag: "glpi/githubactions-php:7.4-rc"
+          base_image: "php:7.4-fpm-alpine"
+          tag: "glpi/githubactions-php:7.4"
       - build:
           path: "githubactions-db"
           base_image: "mariadb:10.1"
