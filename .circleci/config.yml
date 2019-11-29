@@ -54,6 +54,10 @@ jobs:
           tag: "glpi/circleci-env-core:php_7.3_fpm-node"
       - build:
           path: "circleci-env-core"
+          base_image: "circleci/php:7.4-fpm-node"
+          tag: "glpi/circleci-env-core:php_7.4_fpm-node"
+      - build:
+          path: "circleci-env-core"
           base_image: "circleci/php:latest-node"
           tag: "glpi/circleci-env-core:php_latest_fpm-node"
   build_all_githubactions_images:
