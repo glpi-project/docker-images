@@ -20,8 +20,17 @@ RUN \
   && docker-php-ext-install exif \
   \
   # Install GD PHP extension.
+  # GD extension configuration parameters changed on PHP 7.4
+  # see https://www.php.net/manual/en/image.installation.php#image.installation
   && apk add --update freetype-dev libjpeg-turbo-dev libpng-dev \
-  && docker-php-ext-configure gd --with-freetype-dir=/usr/include/ --with-jpeg-dir=/usr/include/ \
+  && PHP_MAJOR_VERSION="$(echo $PHP_VERSION | cut -d '.' -f 1)" \
+  && PHP_MINOR_VERSION="$(echo $PHP_VERSION | cut -d '.' -f 2)" \
+  && if [ $PHP_MAJOR_VERSION -le "5" ] || ([ $PHP_MAJOR_VERSION -eq "7" ] && [ $PHP_MINOR_VERSION -le "3" ]); then \
+    # For PHP <= 5.x or PHP 7 <= 7.3, use old parameters
+    docker-php-ext-configure gd --with-freetype-dir=/usr/include/ --with-jpeg-dir=/usr/include/ \
+  ; else \
+    docker-php-ext-configure gd --with-freetype --with-jpeg \
+  ; fi \
   && docker-php-ext-install gd \
   \
   # Install intl PHP extension.
