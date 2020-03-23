@@ -1,0 +1,22 @@
+name: "Github actions Dovecot image"
+
+on:
+  push:
+    paths:
+      - ".github/workflows/**"
+      - "githubactions-dovecot/**"
+
+jobs:
+  build:
+    runs-on: "ubuntu-latest"
+    steps:
+      - name: "Checkout"
+        uses: "actions/checkout@v2"
+      - name: "Build image"
+        run: |
+          docker build --pull --tag glpi/githubactions-dovecot:latest --build-arg BASE_IMAGE=debian:buster-slim githubactions-dovecot
+      - name: "Push image to Github registry"
+        if: github.ref == 'refs/heads/master' && github.repository == 'glpi-project/docker-images'
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login docker.pkg.github.com -u ${{ github.actor }} --password-stdin
+          docker push docker.pkg.github.com/${{ github.repository }}/githubactions-dovecot:latest

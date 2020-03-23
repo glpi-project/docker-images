@@ -1,0 +1,32 @@
+name: "Github actions PHP images"
+
+on:
+  push:
+    paths:
+      - ".github/workflows/**"
+      - "githubactions-php/**"
+
+jobs:
+  build:
+    runs-on: "ubuntu-latest"
+    strategy:
+      fail-fast: false
+      matrix:
+        php-version:
+          - "5.6"
+          - "7.0"
+          - "7.1"
+          - "7.2"
+          - "7.3"
+          - "7.4"
+    steps:
+      - name: "Checkout"
+        uses: "actions/checkout@v2"
+      - name: "Build image"
+        run: |
+          docker build --pull --tag glpi/githubactions-php:${{ matrix.php-version }} --build-arg BASE_IMAGE=php:${{ matrix.php-version }}-fpm-alpine githubactions-php
+      - name: "Push image to Github registry"
+        if: github.ref == 'refs/heads/master' && github.repository == 'glpi-project/docker-images'
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login docker.pkg.github.com -u ${{ github.actor }} --password-stdin
+          docker push docker.pkg.github.com/${{ github.repository }}/githubactions-php:${{ matrix.php-version }}

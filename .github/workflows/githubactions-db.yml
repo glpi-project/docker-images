@@ -1,0 +1,33 @@
+name: "Github actions DB images"
+
+on:
+  push:
+    paths:
+      - ".github/workflows/**"
+      - "githubactions-db/**"
+
+jobs:
+  build:
+    runs-on: "ubuntu-latest"
+    strategy:
+      fail-fast: false
+      matrix:
+        db:
+          - "mariadb:10.1"
+          - "mariadb:10.2"
+          - "mariadb:10.3"
+          - "mariadb:10.4"
+          - "mysql:5.6"
+          - "mysql:5.7"
+          - "mysql:8.0"
+    steps:
+      - name: "Checkout"
+        uses: "actions/checkout@v2"
+      - name: "Build image"
+        run: |
+          docker build --pull --tag glpi/githubactions-${{ matrix.db }} --build-arg BASE_IMAGE=${{ matrix.db }} githubactions-db
+      - name: "Push image to Github registry"
+        if: github.ref == 'refs/heads/master' && github.repository == 'glpi-project/docker-images'
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login docker.pkg.github.com -u ${{ github.actor }} --password-stdin
+          docker push docker.pkg.github.com/${{ github.repository }}/githubactions-${{ matrix.db }}
