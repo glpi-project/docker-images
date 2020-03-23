@@ -24,9 +24,11 @@ jobs:
         uses: "actions/checkout@v2"
       - name: "Build image"
         run: |
-          docker build --pull --tag glpi/githubactions-php:${{ matrix.php-version }} --build-arg BASE_IMAGE=php:${{ matrix.php-version }}-fpm-alpine githubactions-php
+          docker build --pull --tag image --build-arg BASE_IMAGE=php:${{ matrix.php-version }}-fpm-alpine githubactions-php
       - name: "Push image to Github registry"
         if: github.ref == 'refs/heads/master' && github.repository == 'glpi-project/docker-images'
         run: |
           echo "${{ secrets.GITHUB_TOKEN }}" | docker login docker.pkg.github.com -u ${{ github.actor }} --password-stdin
-          docker push docker.pkg.github.com/${{ github.repository }}/githubactions-php:${{ matrix.php-version }}
+          $IMAGE_TAG=docker.pkg.github.com/${{ github.repository }}/githubactions-php:${{ matrix.php-version }}
+          docker tag image $IMAGE_TAG
+          docker push $IMAGE_TAG
