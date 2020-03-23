@@ -3,7 +3,7 @@ name: "Github actions PHP images"
 on:
   push:
     paths:
-      - ".github/workflows/**"
+      - ".github/workflows/githubactions-php.yml"
       - "githubactions-php/**"
 
 jobs:

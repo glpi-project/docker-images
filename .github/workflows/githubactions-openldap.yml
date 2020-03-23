@@ -3,7 +3,7 @@ name: "Github actions Open LDAP image"
 on:
   push:
     paths:
-      - ".github/workflows/**"
+      - ".github/workflows/githubactions-openldap.yml"
       - "githubactions-openldap/**"
 
 jobs:
