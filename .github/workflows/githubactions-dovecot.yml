@@ -3,7 +3,7 @@ name: "Github actions Dovecot image"
 on:
   push:
     paths:
-      - ".github/workflows/**"
+      - ".github/workflows/githubactions-dovecot.yml"
       - "githubactions-dovecot/**"
 
 jobs:
