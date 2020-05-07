@@ -26,10 +26,18 @@ jobs:
       - name: "Build image"
         run: |
           docker build --pull --tag image --build-arg BASE_IMAGE=${{ matrix.db }} githubactions-db
-      - name: "Push image to Github registry"
+      - name: "Push image to Docker hub"
         if: github.ref == 'refs/heads/master' && github.repository == 'glpi-project/docker-images'
         run: |
-          echo "${{ secrets.GITHUB_TOKEN }}" | docker login docker.pkg.github.com -u ${{ github.actor }} --password-stdin
-          IMAGE_TAG=docker.pkg.github.com/${{ github.repository }}/githubactions-${{ matrix.db }}
+          echo "${{ secrets.DOCKER_HUB_TOKEN }}" | docker login -u ${{ secrets.DOCKER_HUB_USERNAME }} --password-stdin
+          IMAGE_TAG=glpi/githubactions-${{ matrix.db }}
           docker tag image $IMAGE_TAG
           docker push $IMAGE_TAG
+# We do not use Docker registry for now, do not push images there
+#      - name: "Push image to Github registry"
+#        if: github.ref == 'refs/heads/master' && github.repository == 'glpi-project/docker-images'
+#        run: |
+#          echo "${{ secrets.GITHUB_TOKEN }}" | docker login docker.pkg.github.com -u ${{ github.actor }} --password-stdin
+#          IMAGE_TAG=docker.pkg.github.com/${{ github.repository }}/githubactions-${{ matrix.db }}
+#          docker tag image $IMAGE_TAG
+#          docker push $IMAGE_TAG
