@@ -12,7 +12,7 @@ RUN \
 # Use default config for LDAP database
 RUN mv /var/lib/openldap/openldap-data/DB_CONFIG.example /var/lib/openldap/openldap-data/DB_CONFIG
 
-COPY ./files /
+COPY ./files/etc/openldap/slapd.conf /etc/openldap/slapd.conf
 
 HEALTHCHECK --interval=10s --retries=5 --timeout=5s \
   CMD ldapwhoami  -x -H ldap://127.0.0.1:3890/ -D "cn=Manager,dc=glpi,dc=org" -w insecure || exit 1

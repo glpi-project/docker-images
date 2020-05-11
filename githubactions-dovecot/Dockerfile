@@ -21,7 +21,8 @@ RUN \
   # Clean sources list.
   && rm -rf /var/lib/apt/lists/*
 
-COPY ./files /
+COPY ./files/etc/dovecot/local.conf /etc/dovecot/local.conf
+COPY ./files/etc/dovecot/passwd /etc/dovecot/passwd
 
 HEALTHCHECK --interval=10s --retries=5 --timeout=5s \
   CMD doveadm service status
