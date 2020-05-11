@@ -66,7 +66,8 @@ RUN \
   && rm -rf /var/lib/apt/lists/*
 
 # Copy files to container.
-COPY ./files /
+COPY ./files/etc/dovecot/local.conf /etc/dovecot/local.conf
+COPY ./files/etc/dovecot/passwd /etc/dovecot/passwd
 
 # Switch back to circleci user
 USER circleci
