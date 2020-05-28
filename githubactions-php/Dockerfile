@@ -67,6 +67,9 @@ RUN \
   # Install git and zip used by composer when fetching dependencies.
   && apk add --update git unzip \
   \
+  # Install bash that is used in some GLPI scripts.
+  && apk add --update bash \
+  \
   # Remove PHP build dependencies.
   && apk del -f .build-deps \
   \
