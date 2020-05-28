@@ -5,6 +5,8 @@ on:
     paths:
       - ".github/workflows/githubactions-dovecot.yml"
       - "githubactions-dovecot/**"
+  schedule:
+    - cron:  '0 0 * * 1'
 
 jobs:
   build:

@@ -5,6 +5,8 @@ on:
     paths:
       - ".github/workflows/githubactions-openldap.yml"
       - "githubactions-openldap/**"
+  schedule:
+    - cron:  '0 0 * * 1'
 
 jobs:
   build:

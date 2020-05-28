@@ -5,6 +5,8 @@ on:
     paths:
       - ".github/workflows/githubactions-db.yml"
       - "githubactions-db/**"
+  schedule:
+    - cron:  '0 0 * * 1'
 
 jobs:
   build:

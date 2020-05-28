@@ -5,6 +5,8 @@ on:
     paths:
       - ".github/workflows/githubactions-php.yml"
       - "githubactions-php/**"
+  schedule:
+    - cron:  '0 0 * * 1'
 
 jobs:
   build:
