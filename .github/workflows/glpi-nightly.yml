@@ -1,0 +1,38 @@
+name: "Github actions PHP images"
+
+on:
+  push:
+    paths:
+      - ".github/workflows/glpi-nightly.yml"
+      - "glpi-nightly/**"
+  schedule:
+    - cron:  '0 0 * * 1'
+
+jobs:
+  build:
+    runs-on: "ubuntu-latest"
+    strategy:
+      fail-fast: false
+      matrix:
+        branch:
+          - "master"
+          - "9.5/bugfixes"
+    steps:
+      - name: "Checkout"
+        uses: "actions/checkout@v2"
+      - name: "Get sources from glpi-project/glpi"
+        run: |
+          curl https://github.com/glpi-project/glpi/archive/${{ matrix.branch }}.tar.gz --location --output glpi.tar.gz
+          mkdir glpi-nightly/sources
+          tar --extract --ungzip --strip 1 --file glpi.tar.gz --directory glpi-nightly/sources
+      - name: "Build image"
+        run: |
+          docker build --pull --tag image glpi-nightly
+      - name: "Push image to Docker hub"
+        if: github.ref == 'refs/heads/master' && github.repository == 'glpi-project/docker-images'
+        run: |
+          echo "${{ secrets.DOCKER_HUB_TOKEN }}" | docker login -u ${{ secrets.DOCKER_HUB_USERNAME }} --password-stdin
+          IMAGE_VERSION=$(echo ${{ matrix.branch }} | sed -E 's|/|-|')
+          IMAGE_TAG=glpi/glpi-nightly:$IMAGE_VERSION
+          docker tag image $IMAGE_TAG
+          docker push $IMAGE_TAG
