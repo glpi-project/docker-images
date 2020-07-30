@@ -57,6 +57,10 @@ RUN \
   && echo "apc.enable=1" >> /usr/local/etc/php/conf.d/docker-php-ext-apcu.ini \
   && echo "apc.enable_cli=1" >> /usr/local/etc/php/conf.d/docker-php-ext-apcu.ini \
   \
+  # Use 'gnu-libiconv' to fix "iconv(): Wrong charset, conversion from `us-ascii' to `UTF-8//TRANSLIT' is not allowed".
+  # Use 'edge' repository as this package is not available on Alpine 3.8 (used for PHP 5.6 and 7.0).
+  && apk add --repository http://dl-cdn.alpinelinux.org/alpine/edge/community/ gnu-libiconv \
+  \
   # Update PHP configuration.
   && echo "memory_limit = 512M" >> /usr/local/etc/php/conf.d/docker-php-memory.ini \
   \
@@ -89,10 +93,12 @@ USER glpi
 VOLUME /var/glpi
 WORKDIR /var/glpi
 
-# Define composer environment variables
 ENV \
+  # Define composer environment variables
   COMPOSER_HOME=/home/glpi/composer \
-  PATH=/home/glpi/composer/vendor/bin:$PATH
+  PATH=/home/glpi/composer/vendor/bin:$PATH \
+  # #Fix "iconv(): Wrong charset, conversion from `us-ascii' to `UTF-8//TRANSLIT' is not allowed".
+  LD_PRELOAD="/usr/lib/preloadable_libiconv.so php-fpm7 php"
 
 # Install hirak/prestissimo composer plugin to speedup dependencies installation
 RUN \
