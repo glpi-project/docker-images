@@ -65,6 +65,17 @@ RUN \
   # Clean sources list.
   && rm -rf /var/lib/apt/lists/*
 
+# Install gettext 0.21
+RUN apt-get remove --assume-yes --no-install-recommends --quiet gettext \
+  && curl https://ftp.gnu.org/pub/gnu/gettext/gettext-0.21.tar.gz --location --output /tmp/gettext.tar.gz \
+  && mkdir /tmp/gettext \
+  && tar --extract --ungzip --strip 1 --file /tmp/gettext.tar.gz --directory /tmp/gettext \
+  && (cd /tmp/gettext/ && ./configure --prefix=/usr/local/gettext) \
+  && (cd /tmp/gettext/ && make --quiet) \
+  && (cd /tmp/gettext/ && make --quiet install) \
+  && rm -rf /tmp/gettext.tar.gz /tmp/gettext
+ENV PATH=/usr/local/gettext/bin:$PATH
+
 # Copy files to container.
 COPY ./files/etc/dovecot/local.conf /etc/dovecot/local.conf
 COPY ./files/etc/dovecot/passwd /etc/dovecot/passwd
