@@ -80,6 +80,18 @@ RUN \
   # Clean sources list.
   && rm -rf /var/cache/apk/*
 
+# Install gettext 0.21
+RUN apk add --update build-base \
+  && curl https://ftp.gnu.org/pub/gnu/gettext/gettext-0.21.tar.gz --location --output /tmp/gettext.tar.gz \
+  && mkdir /tmp/gettext \
+  && tar --extract --ungzip --strip 1 --file /tmp/gettext.tar.gz --directory /tmp/gettext \
+  && (cd /tmp/gettext/ && ./configure --prefix=/usr/local/gettext) \
+  && (cd /tmp/gettext/ && make --quiet) \
+  && (cd /tmp/gettext/ && make --quiet install) \
+  && rm -rf /tmp/gettext.tar.gz /tmp/gettext \
+  && apk del -f build-base
+ENV PATH=/usr/local/gettext/bin:$PATH
+
 # Copy composer binary
 COPY --from=composer /usr/bin/composer /usr/bin/composer
 
