@@ -2,6 +2,12 @@ name: "Github actions Dovecot image"
 
 on:
   push:
+    branches:
+      - "master"
+    paths:
+      - ".github/workflows/githubactions-dovecot.yml"
+      - "githubactions-dovecot/**"
+  pull_request:
     paths:
       - ".github/workflows/githubactions-dovecot.yml"
       - "githubactions-dovecot/**"

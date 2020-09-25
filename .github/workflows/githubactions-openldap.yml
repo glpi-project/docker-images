@@ -2,6 +2,12 @@ name: "Github actions Open LDAP image"
 
 on:
   push:
+    branches:
+      - "master"
+    paths:
+      - ".github/workflows/githubactions-openldap.yml"
+      - "githubactions-openldap/**"
+  pull_request:
     paths:
       - ".github/workflows/githubactions-openldap.yml"
       - "githubactions-openldap/**"

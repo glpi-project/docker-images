@@ -2,6 +2,12 @@ name: "Github actions DB images"
 
 on:
   push:
+    branches:
+      - "master"
+    paths:
+      - ".github/workflows/githubactions-db.yml"
+      - "githubactions-db/**"
+  pull_request:
     paths:
       - ".github/workflows/githubactions-db.yml"
       - "githubactions-db/**"
