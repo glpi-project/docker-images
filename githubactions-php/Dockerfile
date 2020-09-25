@@ -46,6 +46,9 @@ RUN \
   # Install mysqli PHP extension.
   && docker-php-ext-install mysqli \
   \
+  # Install pcntl PHP extension (required for composer-require-checker).
+  && docker-php-ext-install pcntl \
+  \
   # Install XMLRPC PHP extension.
   && apk add --update libxml2-dev \
   && docker-php-ext-install xmlrpc \
