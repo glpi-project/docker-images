@@ -36,8 +36,19 @@ RUN \
   ; fi \
   && docker-php-ext-install gd \
   \
+  # Install ldap PHP extension.
+  && apt-get install --assume-yes --no-install-recommends --quiet libldap2-dev \
+  && if [ $PHP_MAJOR_VERSION -le "5" ] || ([ $PHP_MAJOR_VERSION -eq "7" ] && [ $PHP_MINOR_VERSION -le "0" ]); then \
+    # For PHP <= 5.x or PHP 7 <= 7.0, lib dir must be configured
+    docker-php-ext-configure ldap --with-libdir=lib/x86_64-linux-gnu/ \
+  ; fi \
+  && docker-php-ext-install ldap \
+  \
   # Install mysqli PHP extension (required only for GLPI prior to 10.0).
   && docker-php-ext-install mysqli \
+  \
+  # Install pcntl PHP extension (required for composer-require-checker).
+  && docker-php-ext-install pcntl \
   \
   # Install XMLRPC PHP extension.
   && apt-get install --assume-yes --no-install-recommends --quiet libxml2-dev \
