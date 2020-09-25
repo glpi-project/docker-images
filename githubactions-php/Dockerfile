@@ -50,13 +50,33 @@ RUN \
   && docker-php-ext-install pcntl \
   \
   # Install XMLRPC PHP extension.
-  && apk add --update libxml2-dev \
-  && docker-php-ext-install xmlrpc \
+  && if [ $PHP_MAJOR_VERSION -lt "8" ]; then \
+    # For PHP < 8.x, install bundled extension
+    apk add --update libxml2-dev \
+    && docker-php-ext-install xmlrpc \
+  #; else \
+    # For PHP 8+, install from PECL archive (pecl util is not available)
+    # uncomment when a release will be available
+    # mkdir -p /usr/src/php/ext/xmlrpc \
+    # && curl -LsfS https://pecl.php.net/get/xmlrpc | tar xvz -C "/usr/src/php/ext/xmlrpc" --strip 1 \
+    # && docker-php-ext-enable xmlrpc \
+  ; fi \
   \
   # Install APCU PHP extension.
-  # apcu-4.0.11 is the fallback version for PHP prior to 7.0
-  && (pecl install apcu || pecl install apcu-4.0.11) \
-  && docker-php-ext-enable apcu \
+  && if [ $PHP_MAJOR_VERSION -eq "5" ]; then \
+    # For PHP 5.x, install apcu 4.0.x using PECL util
+    pecl install apcu-4.0.11 \
+    && docker-php-ext-enable apcu \
+  ; elif [ $PHP_MAJOR_VERSION -eq "7" ]; then \
+    # For PHP 7.x, install latest apcu version using PECL util
+    pecl install apcu \
+    && docker-php-ext-enable apcu \
+  ; else \
+    # For PHP 8+, install from PECL archive (pecl util is not available)
+    mkdir -p /usr/src/php/ext/apcu \
+    && curl -LsfS https://pecl.php.net/get/apcu | tar xvz -C "/usr/src/php/ext/apcu" --strip-components 1 \
+    && docker-php-ext-install apcu \
+  ; fi \
   && echo "apc.enable=1" >> /usr/local/etc/php/conf.d/docker-php-ext-apcu.ini \
   && echo "apc.enable_cli=1" >> /usr/local/etc/php/conf.d/docker-php-ext-apcu.ini \
   \
