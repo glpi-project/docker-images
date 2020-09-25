@@ -2,6 +2,12 @@ name: "Github actions PHP images"
 
 on:
   push:
+    branches:
+      - "master"
+    paths:
+      - ".github/workflows/githubactions-php.yml"
+      - "githubactions-php/**"
+  pull_request:
     paths:
       - ".github/workflows/githubactions-php.yml"
       - "githubactions-php/**"
