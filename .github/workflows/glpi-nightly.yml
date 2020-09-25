@@ -1,4 +1,4 @@
-name: "Github actions PHP images"
+name: "Github actions nightly images"
 
 on:
   push:
