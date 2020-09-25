@@ -39,9 +39,6 @@ RUN \
   # Install mysqli PHP extension (required only for GLPI prior to 10.0).
   && docker-php-ext-install mysqli \
   \
-  # Install PDO MySQL PHP extension.
-  && docker-php-ext-install pdo pdo_mysql \
-  \
   # Install XMLRPC PHP extension.
   && apt-get install --assume-yes --no-install-recommends --quiet libxml2-dev \
   && docker-php-ext-install xmlrpc \
