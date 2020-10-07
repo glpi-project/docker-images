@@ -42,3 +42,11 @@ jobs:
           IMAGE_TAG=glpi/glpi-nightly:$IMAGE_VERSION
           docker tag image $IMAGE_TAG
           docker push $IMAGE_TAG
+      - name: "Push image to Github container registry"
+        if: github.ref == 'refs/heads/master' && github.repository == 'glpi-project/docker-images'
+        run: |
+          echo "${{ secrets.GHCR_ACCESS_TOKEN }}" | docker login -u ${{ secrets.GHCR_USERNAME }} --password-stdin ghcr.io
+          IMAGE_VERSION=$(echo ${{ matrix.branch }} | sed -E 's|/|-|')
+          IMAGE_TAG=ghcr.io/glpi-project/glpi-nightly:$IMAGE_VERSION
+          docker tag image $IMAGE_TAG
+          docker push $IMAGE_TAG
