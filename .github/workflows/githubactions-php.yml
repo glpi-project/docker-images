@@ -44,7 +44,7 @@ jobs:
       - name: "Push image to Github container registry"
 #        if: github.ref == 'refs/heads/master' && github.repository == 'glpi-project/docker-images'
         run: |
-          echo "${{ secrets.GHCR_ACCESS_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+          echo ${{ secrets.GHCR_ACCESS_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
           IMAGE_TAG=ghcr.io/glpi-project/githubactions-php:${{ matrix.php-version }}
           docker tag image $IMAGE_TAG
           docker push $IMAGE_TAG
