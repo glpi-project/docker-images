@@ -33,6 +33,7 @@ jobs:
           tar --extract --ungzip --strip 1 --file glpi.tar.gz --directory glpi-nightly/sources
       - name: "Build image"
         run: |
+          echo "${{ secrets.DOCKER_HUB_TOKEN }}" | docker login -u ${{ secrets.DOCKER_HUB_USERNAME }} --password-stdin
           docker build --pull --tag image glpi-nightly
       - name: "Push image to Docker hub"
         if: github.ref == 'refs/heads/master' && github.repository == 'glpi-project/docker-images'
