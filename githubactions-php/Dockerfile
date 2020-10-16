@@ -125,17 +125,10 @@ RUN addgroup -g 1000 glpi \
   && mkdir -p /var/glpi \
   && chown glpi:glpi /var/glpi
 USER glpi
+VOLUME /home/glpi
 VOLUME /var/glpi
 WORKDIR /var/glpi
 
 ENV \
-  # Define composer environment variables
-  COMPOSER_HOME=/home/glpi/composer \
-  PATH=/home/glpi/composer/vendor/bin:$PATH \
   # #Fix "iconv(): Wrong charset, conversion from `us-ascii' to `UTF-8//TRANSLIT' is not allowed".
   LD_PRELOAD="/usr/lib/preloadable_libiconv.so php-fpm7 php"
-
-# Install hirak/prestissimo composer plugin to speedup dependencies installation
-RUN \
-  composer global require hirak/prestissimo \
-  && composer clear-cache
