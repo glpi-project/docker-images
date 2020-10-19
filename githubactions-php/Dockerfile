@@ -12,6 +12,12 @@ FROM composer:latest AS composer
 #####
 FROM $BASE_IMAGE
 
+LABEL \
+  org.opencontainers.image.title="GLPI Github Actions PHP container" \
+  org.opencontainers.image.description="This container is used to run GLPI test suite on Github Actions." \
+  org.opencontainers.image.url="https://github.com/glpi-project/docker-images" \
+  org.opencontainers.image.source="git@github.com:glpi-project/docker-images"
+
 RUN \
   # Install PHP build dependencies.
   apk add --update --virtual .build-deps $PHPIZE_DEPS \

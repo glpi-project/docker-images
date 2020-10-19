@@ -38,6 +38,13 @@ RUN /usr/src/glpi/tools/build_glpi.sh
 #####
 FROM php:apache
 
+LABEL \
+  org.opencontainers.image.title="GLPI nightly build" \
+  org.opencontainers.image.description="This container contains Apache/PHP and a nightly build of GLPI. \
+It can be used to test latest features and bug fixes." \
+  org.opencontainers.image.url="https://github.com/glpi-project/docker-images" \
+  org.opencontainers.image.source="git@github.com:glpi-project/docker-images"
+
 RUN apt-get update \
   \
   # Install APCU PHP extension.
