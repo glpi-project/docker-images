@@ -2,6 +2,12 @@ ARG BASE_IMAGE=debian:buster-slim
 
 FROM $BASE_IMAGE
 
+LABEL \
+  org.opencontainers.image.title="GLPI Github Actions Dovecot container" \
+  org.opencontainers.image.description="This container is used to run GLPI test suite on Github Actions." \
+  org.opencontainers.image.url="https://github.com/glpi-project/docker-images" \
+  org.opencontainers.image.source="git@github.com:glpi-project/docker-images"
+
 # Create glpi user and its home directory
 RUN groupadd --gid 1000 glpi
 RUN useradd --create-home --home-dir /home/glpi --gid 1000 --uid 1000 glpi
