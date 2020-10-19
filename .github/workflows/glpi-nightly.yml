@@ -23,6 +23,9 @@ jobs:
         branch:
           - "master"
           - "9.5/bugfixes"
+    env:
+      # Push only when a new commit is pushed on master on glpi-project/docker-images repository.
+      push: github.ref == 'refs/heads/master' && github.repository == 'glpi-project/docker-images'
     steps:
       - name: "Checkout"
         uses: "actions/checkout@v2"
@@ -35,16 +38,8 @@ jobs:
         run: |
           echo "${{ secrets.DOCKER_HUB_TOKEN }}" | docker login -u ${{ secrets.DOCKER_HUB_USERNAME }} --password-stdin
           docker build --pull --tag image glpi-nightly
-      - name: "Push image to Docker hub"
-        if: github.ref == 'refs/heads/master' && github.repository == 'glpi-project/docker-images'
-        run: |
-          echo "${{ secrets.DOCKER_HUB_TOKEN }}" | docker login -u ${{ secrets.DOCKER_HUB_USERNAME }} --password-stdin
-          IMAGE_VERSION=$(echo ${{ matrix.branch }} | sed -E 's|/|-|')
-          IMAGE_TAG=glpi/glpi-nightly:$IMAGE_VERSION
-          docker tag image $IMAGE_TAG
-          docker push $IMAGE_TAG
       - name: "Push image to Github container registry"
-        if: github.ref == 'refs/heads/master' && github.repository == 'glpi-project/docker-images'
+        if: env.push == 'true'
         run: |
           echo "${{ secrets.GHCR_ACCESS_TOKEN }}" | docker login -u ${{ secrets.GHCR_USERNAME }} --password-stdin ghcr.io
           IMAGE_VERSION=$(echo ${{ matrix.branch }} | sed -E 's|/|-|')
