@@ -31,8 +31,8 @@ RUN \
   && apk add --update freetype-dev libjpeg-turbo-dev libpng-dev \
   && PHP_MAJOR_VERSION="$(echo $PHP_VERSION | cut -d '.' -f 1)" \
   && PHP_MINOR_VERSION="$(echo $PHP_VERSION | cut -d '.' -f 2)" \
-  && if [ $PHP_MAJOR_VERSION -le "5" ] || ([ $PHP_MAJOR_VERSION -eq "7" ] && [ $PHP_MINOR_VERSION -le "3" ]); then \
-    # For PHP <= 5.x or PHP 7 <= 7.3, use old parameters
+  && if ([ $PHP_MAJOR_VERSION -eq "7" ] && [ $PHP_MINOR_VERSION -le "3" ]); then \
+    # For PHP 7 <= 7.3, use old parameters
     docker-php-ext-configure gd --with-freetype-dir=/usr/include/ --with-jpeg-dir=/usr/include/ \
   ; else \
     docker-php-ext-configure gd --with-freetype --with-jpeg \
@@ -69,11 +69,7 @@ RUN \
   ; fi \
   \
   # Install APCU PHP extension.
-  && if [ $PHP_MAJOR_VERSION -eq "5" ]; then \
-    # For PHP 5.x, install apcu 4.0.x using PECL util
-    pecl install apcu-4.0.11 \
-    && docker-php-ext-enable apcu \
-  ; elif [ $PHP_MAJOR_VERSION -eq "7" ]; then \
+  && if [ $PHP_MAJOR_VERSION -eq "7" ]; then \
     # For PHP 7.x, install latest apcu version using PECL util
     pecl install apcu \
     && docker-php-ext-enable apcu \
