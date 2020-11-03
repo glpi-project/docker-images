@@ -13,6 +13,8 @@ on:
       - "githubactions-php/**"
   schedule:
     - cron:  '0 0 * * 1'
+  # Enable manual run
+  workflow_dispatch:
 
 jobs:
   build:
