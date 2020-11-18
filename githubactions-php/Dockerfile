@@ -99,6 +99,9 @@ RUN \
   # Install bash that is used in some GLPI scripts.
   && apk add --update bash \
   \
+  # Install patch utility that may be usefull to patch dependencies.
+  && apk add --update patch \
+  \
   # Remove PHP build dependencies.
   && apk del -f .build-deps \
   \
