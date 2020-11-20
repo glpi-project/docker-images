@@ -96,6 +96,10 @@ RUN \
   # Install git and zip used by composer when fetching dependencies.
   && apk add --update git unzip \
   \
+  # Install sudo that may be usefull to temporarly install upcoming required system components.
+  && apk add --update sudo \
+  && (echo "glpi  ALL=(ALL) NOPASSWD:ALL" | sudo tee /etc/sudoers.d/glpi) \
+  \
   # Install bash that is used in some GLPI scripts.
   && apk add --update bash \
   \
