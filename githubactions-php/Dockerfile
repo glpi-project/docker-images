@@ -81,6 +81,9 @@ RUN \
   # Update PHP configuration.
   && echo "memory_limit = 512M" >> /usr/local/etc/php/conf.d/docker-php-memory.ini \
   \
+  # Disable sodium PHP extension (Test should validate that polyfill works).
+  && rm /usr/local/etc/php/conf.d/docker-php-ext-sodium.ini \
+  \
   # Install nodejs and npm.
   # On alpine 3.7 (for PHP 7.0 and lower), npm is named nodejs-npm.
   && (apk add --update nodejs npm || apk add --update nodejs nodejs-npm) \
