@@ -81,10 +81,6 @@ RUN apt-get update \
   && apt-get install --assume-yes --no-install-recommends --quiet libxml2-dev \
   && docker-php-ext-install soap \
   \
-  # Install xmlrpc PHP extension.
-  && apt-get install --assume-yes --no-install-recommends --quiet libxml2-dev \
-  && docker-php-ext-install xmlrpc \
-  \
   # Install zip PHP extension.
   && apt-get install --assume-yes --no-install-recommends --quiet libzip-dev \
   && docker-php-ext-configure zip \
