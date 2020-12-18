@@ -22,6 +22,10 @@ RUN \
   # Install PHP build dependencies.
   apk add --update --virtual .build-deps $PHPIZE_DEPS \
   \
+  # Extract PHP version.
+  && PHP_MAJOR_VERSION="$(echo $PHP_VERSION | cut -d '.' -f 1)" \
+  && PHP_MINOR_VERSION="$(echo $PHP_VERSION | cut -d '.' -f 2)" \
+  \
   # Install exif extension.
   && docker-php-ext-install exif \
   \
@@ -29,8 +33,6 @@ RUN \
   # GD extension configuration parameters changed on PHP 7.4
   # see https://www.php.net/manual/en/image.installation.php#image.installation
   && apk add --update freetype-dev libjpeg-turbo-dev libpng-dev \
-  && PHP_MAJOR_VERSION="$(echo $PHP_VERSION | cut -d '.' -f 1)" \
-  && PHP_MINOR_VERSION="$(echo $PHP_VERSION | cut -d '.' -f 2)" \
   && if ([ $PHP_MAJOR_VERSION -eq "7" ] && [ $PHP_MINOR_VERSION -le "3" ]); then \
     # For PHP 7 <= 7.3, use old parameters
     docker-php-ext-configure gd --with-freetype-dir=/usr/include/ --with-jpeg-dir=/usr/include/ \
@@ -54,6 +56,16 @@ RUN \
   \
   # Install pcntl PHP extension (required for composer-require-checker).
   && docker-php-ext-install pcntl \
+  \
+  # Install Zip PHP extension.
+  # Zip extension configuration changed on PHP 7.4
+  # see https://www.php.net/manual/en/zip.installation.php
+  && apk add --update libzip-dev \
+  && if ([ $PHP_MAJOR_VERSION -eq "7" ] && [ $PHP_MINOR_VERSION -le "3" ]); then \
+    # For PHP 7 <= 7.3, needs to be configured
+    docker-php-ext-configure zip --with-libzip \
+  ; fi \
+  && docker-php-ext-install zip \
   \
   # Install XMLRPC PHP extension.
   && apk add --update libxml2-dev \
