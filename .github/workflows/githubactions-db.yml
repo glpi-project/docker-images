@@ -22,18 +22,18 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        db:
-          - "mariadb:10.1"
-          - "mariadb:10.2"
-          - "mariadb:10.3"
-          - "mariadb:10.4"
-          - "mariadb:10.5"
-          - "mysql:5.6"
-          - "mysql:5.7"
-          - "mysql:8.0"
-          - "percona:5.6"
-          - "percona:5.7"
-          - "percona:8.0"
+        include:
+          - {image: "mariadb", version: "10.1", config-dir: "/etc/mysql/conf.d"}
+          - {image: "mariadb", version: "10.2", config-dir: "/etc/mysql/conf.d"}
+          - {image: "mariadb", version: "10.3", config-dir: "/etc/mysql/conf.d"}
+          - {image: "mariadb", version: "10.4", config-dir: "/etc/mysql/conf.d"}
+          - {image: "mariadb", version: "10.5", config-dir: "/etc/mysql/conf.d"}
+          - {image: "mysql", version: "5.6", config-dir: "/etc/mysql/conf.d"}
+          - {image: "mysql", version: "5.7", config-dir: "/etc/mysql/conf.d"}
+          - {image: "mysql", version: "8.0", config-dir: "/etc/mysql/conf.d"}
+          - {image: "percona", version: "5.6", config-dir: "/etc/my.cnf.d"}
+          - {image: "percona", version: "5.7", config-dir: "/etc/my.cnf.d"}
+          - {image: "percona", version: "8.0", config-dir: "/etc/my.cnf.d"}
     env:
       # Push only when a new commit is pushed on master on glpi-project/docker-images repository.
       push: ${{ github.ref == 'refs/heads/master' && github.repository == 'glpi-project/docker-images' }}
@@ -43,11 +43,11 @@ jobs:
       - name: "Build image"
         run: |
           echo "${{ secrets.DOCKER_HUB_TOKEN }}" | docker login -u ${{ secrets.DOCKER_HUB_USERNAME }} --password-stdin
-          docker build --pull --tag image --build-arg BASE_IMAGE=${{ matrix.db }} githubactions-db
+          docker build --pull --tag image --build-arg BASE_IMAGE=${{ matrix.image }}:${{ matrix.version }} --build-arg CONFIG_DIR=${{ matrix.config-dir }} githubactions-db
       - name: "Push image to Github container registry"
         if: env.push == 'true'
         run: |
           echo "${{ secrets.GHCR_ACCESS_TOKEN }}" | docker login -u ${{ secrets.GHCR_USERNAME }} --password-stdin ghcr.io
-          IMAGE_TAG=ghcr.io/glpi-project/githubactions-${{ matrix.db }}
+          IMAGE_TAG=ghcr.io/glpi-project/githubactions-${{ matrix.image }}:${{ matrix.version }}
           docker tag image $IMAGE_TAG
           docker push $IMAGE_TAG

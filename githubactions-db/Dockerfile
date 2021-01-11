@@ -8,7 +8,8 @@ LABEL \
   org.opencontainers.image.url="https://github.com/glpi-project/docker-images" \
   org.opencontainers.image.source="git@github.com:glpi-project/docker-images"
 
-COPY ./files/etc/mysql/conf.d/custom.cnf /etc/mysql/conf.d/custom.cnf
+ARG CONFIG_DIR=/etc/mysql/conf.d
+COPY ./files/etc/mysql/conf.d/custom.cnf $CONFIG_DIR/custom.cnf
 
 HEALTHCHECK --interval=10s --retries=5 --timeout=5s \
   CMD mysqladmin ping
