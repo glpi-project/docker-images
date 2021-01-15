@@ -104,6 +104,10 @@ RUN \
   # Install git and zip used by composer when fetching dependencies.
   && apk add --update git unzip \
   \
+  # Install gettext used to validate locales extraction.
+  # Use edge repository as gettext-0.21 is not available on alpine v3.13 or lower version.
+  && apk add --update gettext --repository http://dl-cdn.alpinelinux.org/alpine/edge/main/ \
+  \
   # Install sudo that may be usefull to temporarly install upcoming required system components.
   && apk add --update sudo \
   && (echo "glpi  ALL=(ALL) NOPASSWD:ALL" | sudo tee /etc/sudoers.d/glpi) \
@@ -119,18 +123,6 @@ RUN \
   \
   # Clean sources list.
   && rm -rf /var/cache/apk/*
-
-# Install gettext 0.21
-RUN apk add --update build-base \
-  && curl https://ftp.gnu.org/pub/gnu/gettext/gettext-0.21.tar.gz --location --output /tmp/gettext.tar.gz \
-  && mkdir /tmp/gettext \
-  && tar --extract --ungzip --strip 1 --file /tmp/gettext.tar.gz --directory /tmp/gettext \
-  && (cd /tmp/gettext/ && ./configure --prefix=/usr/local/gettext) \
-  && (cd /tmp/gettext/ && make --quiet) \
-  && (cd /tmp/gettext/ && make --quiet install) \
-  && rm -rf /tmp/gettext.tar.gz /tmp/gettext \
-  && apk del -f build-base
-ENV PATH=/usr/local/gettext/bin:$PATH
 
 # Copy composer binary
 COPY --from=composer /usr/bin/composer /usr/bin/composer
