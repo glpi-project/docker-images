@@ -1,0 +1,38 @@
+name: "Plugin builder image"
+
+on:
+  push:
+    branches:
+      - "master"
+    paths:
+      - ".github/workflows/plugin-builder.yml"
+      - "plugin-builder/**"
+  pull_request:
+    paths:
+      - ".github/workflows/plugin-builder.yml"
+      - "plugin-builder/**"
+  schedule:
+    - cron:  '0 0 * * 1'
+  # Enable manual run
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: "ubuntu-latest"
+    env:
+      # Push only when a new commit is pushed on master on glpi-project/docker-images repository.
+      push: ${{ github.ref == 'refs/heads/master' && github.repository == 'glpi-project/docker-images' }}
+    steps:
+      - name: "Checkout"
+        uses: "actions/checkout@v2"
+      - name: "Build image"
+        run: |
+          echo "${{ secrets.DOCKER_HUB_TOKEN }}" | docker login -u ${{ secrets.DOCKER_HUB_USERNAME }} --password-stdin
+          docker build --pull --tag image plugin-builder
+      - name: "Push image to Github container registry"
+        if: env.push == 'true'
+        run: |
+          echo "${{ secrets.GHCR_ACCESS_TOKEN }}" | docker login -u ${{ secrets.GHCR_USERNAME }} --password-stdin ghcr.io
+          IMAGE_TAG=ghcr.io/glpi-project/plugin-builder:latest
+          docker tag image $IMAGE_TAG
+          docker push $IMAGE_TAG
