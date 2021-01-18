@@ -19,8 +19,11 @@ LABEL \
   org.opencontainers.image.source="git@github.com:glpi-project/docker-images"
 
 RUN \
+  # Update APK package list.
+  apk update \
+  \
   # Install PHP build dependencies.
-  apk add --update --virtual .build-deps $PHPIZE_DEPS \
+  && apk add --virtual .build-deps $PHPIZE_DEPS \
   \
   # Extract PHP version.
   && PHP_MAJOR_VERSION="$(echo $PHP_VERSION | cut -d '.' -f 1)" \
@@ -32,7 +35,7 @@ RUN \
   # Install GD PHP extension.
   # GD extension configuration parameters changed on PHP 7.4
   # see https://www.php.net/manual/en/image.installation.php#image.installation
-  && apk add --update freetype-dev libjpeg-turbo-dev libpng-dev \
+  && apk add freetype-dev libjpeg-turbo-dev libpng-dev \
   && if ([ $PHP_MAJOR_VERSION -eq "7" ] && [ $PHP_MINOR_VERSION -le "3" ]); then \
     # For PHP 7 <= 7.3, use old parameters
     docker-php-ext-configure gd --with-freetype-dir=/usr/include/ --with-jpeg-dir=/usr/include/ \
@@ -42,12 +45,12 @@ RUN \
   && docker-php-ext-install gd \
   \
   # Install intl PHP extension.
-  && apk add --update icu-dev \
+  && apk add icu-dev \
   && docker-php-ext-install intl \
   \
   # Install ldap PHP extension.
-  && apk add --update --virtual .ldap-build-deps openldap-dev \
-  && apk add --update libldap \
+  && apk add --virtual .ldap-build-deps openldap-dev \
+  && apk add libldap \
   && docker-php-ext-install ldap \
   && apk del -f .ldap-build-deps \
   \
@@ -60,7 +63,7 @@ RUN \
   # Install Zip PHP extension.
   # Zip extension configuration changed on PHP 7.4
   # see https://www.php.net/manual/en/zip.installation.php
-  && apk add --update libzip-dev \
+  && apk add libzip-dev \
   && if ([ $PHP_MAJOR_VERSION -eq "7" ] && [ $PHP_MINOR_VERSION -le "3" ]); then \
     # For PHP 7 <= 7.3, needs to be configured
     docker-php-ext-configure zip --with-libzip \
@@ -68,7 +71,7 @@ RUN \
   && docker-php-ext-install zip \
   \
   # Install XMLRPC PHP extension.
-  && apk add --update libxml2-dev \
+  && apk add libxml2-dev \
   && if [ $PHP_MAJOR_VERSION -lt "8" ]; then \
     # For PHP < 8.x, install bundled extension
     docker-php-ext-install xmlrpc \
@@ -88,8 +91,7 @@ RUN \
   && echo "apc.enable_cli=1" >> /usr/local/etc/php/conf.d/docker-php-ext-apcu.ini \
   \
   # Use 'gnu-libiconv' to fix "iconv(): Wrong charset, conversion from `us-ascii' to `UTF-8//TRANSLIT' is not allowed".
-  # Use 'edge' repository as this package is not available on Alpine 3.8 (used for PHP 5.6 and 7.0).
-  && apk add --repository http://dl-cdn.alpinelinux.org/alpine/edge/community/ gnu-libiconv \
+  && apk add gnu-libiconv \
   \
   # Update PHP configuration.
   && echo "memory_limit = 512M" >> /usr/local/etc/php/conf.d/docker-php-memory.ini \
@@ -99,24 +101,24 @@ RUN \
   \
   # Install nodejs and npm.
   # On alpine 3.7 (for PHP 7.0 and lower), npm is named nodejs-npm.
-  && (apk add --update nodejs npm || apk add --update nodejs nodejs-npm) \
+  && (apk add nodejs npm || apk add nodejs nodejs-npm) \
   \
   # Install git and zip used by composer when fetching dependencies.
-  && apk add --update git unzip \
+  && apk add git unzip \
   \
   # Install gettext used to validate locales extraction.
   # Use edge repository as gettext-0.21 is not available on alpine v3.13 or lower version.
-  && apk add --update gettext --repository http://dl-cdn.alpinelinux.org/alpine/edge/main/ \
+  && apk add gettext --repository http://dl-cdn.alpinelinux.org/alpine/edge/main/ \
   \
   # Install sudo that may be usefull to temporarly install upcoming required system components.
-  && apk add --update sudo \
+  && apk add sudo \
   && (echo "glpi  ALL=(ALL) NOPASSWD:ALL" | sudo tee /etc/sudoers.d/glpi) \
   \
   # Install bash that is used in some GLPI scripts.
-  && apk add --update bash \
+  && apk add bash \
   \
   # Install patch utility that may be usefull to patch dependencies.
-  && apk add --update patch \
+  && apk add patch \
   \
   # Remove PHP build dependencies.
   && apk del -f .build-deps \
