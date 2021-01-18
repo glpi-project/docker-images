@@ -9,8 +9,11 @@ LABEL \
   org.opencontainers.image.source="git@github.com:glpi-project/docker-images"
 
 RUN \
+  # Update APK package list.
+  apk update \
+  \
   # Install openldap.
-  apk add --update openldap openldap-back-hdb openldap-clients \
+  && apk add openldap openldap-back-hdb openldap-clients \
   \
   # Clean sources list.
   && rm -rf /var/cache/apk/*

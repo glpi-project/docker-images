@@ -8,17 +8,20 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 # Install required system packages.
 RUN \
-  # Install gettext required to compile locales.
-  apk add --update bash \
+  # Update APK package list.
+  apk update \
+  \
+  # Install bash that is used in for build script.
+  && apk add bash \
   \
   # Install gettext required to compile locales.
-  && apk add --update gettext \
+  && apk add gettext \
   \
   # Install nodejs and npm.
-  && apk add --update nodejs npm \
+  && apk add nodejs npm \
   \
   # Install git and zip used by composer when fetching dependencies.
-  && apk add --update git unzip \
+  && apk add git unzip \
   \
   # Clean sources list.
   && rm -rf /var/cache/apk/*
