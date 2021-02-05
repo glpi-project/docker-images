@@ -1,25 +1,30 @@
 
 [mysqld]
+# Tweak optimizer
+optimizer_switch='mrr=on'
+optimizer_switch='mrr_cost_based=off'
 
-# Performance tweaks
-# see https://github.com/CircleCI-Public/circleci-dockerfiles/blob/master/mysql/images/*/Dockerfile
-# see https://github.com/CircleCI-Public/circleci-dockerfiles/blob/master/mysql/images/*/ram/Dockerfile
-collation-server               = utf8mb4_unicode_ci
-init-connect                   = "SET NAMES utf8mb4"
-character-set-server           = utf8mb4
-innodb_flush_log_at_trx_commit = 2
-sync_binlog                    = 0
-innodb_use_native_aio          = 0
-datadir                        = /dev/shm/mysql
+# Mount datadir onto memory
+datadir=/dev/shm/mysql
+
 
 [mysqld-5.6]
 # Fix support of large prefix in InnoDB indexes
 innodb_file_format=Barracuda
 innodb_large_prefix=ON
 
+
+[mariadb]
+# Tweak cache/buffers
+join_cache_level=8
+join_buffer_size=8M
+mrr_buffer_size=8M
+
+
 [mariadb-10.1]
 # Fix support of large prefix in InnoDB indexes
 innodb_large_prefix=ON
+
 
 [mysqld-8.0]
 # Fix "Authentication plugin 'caching_sha2_password' cannot be loaded" on MySQL 8.0
