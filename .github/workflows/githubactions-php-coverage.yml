@@ -1,0 +1,43 @@
+name: "Github actions PHP images (with coverage tools)"
+
+on:
+  push:
+    branches:
+      - "master"
+    paths:
+      - ".github/workflows/githubactions-php-coverage.yml"
+      - "githubactions-php-coverage/**"
+  pull_request:
+    paths:
+      - ".github/workflows/githubactions-php-coverage.yml"
+      - "githubactions-php-coverage/**"
+  schedule:
+    - cron:  '0 0 * * 1'
+  # Enable manual run
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: "ubuntu-latest"
+    strategy:
+      fail-fast: false
+      matrix:
+        php-version:
+          - "8.0"
+    env:
+      # Push only when a new commit is pushed on master on glpi-project/docker-images repository.
+      push: ${{ github.ref == 'refs/heads/master' && github.repository == 'glpi-project/docker-images' }}
+    steps:
+      - name: "Checkout"
+        uses: "actions/checkout@v2"
+      - name: "Build image"
+        run: |
+          echo "${{ secrets.DOCKER_HUB_TOKEN }}" | docker login -u ${{ secrets.DOCKER_HUB_USERNAME }} --password-stdin
+          docker build --pull --tag image --build-arg BASE_IMAGE=ghcr.io/glpi-project/githubactions-php:${{ matrix.php-version }} githubactions-php-coverage
+      - name: "Push image to Github container registry"
+        if: env.push == 'true'
+        run: |
+          echo "${{ secrets.GHCR_ACCESS_TOKEN }}" | docker login -u ${{ secrets.GHCR_USERNAME }} --password-stdin ghcr.io
+          IMAGE_TAG=ghcr.io/glpi-project/githubactions-php-coverage:${{ matrix.php-version }}
+          docker tag image $IMAGE_TAG
+          docker push $IMAGE_TAG
