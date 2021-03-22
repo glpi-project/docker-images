@@ -1,7 +1,11 @@
+
+ARG BUILDER_IMAGE=php:cli-alpine
+ARG APP_IMAGE=php:apache
+
 #####
 # Builder image
 #####
-FROM php:cli-alpine AS builder
+FROM $BUILDER_IMAGE AS builder
 
 # Copy composer binary from latest composer image.
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
@@ -14,8 +18,11 @@ RUN \
   # Install bash that is used in for build script.
   && apk add bash \
   \
-  # Install gettext required to compile locales.
-  && apk add gettext \
+  # Install patch utility that may be usefull to patch dependencies.
+  && apk add patch \
+  \
+  # Install gettext and perl required to compile locales.
+  && apk add gettext perl \
   \
   # Install nodejs and npm.
   && apk add nodejs npm \
@@ -39,7 +46,7 @@ RUN /usr/src/glpi/tools/build_glpi.sh
 #####
 # Application image
 #####
-FROM php:apache
+FROM $APP_IMAGE
 
 LABEL \
   org.opencontainers.image.title="GLPI nightly build" \
