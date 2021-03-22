@@ -18,13 +18,14 @@ on:
 
 jobs:
   build:
+    name: "Build ${{ matrix.branch }} on PHP ${{ matrix.php-version }}"
     runs-on: "ubuntu-latest"
     strategy:
       fail-fast: false
       matrix:
-        branch:
-          - "master"
-          - "9.5/bugfixes"
+        include:
+          - {php-version: "8.0", branch: "master"}
+          - {php-version: "7.4", branch: "9.5/bugfixes"}
     env:
       # Push only when a new commit is pushed on master on glpi-project/docker-images repository.
       push: ${{ github.ref == 'refs/heads/master' && github.repository == 'glpi-project/docker-images' }}
@@ -39,7 +40,7 @@ jobs:
       - name: "Build image"
         run: |
           echo "${{ secrets.DOCKER_HUB_TOKEN }}" | docker login -u ${{ secrets.DOCKER_HUB_USERNAME }} --password-stdin
-          docker build --pull --tag image glpi-nightly
+          docker build --pull --tag image --build-arg BUILDER_IMAGE=php:${{ matrix.php-version }}-cli-alpine --build-arg APP_IMAGE=php:${{ matrix.php-version }}-apache glpi-nightly
       - name: "Push image to Github container registry"
         if: env.push == 'true'
         run: |
