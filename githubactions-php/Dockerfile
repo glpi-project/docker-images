@@ -60,6 +60,10 @@ RUN \
   # Install pcntl PHP extension (required for composer-require-checker).
   && docker-php-ext-install pcntl \
   \
+  # Install redis PHP extension.
+  && pecl install redis \
+  && docker-php-ext-enable redis \
+  \
   # Install Zip PHP extension.
   # Zip extension configuration changed on PHP 7.4
   # see https://www.php.net/manual/en/zip.installation.php
