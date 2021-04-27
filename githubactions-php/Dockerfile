@@ -54,6 +54,11 @@ RUN \
   && docker-php-ext-install ldap \
   && apk del -f .ldap-build-deps \
   \
+  # Install memcached PHP extension.
+  && apk add libmemcached-dev \
+  && pecl install memcached \
+  && docker-php-ext-enable memcached \
+  \
   # Install mysqli PHP extension.
   && docker-php-ext-install mysqli \
   \
