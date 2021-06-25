@@ -24,6 +24,9 @@ RUN \
   # Install gettext required to build locale files.
   && apk add gettext \
   \
+  # Install patch utility that may be usefull to patch dependencies.
+  && apk add patch \
+  \
   # Remove build dependencies.
   && apk del -f .build-deps \
   \
