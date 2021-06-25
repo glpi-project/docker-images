@@ -16,7 +16,7 @@ RUN \
   # Install Python, pip and Python modules required by "plugin-release" script.
   && apk add python3-dev && ln -s /usr/bin/python3 /usr/bin/python \
   && apk add py3-pip \
-  && apk add libxml2-dev libxslt-dev && pip install lxml \
+  && apk add libffi-dev libxml2-dev libxslt-dev && pip install lxml \
   && apk add git && pip install gitpython \
   && pip install PyGithub \
   && pip install termcolor \
