@@ -6,6 +6,13 @@ ARG BASE_IMAGE=php:fpm-alpine
 #####
 FROM composer:latest AS composer
 
+#####
+# Fetch composer latest build
+#####
+FROM alpine:3.13 AS iconv_1_15
+
+# Use 'gnu-libiconv' to fix "iconv(): Wrong charset, conversion from `us-ascii' to `UTF-8//TRANSLIT' is not allowed".
+RUN apk add gnu-libiconv
 
 #####
 # Build main image
@@ -99,9 +106,6 @@ RUN \
   && echo "apc.enable=1" >> /usr/local/etc/php/conf.d/docker-php-ext-apcu.ini \
   && echo "apc.enable_cli=1" >> /usr/local/etc/php/conf.d/docker-php-ext-apcu.ini \
   \
-  # Use 'gnu-libiconv' to fix "iconv(): Wrong charset, conversion from `us-ascii' to `UTF-8//TRANSLIT' is not allowed".
-  && apk add gnu-libiconv \
-  \
   # Update PHP configuration.
   && echo "memory_limit = 512M" >> /usr/local/etc/php/conf.d/docker-php-memory.ini \
   \
@@ -138,6 +142,9 @@ RUN \
 
 # Copy composer binary
 COPY --from=composer /usr/bin/composer /usr/bin/composer
+
+#Fix "iconv(): Wrong charset, conversion from `us-ascii' to `UTF-8//TRANSLIT' is not allowed".
+COPY --from=iconv_1_15 /usr/lib/preloadable_libiconv.so /usr/lib/preloadable_libiconv.so
 
 # Create application volume (used to share data across jobs),
 # give its ownage to glpi user (1000:1000) and define it as base working dir
