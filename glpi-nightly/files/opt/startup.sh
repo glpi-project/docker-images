@@ -9,6 +9,7 @@ dirs=(
     "/var/glpi/files/_cron"
     "/var/glpi/files/_dumps"
     "/var/glpi/files/_graphs"
+    "/var/glpi/files/_locales"
     "/var/glpi/files/_lock"
     "/var/glpi/files/_log"
     "/var/glpi/files/_pictures"
@@ -17,6 +18,7 @@ dirs=(
     "/var/glpi/files/_sessions"
     "/var/glpi/files/_tmp"
     "/var/glpi/files/_uploads"
+    "/var/glpi/files/_inventories"
 )
 for dir in "${dirs[@]}"
 do
