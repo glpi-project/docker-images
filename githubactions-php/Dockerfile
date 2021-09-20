@@ -94,7 +94,7 @@ RUN \
   ; else \
     # For PHP 8+, install from Github (extension should be available on PECL but is not)
     mkdir -p /tmp/xmlrpc \
-    && curl -LsfS https://github.com/php/pecl-networking-xmlrpc/archive/172de90b7ba773330b187d54ec101d60a461aa2d/xmlrpc-1.0.0-172de90b.tar.gz | tar xvz -C "/tmp/xmlrpc" --strip 1 \
+    && curl -LsfS https://github.com/php/pecl-networking-xmlrpc/archive/0f782ffe52cebd0a65356427b7ab72d48b72d20c/xmlrpc-0f782ff.tar.gz | tar xvz -C "/tmp/xmlrpc" --strip 1 \
     && docker-php-ext-configure /tmp/xmlrpc --with-xmlrpc \
     && docker-php-ext-install /tmp/xmlrpc \
     && rm -rf /tmp/xmlrpc \
