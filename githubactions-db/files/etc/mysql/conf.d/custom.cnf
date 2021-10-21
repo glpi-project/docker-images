@@ -8,22 +8,11 @@ optimizer_switch='mrr_cost_based=off'
 datadir=/dev/shm/mysql
 
 
-[mysqld-5.6]
-# Fix support of large prefix in InnoDB indexes
-innodb_file_format=Barracuda
-innodb_large_prefix=ON
-
-
 [mariadb]
 # Tweak cache/buffers
 join_cache_level=8
 join_buffer_size=8M
 mrr_buffer_size=8M
-
-
-[mariadb-10.1]
-# Fix support of large prefix in InnoDB indexes
-innodb_large_prefix=ON
 
 
 [mysqld-8.0]

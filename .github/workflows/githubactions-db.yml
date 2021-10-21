@@ -23,16 +23,13 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - {image: "mariadb", version: "10.1", config-dir: "/etc/mysql/conf.d"}
           - {image: "mariadb", version: "10.2", config-dir: "/etc/mysql/conf.d"}
           - {image: "mariadb", version: "10.3", config-dir: "/etc/mysql/conf.d"}
           - {image: "mariadb", version: "10.4", config-dir: "/etc/mysql/conf.d"}
           - {image: "mariadb", version: "10.5", config-dir: "/etc/mysql/conf.d"}
           - {image: "mariadb", version: "10.6", config-dir: "/etc/mysql/conf.d"}
-          - {image: "mysql", version: "5.6", config-dir: "/etc/mysql/conf.d"}
           - {image: "mysql", version: "5.7", config-dir: "/etc/mysql/conf.d"}
           - {image: "mysql", version: "8.0", config-dir: "/etc/mysql/conf.d"}
-          - {image: "percona", version: "5.6", config-dir: "/etc/my.cnf.d"}
           - {image: "percona", version: "5.7", config-dir: "/etc/my.cnf.d"}
           - {image: "percona", version: "8.0", config-dir: "/etc/my.cnf.d"}
     env:
