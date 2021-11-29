@@ -13,13 +13,10 @@ RUN \
   apk update \
   \
   # Install openldap.
-  && apk add openldap openldap-back-hdb openldap-clients \
+  && apk add openldap openldap-clients \
   \
   # Clean sources list.
   && rm -rf /var/cache/apk/*
-
-# Use default config for LDAP database
-RUN mv /var/lib/openldap/openldap-data/DB_CONFIG.example /var/lib/openldap/openldap-data/DB_CONFIG
 
 COPY ./files/etc/openldap/slapd.conf /etc/openldap/slapd.conf
 
