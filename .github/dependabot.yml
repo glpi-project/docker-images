@@ -1,0 +1,7 @@
+version: 2
+updates:
+  # Ensure GitHub Actions are used in their latest version
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
