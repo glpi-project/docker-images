@@ -32,10 +32,6 @@ RUN \
   # Install PHP build dependencies.
   && apk add --virtual .build-deps $PHPIZE_DEPS \
   \
-  # Extract PHP version.
-  && PHP_MAJOR_VERSION="$(echo $PHP_VERSION | cut -d '.' -f 1)" \
-  && PHP_MINOR_VERSION="$(echo $PHP_VERSION | cut -d '.' -f 2)" \
-  \
   # Install exif extension.
   && docker-php-ext-install exif \
   \
@@ -43,12 +39,7 @@ RUN \
   # GD extension configuration parameters changed on PHP 7.4
   # see https://www.php.net/manual/en/image.installation.php#image.installation
   && apk add freetype-dev libjpeg-turbo-dev libpng-dev \
-  && if ([ $PHP_MAJOR_VERSION -eq "7" ] && [ $PHP_MINOR_VERSION -le "3" ]); then \
-    # For PHP 7 <= 7.3, use old parameters
-    docker-php-ext-configure gd --with-freetype-dir=/usr/include/ --with-jpeg-dir=/usr/include/ \
-  ; else \
-    docker-php-ext-configure gd --with-freetype --with-jpeg \
-  ; fi \
+  && docker-php-ext-configure gd --with-freetype --with-jpeg \
   && docker-php-ext-install gd \
   \
   # Install intl PHP extension.
@@ -80,16 +71,12 @@ RUN \
   # Zip extension configuration changed on PHP 7.4
   # see https://www.php.net/manual/en/zip.installation.php
   && apk add libzip-dev \
-  && if ([ $PHP_MAJOR_VERSION -eq "7" ] && [ $PHP_MINOR_VERSION -le "3" ]); then \
-    # For PHP 7 <= 7.3, needs to be configured
-    docker-php-ext-configure zip --with-libzip \
-  ; fi \
   && docker-php-ext-install zip \
   \
   # Install XMLRPC PHP extension.
   && apk add libxml2-dev \
-  && if [ $PHP_MAJOR_VERSION -lt "8" ]; then \
-    # For PHP < 8.x, install bundled extension
+  && if [[ "$PHP_VERSION" =~ "^7\." ]]; then \
+    # For PHP < 7.x, install bundled extension
     docker-php-ext-install xmlrpc \
   ; else \
     # For PHP 8+, install from Github (extension should be available on PECL but is not)
@@ -113,8 +100,7 @@ RUN \
   && rm /usr/local/etc/php/conf.d/docker-php-ext-sodium.ini \
   \
   # Install nodejs and npm.
-  # On alpine 3.7 (for PHP 7.0 and lower), npm is named nodejs-npm.
-  && (apk add nodejs npm || apk add nodejs nodejs-npm) \
+  && apk add nodejs npm \
   \
   # Install git and zip used by composer when fetching dependencies.
   && apk add git unzip \
