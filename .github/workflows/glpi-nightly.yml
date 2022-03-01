@@ -37,7 +37,7 @@ jobs:
           IMAGE_VERSION=$(echo ${{ matrix.branch }} | sed -E 's|/|-|')
           echo "IMAGE_TAG=ghcr.io/glpi-project/glpi-nightly:$IMAGE_VERSION" >> $GITHUB_ENV
       - name: "Checkout"
-        uses: "actions/checkout@v2"
+        uses: "actions/checkout@v3"
       - name: "Get sources from glpi-project/glpi"
         run: |
           curl https://github.com/glpi-project/glpi/archive/${{ matrix.branch }}.tar.gz --location --output glpi.tar.gz
