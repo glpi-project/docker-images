@@ -102,8 +102,6 @@ COPY ./files/etc/cron.d/glpi /etc/cron.d/glpi
 COPY ./files/opt/startup.sh /opt/startup.sh
 COPY ./files/opt/download_glpi.sh /opt/download_glpi.sh
 COPY ./files/opt/install_glpi.sh /opt/install_glpi.sh
-COPY ./files/opt/install_plugins.sh /opt/install_plugins.sh
-COPY ./files/opt/marketplace_cli.patch /opt/marketplace_cli.patch
 
 # Install GLPI crontab.
 RUN crontab -u www-data /etc/cron.d/glpi
