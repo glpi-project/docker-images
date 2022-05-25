@@ -1,0 +1,44 @@
+version: "3.9"
+services:
+  web:
+    container_name: glpi-web
+    image: glpi:${IMAGE_TAG}
+    build:
+      context: "services/web"
+      args:
+        HOST_GROUP_ID: "${HOST_GROUP_ID:-1000}"
+        HOST_USER_ID: "${HOST_USER_ID:-1000}"
+        GLPI_RELEASE: "${GLPI_RELEASE}"
+    restart: unless-stopped
+    volumes:
+      - glpi-files:/var/www/glpi/files:rw
+      - glpi-plugins:/var/www/glpi/plugins:rw
+      - glpi-config:/var/www/glpi/config:rw
+    ports:
+      - "${WEB_PORT:-80}:80"
+    profiles: ['full', 'web']
+    networks:
+      - glpi-frontend
+      - glpi-backend
+  db:
+    container_name: glpi-db
+    image: mariadb:10.7.3
+    restart: unless-stopped
+    environment:
+      MARIADB_ROOT_PASSWORD: DB_ROOT_PASSWORD
+      MARIADB_DATABASE: "${DB_DATABASE:-glpi}"
+      MARIADB_USER: "${DB_USER}"
+      MARIADB_PASSWORD: "${DB_PASSWORD}"
+      MARIADB_RANDOM_ROOT_PASSWORD: 1 
+    ports:
+      - "${DB_PORT:-3306}:3306"
+    profiles: ['full']
+    networks:
+      - glpi-backend
+volumes: 
+  glpi-files:
+  glpi-plugins:
+  glpi-config:
+networks: 
+    glpi-frontend: 
+    glpi-backend:
