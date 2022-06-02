@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -e
 
 # Create config and files volume (sub)directories that are missing
 # and set ACL for www-data user
