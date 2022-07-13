@@ -13,7 +13,7 @@ RUN \
   apk update \
   \
   # Install openldap.
-  && apk add openldap openldap-clients \
+  && apk add openldap openldap-clients openldap-overlay-memberof \
   \
   # Clean sources list.
   && rm -rf /var/cache/apk/*
