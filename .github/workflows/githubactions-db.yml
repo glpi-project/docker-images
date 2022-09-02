@@ -23,7 +23,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - {image: "mariadb", version: "10.2", config-dir: "/etc/mysql/conf.d"}
           - {image: "mariadb", version: "10.3", config-dir: "/etc/mysql/conf.d"}
           - {image: "mariadb", version: "10.4", config-dir: "/etc/mysql/conf.d"}
           - {image: "mariadb", version: "10.5", config-dir: "/etc/mysql/conf.d"}
