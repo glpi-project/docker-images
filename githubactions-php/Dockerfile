@@ -28,8 +28,6 @@ RUN \
   && docker-php-ext-install exif \
   \
   # Install GD PHP extension.
-  # GD extension configuration parameters changed on PHP 7.4
-  # see https://www.php.net/manual/en/image.installation.php#image.installation
   && apk add freetype-dev libjpeg-turbo-dev libpng-dev \
   && docker-php-ext-configure gd --with-freetype --with-jpeg \
   && docker-php-ext-install gd \
@@ -66,18 +64,13 @@ RUN \
   && docker-php-ext-install zip \
   \
   # Install XMLRPC PHP extension.
+  # Install from Github (extension should be available on PECL but is not)
   && apk add libxml2-dev \
-  && if [[ "$PHP_VERSION" =~ "^7\." ]]; then \
-    # For PHP < 7.x, install bundled extension
-    docker-php-ext-install xmlrpc \
-  ; else \
-    # For PHP 8+, install from Github (extension should be available on PECL but is not)
-    mkdir -p /tmp/xmlrpc \
-    && curl -LsfS https://github.com/php/pecl-networking-xmlrpc/archive/0f782ffe52cebd0a65356427b7ab72d48b72d20c/xmlrpc-0f782ff.tar.gz | tar xvz -C "/tmp/xmlrpc" --strip 1 \
-    && docker-php-ext-configure /tmp/xmlrpc --with-xmlrpc \
-    && docker-php-ext-install /tmp/xmlrpc \
-    && rm -rf /tmp/xmlrpc \
-  ; fi \
+  && mkdir -p /tmp/xmlrpc \
+  && (curl -LsfS https://github.com/php/pecl-networking-xmlrpc/archive/0f782ffe52cebd0a65356427b7ab72d48b72d20c/xmlrpc-0f782ff.tar.gz | tar xvz -C "/tmp/xmlrpc" --strip 1) \
+  && docker-php-ext-configure /tmp/xmlrpc --with-xmlrpc \
+  && docker-php-ext-install /tmp/xmlrpc \
+  && rm -rf /tmp/xmlrpc \
   \
   # Install APCU PHP extension.
   && pecl install apcu \
