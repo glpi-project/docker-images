@@ -35,7 +35,7 @@ RUN \
   && docker-php-ext-install gd \
   \
   # Install intl PHP extension.
-  && apk add icu-dev \
+  && apk add icu-dev icu-data-full \
   && docker-php-ext-install intl \
   \
   # Install ldap PHP extension.
