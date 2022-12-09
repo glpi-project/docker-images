@@ -7,14 +7,6 @@ ARG BASE_IMAGE=php:fpm-alpine
 FROM composer:latest AS composer
 
 #####
-# Fetch composer latest build
-#####
-FROM alpine:3.13 AS iconv_1_15
-
-# Use 'gnu-libiconv' to fix "iconv(): Wrong charset, conversion from `us-ascii' to `UTF-8//TRANSLIT' is not allowed".
-RUN apk add gnu-libiconv
-
-#####
 # Build main image
 #####
 FROM $BASE_IMAGE
@@ -129,9 +121,6 @@ RUN \
 # Copy composer binary
 COPY --from=composer /usr/bin/composer /usr/bin/composer
 
-#Fix "iconv(): Wrong charset, conversion from `us-ascii' to `UTF-8//TRANSLIT' is not allowed".
-COPY --from=iconv_1_15 /usr/lib/preloadable_libiconv.so /usr/lib/preloadable_libiconv.so
-
 # Create application volume (used to share data across jobs),
 # give its ownage to glpi user (1000:1000) and define it as base working dir
 RUN addgroup -g 1000 glpi \
@@ -142,7 +131,3 @@ USER glpi
 VOLUME /home/glpi
 VOLUME /var/glpi
 WORKDIR /var/glpi
-
-ENV \
-  # #Fix "iconv(): Wrong charset, conversion from `us-ascii' to `UTF-8//TRANSLIT' is not allowed".
-  LD_PRELOAD="/usr/lib/preloadable_libiconv.so php-fpm7 php"
