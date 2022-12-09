@@ -91,8 +91,7 @@ RUN \
   && apk add git unzip \
   \
   # Install gettext and perl used to validate locales extraction.
-  # Use edge repository as gettext-0.21 is not available on alpine v3.13 or lower version.
-  && apk add gettext --repository http://dl-cdn.alpinelinux.org/alpine/edge/main/ \
+  && apk add gettext \
   && apk add perl \
   \
   # Install sudo that may be usefull to temporarly install upcoming required system components.
