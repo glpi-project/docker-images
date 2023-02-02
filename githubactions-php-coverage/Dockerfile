@@ -15,7 +15,7 @@ RUN \
   apk update \
   \
   # Install PHP build dependencies.
-  && apk add --virtual .build-deps $PHPIZE_DEPS \
+  && apk add --virtual .build-deps $PHPIZE_DEPS linux-headers \
   \
   # Install xdebug extension.
   && pecl install xdebug \
