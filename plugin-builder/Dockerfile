@@ -1,4 +1,4 @@
-FROM php:cli-alpine
+FROM php:cli-alpine3.17
 
 # Copy composer binary from latest composer image.
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
@@ -14,7 +14,7 @@ RUN \
   && apk add nodejs npm \
   \
   # Install Python, pip and Python modules required by "plugin-release" script.
-  && apk add python3-dev && ln -s /usr/bin/python3 /usr/bin/python \
+  && apk add python3-dev \
   && apk add py3-pip \
   && apk add libffi-dev libxml2-dev libxslt-dev && pip install lxml \
   && apk add git && pip install gitpython \
