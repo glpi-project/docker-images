@@ -24,7 +24,8 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - {php-version: "8.1", branch: "master"}
+          - {php-version: "8.2", branch: "main"}
+          - {php-version: "8.1", branch: "10.0/bugfixes"}
           - {php-version: "7.4", branch: "9.5/bugfixes"}
     steps:
       - name: "Set variables"
