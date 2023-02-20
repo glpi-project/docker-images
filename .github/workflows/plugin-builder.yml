@@ -3,7 +3,7 @@ name: "Plugin builder image"
 on:
   push:
     branches:
-      - "master"
+      - "main"
     paths:
       - ".github/workflows/plugin-builder.yml"
       - "plugin-builder/**"
@@ -23,7 +23,7 @@ jobs:
       - name: "Set variables"
         run: |
           OUTPUTS="type=image"
-          if [[ "${{ github.ref }}" = 'refs/heads/master' && "${{ github.repository }}" = 'glpi-project/docker-images' ]]; then
+          if [[ "${{ github.ref }}" = 'refs/heads/main' && "${{ github.repository }}" = 'glpi-project/docker-images' ]]; then
               OUTPUTS="$OUTPUTS,push=true"
           fi
           echo "OUTPUTS=$OUTPUTS" >> $GITHUB_ENV
