@@ -87,6 +87,9 @@ RUN apt-get update \
   # Install mysqli PHP extension.
   && docker-php-ext-install mysqli \
   \
+  # Install opcache PHP extension.
+  && docker-php-ext-install opcache \
+  \
   # Install soap PHP extension (required for some plugins).
   && apt-get install --assume-yes --no-install-recommends --quiet libxml2-dev \
   && docker-php-ext-install soap \
