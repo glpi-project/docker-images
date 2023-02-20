@@ -3,7 +3,7 @@ name: "Github actions PHP images (with coverage tools)"
 on:
   push:
     branches:
-      - "master"
+      - "main"
     paths:
       - ".github/workflows/githubactions-php-coverage.yml"
       - "githubactions-php-coverage/**"
@@ -28,7 +28,7 @@ jobs:
       - name: "Set variables"
         run: |
           OUTPUTS="type=image"
-          if [[ "${{ github.ref }}" = 'refs/heads/master' && "${{ github.repository }}" = 'glpi-project/docker-images' ]]; then
+          if [[ "${{ github.ref }}" = 'refs/heads/main' && "${{ github.repository }}" = 'glpi-project/docker-images' ]]; then
               OUTPUTS="$OUTPUTS,push=true"
           fi
           echo "OUTPUTS=$OUTPUTS" >> $GITHUB_ENV
