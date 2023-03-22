@@ -11,5 +11,9 @@ LABEL \
 ARG CONFIG_DIR=/etc/mysql/conf.d
 COPY ./files/etc/mysql/conf.d/custom.cnf $CONFIG_DIR/custom.cnf
 
+RUN \
+  (test -f /usr/bin/mysql || (test -f /usr/bin/mariadb && ln -s /usr/bin/mariadb /usr/bin/mysql)) \
+  && (test -f /usr/bin/mysqladmin || (test -f /usr/bin/mariadb-admin && ln -s /usr/bin/mariadb-admin /usr/bin/mysqladmin))
+
 HEALTHCHECK --interval=10s --retries=5 --timeout=5s \
   CMD mysqladmin ping
