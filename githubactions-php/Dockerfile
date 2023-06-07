@@ -29,7 +29,7 @@ RUN \
   \
   # Install GD PHP extension.
   && apk add freetype-dev libjpeg-turbo-dev libpng-dev \
-  && docker-php-ext-configure gd --with-freetype --with-jpeg \
+  && docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
   && docker-php-ext-install gd \
   \
   # Install intl PHP extension.
