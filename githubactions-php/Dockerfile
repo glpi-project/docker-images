@@ -28,7 +28,7 @@ RUN \
   && docker-php-ext-install exif \
   \
   # Install GD PHP extension.
-  && apk add freetype-dev libjpeg-turbo-dev libpng-dev \
+  && apk add freetype-dev libjpeg-turbo-dev libpng-dev libwebp-dev \
   && docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
   && docker-php-ext-install gd \
   \
