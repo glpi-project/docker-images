@@ -11,7 +11,7 @@ LABEL \
 # Install netcat for healthcheck
 USER root
 RUN apt-get update \
-  && apt-get install --assume-yes --no-install-recommends --quiet netcat \
+  && apt-get install --assume-yes --no-install-recommends --quiet netcat-traditional \
   && rm -rf /var/lib/apt/lists/*
 
 # Switch back to memcache user
