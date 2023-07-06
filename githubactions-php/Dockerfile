@@ -94,6 +94,9 @@ RUN \
   && apk add gettext \
   && apk add perl \
   \
+  # Install chromium-chromedriver used for front-end tests.
+  && apk add chromium-chromedriver \
+  \
   # Install sudo that may be usefull to temporarly install upcoming required system components.
   && apk add sudo \
   && (echo "glpi  ALL=(ALL) NOPASSWD:ALL" | sudo tee /etc/sudoers.d/glpi) \
