@@ -129,4 +129,4 @@ WORKDIR /var/glpi
 
 # Define GLPI environment variables
 ENV \
-  GLPI_ENVIRONMENT_TYPE=development
+  GLPI_ENVIRONMENT_TYPE=testing
