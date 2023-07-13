@@ -126,3 +126,7 @@ USER glpi
 VOLUME /home/glpi
 VOLUME /var/glpi
 WORKDIR /var/glpi
+
+# Define GLPI environment variables
+ENV \
+  GLPI_ENVIRONMENT_TYPE=development
