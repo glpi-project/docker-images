@@ -32,6 +32,7 @@ jobs:
           - {image: "mariadb", version: "11.0", config-dir: "/etc/mysql/conf.d"}
           - {image: "mysql", version: "5.7", config-dir: "/etc/mysql/conf.d"}
           - {image: "mysql", version: "8.0", config-dir: "/etc/mysql/conf.d"}
+          - {image: "mysql", version: "8.1", config-dir: "/etc/mysql/conf.d"}
           - {image: "percona", version: "5.7", config-dir: "/etc/my.cnf.d"}
           - {image: "percona", version: "8.0", config-dir: "/etc/my.cnf.d"}
     steps:
