@@ -99,6 +99,9 @@ RUN apt-get update \
   && docker-php-ext-configure zip \
   && docker-php-ext-install zip \
   \
+  # Enable apache mods.
+  && a2enmod rewrite \
+  \
   # Install cron service.
   && apt-get install --assume-yes --no-install-recommends --quiet cron \
   \
