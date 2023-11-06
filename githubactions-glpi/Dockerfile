@@ -17,12 +17,6 @@ USER root
 RUN adduser -D -h /home/github-actions-runner -G glpi -u 1001 github-actions-runner \
   && chown -R github-actions-runner:glpi /var/glpi
 
-# Globally install PHP CI utilities
-RUN composer config --global vendor-dir /var/lib/composer/vendor \
-  && composer config --global bin-dir /usr/local/bin \
-  && composer global require staabm/annotate-pull-request-from-checkstyle \
-  && rm -rf $(composer config --global cache-dir)
-
 USER github-actions-runner
 
 RUN \
