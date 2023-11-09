@@ -60,8 +60,7 @@ jobs:
           build-args: |
             BASE_IMAGE=ghcr.io/glpi-project/githubactions-php:${{ matrix.php-version }}
             GLPI_BRANCH=${{ matrix.glpi-branch }}
-          cache-from: "type=gha"
-          cache-to: "type=gha,mode=max"
+          no-cache: true
           context: "githubactions-glpi"
           outputs: "${{ env.OUTPUTS }}"
           pull: true
