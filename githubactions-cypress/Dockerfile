@@ -98,3 +98,7 @@ RUN a2enmod rewrite
 
 USER glpi
 WORKDIR /var/glpi
+
+# Define GLPI environment variables
+ENV \
+  GLPI_ENVIRONMENT_TYPE=testing
