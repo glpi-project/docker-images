@@ -23,9 +23,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - {base-image: "php:8.1-fpm-alpine3.19", php-version: "8.1"}
-          - {base-image: "php:8.2-fpm-alpine3.19", php-version: "8.2"}
-          - {base-image: "php:8.3-fpm-alpine3.19", php-version: "8.3"}
+          - {base-image: "php:8.1-fpm-bullseye", php-version: "8.1"}
+          - {base-image: "php:8.2-fpm-bullseye", php-version: "8.2"}
+          - {base-image: "php:8.3-fpm-bullseye", php-version: "8.3"}
     steps:
       - name: "Set variables"
         run: |
