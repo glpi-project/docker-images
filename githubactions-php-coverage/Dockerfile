@@ -11,21 +11,9 @@ LABEL \
 USER root
 
 RUN \
-  # Update APK package list.
-  apk update \
-  \
-  # Install PHP build dependencies.
-  && apk add --virtual .build-deps $PHPIZE_DEPS linux-headers \
-  \
   # Install xdebug extension.
-  && pecl install xdebug \
+  pecl install xdebug \
   && docker-php-ext-enable xdebug \
-  && echo "xdebug.mode=coverage" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
-  \
-  # Remove PHP build dependencies.
-  && apk del -f .build-deps \
-  \
-  # Clean sources list.
-  && rm -rf /var/cache/apk/*
+  && echo "xdebug.mode=coverage" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
 
 USER glpi

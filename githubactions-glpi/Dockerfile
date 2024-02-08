@@ -14,7 +14,7 @@ USER root
 
 # Create a user with UID=1001 (the UID used by Github Actions runner) and give it ownership of the `/var/glpi` directory,
 # so it can checkout the plugin and create config/user files without ACL issues.
-RUN adduser -D -h /home/github-actions-runner -G glpi -u 1001 github-actions-runner \
+RUN useradd -m -d /home/github-actions-runner -g glpi -u 1001 github-actions-runner \
   && chown -R github-actions-runner:glpi /var/glpi
 
 USER github-actions-runner
