@@ -1,0 +1,62 @@
+name: "Github actions PHP images with Apache server"
+
+on:
+  push:
+    branches:
+      - "main"
+    paths:
+      - ".github/workflows/githubactions-php-apache.yml"
+      - "githubactions-php-apache/**"
+  pull_request:
+    paths:
+      - ".github/workflows/githubactions-php-apache.yml"
+      - "githubactions-php-apache/**"
+  schedule:
+    - cron:  '0 0 * * 1'
+  # Enable manual run
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: "ubuntu-latest"
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {base-image: "php:8.1-apache-bullseye", php-version: "8.1"}
+          - {base-image: "php:8.2-apache-bullseye", php-version: "8.2"}
+          - {base-image: "php:8.3-apache-bullseye", php-version: "8.3"}
+    steps:
+      - name: "Set variables"
+        run: |
+          OUTPUTS="type=image"
+          if [[ "${{ github.ref }}" = 'refs/heads/main' && "${{ github.repository }}" = 'glpi-project/docker-images' ]]; then
+              OUTPUTS="$OUTPUTS,push=true"
+          fi
+          echo "OUTPUTS=$OUTPUTS" >> $GITHUB_ENV
+      - name: "Checkout"
+        uses: "actions/checkout@v4"
+      - name: "Set up Docker Buildx"
+        uses: "docker/setup-buildx-action@v3"
+      - name: "Login to DockerHub"
+        uses: "docker/login-action@v3"
+        with:
+          username: "${{ secrets.DOCKER_HUB_USERNAME }}"
+          password: "${{ secrets.DOCKER_HUB_TOKEN }}"
+      - name: "Login to Github container registry"
+        uses: "docker/login-action@v3"
+        with:
+          registry: "ghcr.io"
+          username: "${{ secrets.GHCR_USERNAME }}"
+          password: "${{ secrets.GHCR_ACCESS_TOKEN }}"
+      - name: "Build and push"
+        uses: "docker/build-push-action@v5"
+        with:
+          build-args: |
+            BASE_IMAGE=${{ matrix.base-image }}
+          cache-from: "type=gha"
+          cache-to: "type=gha,mode=max"
+          context: "githubactions-php-apache"
+          outputs: "${{ env.OUTPUTS }}"
+          pull: true
+          tags: "ghcr.io/glpi-project/githubactions-php-apache:${{ matrix.php-version }}"
