@@ -105,12 +105,12 @@ COPY --from=composer /usr/bin/composer /usr/bin/composer
 # give its ownage to glpi user (1000:1000) and define it as base working dir
 RUN addgroup -gid 1000 glpi \
   && useradd -m -d /home/glpi -g glpi -u 1000 glpi \
-  && mkdir -p /var/glpi \
-  && chown glpi:glpi /var/glpi
+  && mkdir -p /var/www/glpi \
+  && chown glpi:glpi /var/www/glpi
 USER glpi
 VOLUME /home/glpi
-VOLUME /var/glpi
-WORKDIR /var/glpi
+VOLUME /var/www/glpi
+WORKDIR /var/www/glpi
 
 # Define GLPI environment variables
 ENV \
