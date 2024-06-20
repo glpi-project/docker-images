@@ -111,6 +111,9 @@ RUN apt update \
 # Copy composer binary
 COPY --from=composer /usr/bin/composer /usr/bin/composer
 
+# Copy default PHP development configuration
+RUN cp "$PHP_INI_DIR/php.ini-development" "$PHP_INI_DIR/php.ini"
+
 # Copy files to container.
 COPY ./files/etc/apache2/sites-available/000-default.conf /etc/apache2/sites-available/000-default.conf
 COPY ./files/etc/php/conf.d/glpi.ini $PHP_INI_DIR/conf.d/glpi.ini
