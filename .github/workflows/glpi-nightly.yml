@@ -57,7 +57,7 @@ jobs:
           username: "${{ secrets.GHCR_USERNAME }}"
           password: "${{ secrets.GHCR_ACCESS_TOKEN }}"
       - name: "Build and push"
-        uses: "docker/build-push-action@v5"
+        uses: "docker/build-push-action@v6"
         with:
           build-args: |
             BUILDER_IMAGE=php:${{ matrix.php-version }}-cli-alpine
