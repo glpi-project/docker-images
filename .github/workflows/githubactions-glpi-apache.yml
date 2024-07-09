@@ -30,6 +30,7 @@ jobs:
           - {glpi-branch: "10.0/bugfixes", glpi-version: "10.0.x", php-version: "8.3"}
           - {glpi-branch: "main", glpi-version: "11.0.x", php-version: "8.2"}
           - {glpi-branch: "main", glpi-version: "11.0.x", php-version: "8.3"}
+          - {glpi-branch: "main", glpi-version: "11.0.x", php-version: "8.4"}
     steps:
       - name: "Set variables"
         run: |
