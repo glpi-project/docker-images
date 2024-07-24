@@ -50,8 +50,17 @@ RUN \
   && docker-php-ext-install pcntl \
   \
   # Install redis PHP extension.
-  && pecl install redis \
-  && docker-php-ext-enable redis \
+  && if [ "$(echo $PHP_VERSION | cut -d '.' -f 1,2)" = "8.4" ]; then \
+    # For PHP 8.4, install from Github (the latest release is not yet compatible)
+    mkdir -p /tmp/redis \
+    && (curl -LsfS https://github.com/phpredis/phpredis/archive/6ea5b3e08bdbf8cbe93e0dc56b18e8316d65097c/phpredis-6ea5b3e.tar.gz | tar xvz -C "/tmp/redis" --strip 1) \
+    && docker-php-ext-configure /tmp/redis \
+    && docker-php-ext-install /tmp/redis \
+    && rm -rf /tmp/redis \
+  ; else \
+    pecl install redis \
+    && docker-php-ext-enable redis \
+  ; fi \
   \
   # Install Zip PHP extension.
   && apt install --assume-yes --no-install-recommends --quiet libzip-dev \
