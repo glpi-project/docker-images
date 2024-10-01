@@ -88,6 +88,9 @@ RUN apt-get update \
   # Install mysqli PHP extension.
   && docker-php-ext-install mysqli \
   \
+  # Install bcmath PHP extension.
+  && docker-php-ext-install bcmath \
+  \
   # Install opcache PHP extension.
   && docker-php-ext-install opcache \
   \

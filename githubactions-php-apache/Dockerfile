@@ -46,6 +46,9 @@ RUN \
   # Install mysqli PHP extension.
   && docker-php-ext-install mysqli \
   \
+  # Install bcmath PHP extension.
+  && docker-php-ext-install bcmath \
+  \
   # Install pcntl PHP extension (required for composer-require-checker).
   && docker-php-ext-install pcntl \
   \
