@@ -46,7 +46,7 @@ jobs:
         uses: "docker/build-push-action@v6"
         with:
           build-args: |
-            BASE_IMAGE=php:apache-bullseye
+            BASE_IMAGE=php:8.3-apache-bullseye
           cache-from: "type=gha"
           cache-to: "type=gha,mode=max"
           context: "glpi-development-env"
