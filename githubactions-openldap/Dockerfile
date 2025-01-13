@@ -23,5 +23,5 @@ COPY ./files/etc/openldap/slapd.conf /etc/openldap/slapd.conf
 HEALTHCHECK --interval=10s --retries=5 --timeout=5s \
   CMD ldapwhoami  -x -H ldap://127.0.0.1:3890/ -D "cn=Manager,dc=glpi,dc=org" -w insecure || exit 1
 
-CMD ["slapd", "-d", "32768", "-h", "ldap://0.0.0.0:3890/"]
+CMD ["/bin/sh", "-c", "ulimit -n 1024 && slapd -d 32768 -h \"ldap://0.0.0.0:3890/\""]
  
