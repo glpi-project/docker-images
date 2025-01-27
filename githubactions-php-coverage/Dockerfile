@@ -11,9 +11,9 @@ LABEL \
 USER root
 
 RUN \
-  # Install xdebug extension.
-  pecl install xdebug \
-  && docker-php-ext-enable xdebug \
-  && echo "xdebug.mode=coverage" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
+  # Install pcov extension.
+  pecl install pcov \
+  && docker-php-ext-enable pcov \
+  && echo "pcov.enabled=1" >> /usr/local/etc/php/conf.d/docker-php-ext-pcov.ini
 
 USER glpi
