@@ -36,6 +36,7 @@ jobs:
           - {image: "mysql", version: "8.4", config-dir: "/etc/mysql/conf.d"}
           - {image: "percona", version: "5.7", config-dir: "/etc/my.cnf.d"}
           - {image: "percona", version: "8.0", config-dir: "/etc/my.cnf.d"}
+          - {image: "percona", version: "8.4", config-dir: "/etc/my.cnf.d"}
     steps:
       - name: "Set variables"
         run: |
