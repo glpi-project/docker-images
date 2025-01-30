@@ -23,19 +23,20 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - {image: "mariadb", version: "10.4", config-dir: "/etc/mysql/conf.d"}
-          - {image: "mariadb", version: "10.5", config-dir: "/etc/mysql/conf.d"}
-          - {image: "mariadb", version: "10.6", config-dir: "/etc/mysql/conf.d"}
-          - {image: "mariadb", version: "10.9", config-dir: "/etc/mysql/conf.d"}
-          - {image: "mariadb", version: "10.10", config-dir: "/etc/mysql/conf.d"}
-          - {image: "mariadb", version: "10.11", config-dir: "/etc/mysql/conf.d"}
-          - {image: "mariadb", version: "11.0", config-dir: "/etc/mysql/conf.d"}
-          - {image: "mariadb", version: "11.4", config-dir: "/etc/mysql/conf.d"}
-          - {image: "mysql", version: "5.7", config-dir: "/etc/mysql/conf.d"}
-          - {image: "mysql", version: "8.0", config-dir: "/etc/mysql/conf.d"}
-          - {image: "mysql", version: "8.4", config-dir: "/etc/mysql/conf.d"}
-          - {image: "percona", version: "5.7", config-dir: "/etc/my.cnf.d"}
-          - {image: "percona", version: "8.0", config-dir: "/etc/my.cnf.d"}
+          - {base-image: "mariadb", target-image: "mariadb", version: "10.4", config-dir: "/etc/mysql/conf.d"}
+          - {base-image: "mariadb", target-image: "mariadb", version: "10.5", config-dir: "/etc/mysql/conf.d"}
+          - {base-image: "mariadb", target-image: "mariadb", version: "10.6", config-dir: "/etc/mysql/conf.d"}
+          - {base-image: "mariadb", target-image: "mariadb", version: "10.9", config-dir: "/etc/mysql/conf.d"}
+          - {base-image: "mariadb", target-image: "mariadb", version: "10.10", config-dir: "/etc/mysql/conf.d"}
+          - {base-image: "mariadb", target-image: "mariadb", version: "10.11", config-dir: "/etc/mysql/conf.d"}
+          - {base-image: "mariadb", target-image: "mariadb", version: "11.0", config-dir: "/etc/mysql/conf.d"}
+          - {base-image: "mariadb", target-image: "mariadb", version: "11.4", config-dir: "/etc/mysql/conf.d"}
+          - {base-image: "mysql", target-image: "mysql", version: "5.7", config-dir: "/etc/mysql/conf.d"}
+          - {base-image: "mysql", target-image: "mysql", version: "8.0", config-dir: "/etc/mysql/conf.d"}
+          - {base-image: "mysql", target-image: "mysql", version: "8.4", config-dir: "/etc/mysql/conf.d"}
+          - {base-image: "percona/percona-server", target-image: "percona", version: "5.7", config-dir: "/etc/my.cnf.d"}
+          - {base-image: "percona/percona-server", target-image: "percona", version: "8.0", config-dir: "/etc/my.cnf.d"}
+          - {base-image: "percona/percona-server", target-image: "percona", version: "8.4", config-dir: "/etc/my.cnf.d"}
     steps:
       - name: "Set variables"
         run: |
@@ -63,11 +64,11 @@ jobs:
         uses: "docker/build-push-action@v6"
         with:
           build-args: |
-            BASE_IMAGE=${{ matrix.image }}:${{ matrix.version }}
+            BASE_IMAGE=${{ matrix.base-image }}:${{ matrix.version }}
             CONFIG_DIR=${{ matrix.config-dir }}
           cache-from: "type=gha"
           cache-to: "type=gha,mode=max"
           context: "githubactions-db"
           outputs: "${{ env.OUTPUTS }}"
           pull: true
-          tags: "ghcr.io/glpi-project/githubactions-${{ matrix.image }}:${{ matrix.version }}"
+          tags: "ghcr.io/glpi-project/githubactions-${{ matrix.target-image }}:${{ matrix.version }}"
