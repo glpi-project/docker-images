@@ -19,6 +19,13 @@ on:
 jobs:
   build:
     runs-on: "ubuntu-latest"
+    strategy:
+      fail-fast: false
+      matrix:
+        php-version: ["7.4", "8.0", "8.1", "8.3"]
+        latest: ["false"]
+        include:
+          - {php-version: "8.4", latest: "true"}
     steps:
       - name: "Set variables"
         run: |
@@ -46,10 +53,10 @@ jobs:
         uses: "docker/build-push-action@v6"
         with:
           build-args: |
-            BASE_IMAGE=php:8.3-apache-bullseye
+            BASE_IMAGE=php:${{ matrix.php-version }}-apache-bullseye
           cache-from: "type=gha"
           cache-to: "type=gha,mode=max"
           context: "glpi-development-env"
           outputs: "${{ env.OUTPUTS }}"
           pull: true
-          tags: "ghcr.io/glpi-project/glpi-development-env:latest"
+          tags: "ghcr.io/glpi-project/glpi-development-env:${{ matrix.php-version }}${{ matrix.latest == 'true' && ',ghcr.io/glpi-project/glpi-development-env:latest' || '' }}"
