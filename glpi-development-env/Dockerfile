@@ -82,7 +82,7 @@ RUN apt update \
   ; else \
     # For PHP 8+, install from Github (extension should be available on PECL but is not)
     mkdir -p /tmp/xmlrpc \
-    && curl -LsfS https://github.com/php/pecl-networking-xmlrpc/archive/0f782ffe52cebd0a65356427b7ab72d48b72d20c/xmlrpc-0f782ff.tar.gz | tar xvz -C "/tmp/xmlrpc" --strip 1 \
+    && (curl --fail --silent --show-error --location https://github.com/php/pecl-networking-xmlrpc/archive/0f782ffe52cebd0a65356427b7ab72d48b72d20c/xmlrpc-0f782ff.tar.gz | tar --extract --ungzip --verbose --directory="/tmp/xmlrpc" --strip 1) \
     && docker-php-ext-configure /tmp/xmlrpc --with-xmlrpc \
     && docker-php-ext-install /tmp/xmlrpc \
     && rm -rf /tmp/xmlrpc \
@@ -103,7 +103,10 @@ RUN apt update \
   && apt install --assume-yes --no-install-recommends --quiet git unzip \
   \
   # Install gettext used for translation files.
-  && apt install --assume-yes --no-install-recommends --quiet gettext \
+  && mkdir -p /tmp/gettext \
+  && (curl -LsfS https://ftp.gnu.org/pub/gnu/gettext/gettext-0.25.tar.gz | tar --extract --ungzip --verbose --directory="/tmp/gettext" --strip 1) \
+  && (cd /tmp/gettext && ./configure && make && make install) \
+  && rm -rf /tmp/gettext \
   \
   # Install Cypress dependencies
   && apt install --assume-yes --no-install-recommends --quiet libgtk2.0-0 libgtk-3-0 libgbm-dev libnotify-dev libnss3 libxss1 libasound2 libxtst6 xauth xvfb \
