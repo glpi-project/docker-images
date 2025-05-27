@@ -131,6 +131,8 @@ COPY --from=composer /usr/bin/composer /usr/bin/composer
 RUN cp "$PHP_INI_DIR/php.ini-development" "$PHP_INI_DIR/php.ini"
 
 # Copy files to container.
+COPY ./files/etc/apache2/ports.conf /etc/apache2/ports.conf
+COPY ./files/etc/apache2/conf-available/glpi-common.conf /etc/apache2/conf-available/glpi-common.conf
 COPY ./files/etc/apache2/sites-available/000-default.conf /etc/apache2/sites-available/000-default.conf
 COPY ./files/etc/php/conf.d/glpi.ini $PHP_INI_DIR/conf.d/glpi.ini
 
