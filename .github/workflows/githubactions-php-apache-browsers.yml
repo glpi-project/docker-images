@@ -1,4 +1,4 @@
-name: "Github actions PHP images (with coverage tools)"
+name: "Github actions PHP images (with browsers)"
 
 on:
   push:
