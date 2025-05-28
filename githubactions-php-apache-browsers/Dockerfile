@@ -1,8 +1,5 @@
-ARG BASE_IMAGE=ghcr.io/glpi-project/githubactions-php-apache
+ARG BASE_IMAGE
 
-#####
-# Build main image
-#####
 FROM $BASE_IMAGE
 
 ENV PLAYWRIGHT_BROWSERS_PATH=opt/pw-browsers
