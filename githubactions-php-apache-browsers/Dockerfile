@@ -1,4 +1,4 @@
-ARG BASE_IMAGE=glpi-project:githubactions-php-apache
+ARG BASE_IMAGE=ghcr.io/glpi-project/githubactions-php-apache
 
 #####
 # Build main image
