@@ -4,7 +4,7 @@ FROM $BASE_IMAGE
 
 USER root
 
-ENV PLAYWRIGHT_BROWSERS_PATH=opt/pw-browsers
+ENV PLAYWRIGHT_BROWSERS_PATH=/opt/pw-browsers
 
 RUN npx playwright install chromium --with-deps
 
