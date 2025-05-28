@@ -104,6 +104,9 @@ RUN \
   # Install Cypress dependencies
   && apt install --assume-yes --no-install-recommends --quiet libgtk2.0-0 libgtk-3-0 libgbm-dev libnotify-dev libnss3 libxss1 libasound2 libxtst6 xauth xvfb \
   \
+  # Install Playwright dependencies
+  && npx playwright install-deps \
+  \
   # Install acl and sudo that will be used to give correct rights in the Gihub Actions runner context.
   # sudo may also be usefull to temporarly install upcoming required system components.
   && apt install --assume-yes --no-install-recommends --quiet acl sudo \
