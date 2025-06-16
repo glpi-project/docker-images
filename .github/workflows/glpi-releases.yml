@@ -1,31 +1,18 @@
-name: "Github actions nightly images"
+name: "GLPI images for official releases"
 
 on:
-  push:
-    branches:
-      - "main"
-    paths:
-      - ".github/workflows/glpi-nightly.yml"
-      - "glpi-production-env/**"
-  pull_request:
-    paths:
-      - ".github/workflows/glpi-nightly.yml"
-      - "glpi-production-env/**"
-  schedule:
-    - cron:  '0 0 * * 1'
-  # Enable manual run
+  # Enable manual run and trigger by another workflow (from glpi-project/glpi repository)
   workflow_dispatch:
 
 jobs:
   build:
-    name: "Build ${{ matrix.branch }} on PHP ${{ matrix.php-version }}"
+    name: "Build ${{ matrix.glpi-version }} on PHP ${{ matrix.php-version }}"
     runs-on: "ubuntu-latest"
     strategy:
       fail-fast: false
       matrix:
         include:
-          - {php-version: "8.2", branch: "main"}
-          - {php-version: "8.1", branch: "10.0/bugfixes"}
+          - {php-version: "8.4", glpi-version: "10.0.18"}
     steps:
       - name: "Set variables"
         run: |
@@ -34,13 +21,13 @@ jobs:
               OUTPUTS="$OUTPUTS,push=true"
           fi
           echo "OUTPUTS=$OUTPUTS" >> $GITHUB_ENV
-          IMAGE_VERSION=$(echo ${{ matrix.branch }} | sed -E 's|/|-|')
-          echo "IMAGE_TAG=ghcr.io/glpi-project/glpi-nightly:$IMAGE_VERSION" >> $GITHUB_ENV
+          IMAGE_VERSION=$(echo ${{ matrix.glpi-version }} | sed -E 's|/|-|')
+          echo "IMAGE_TAG=ghcr.io/glpi-project/glpi:$IMAGE_VERSION" >> $GITHUB_ENV
       - name: "Checkout"
         uses: "actions/checkout@v4"
       - name: "Get sources from glpi-project/glpi"
         run: |
-          curl https://github.com/glpi-project/glpi/archive/${{ matrix.branch }}.tar.gz --location --output glpi.tar.gz
+          curl https://github.com/glpi-project/glpi/archive/${{ matrix.glpi-version }}.tar.gz --location --output glpi.tar.gz
           mkdir glpi-production-env/sources
           tar --extract --ungzip --strip 1 --file glpi.tar.gz --directory glpi-production-env/sources
       - name: "Set up Docker Buildx"
