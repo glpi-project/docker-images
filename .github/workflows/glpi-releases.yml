@@ -7,8 +7,9 @@ on:
   #
   # curl -X POST \
   # -H "Accept: application/vnd.github.v3+json" \
-  # https://api.github.com/repos/glpi-project/docker-images/actions/workflows/42/dispatches \
-  # -d '{"php-version: "8.2", "glpi-version": "10.0.18"}'
+  # -H "Authorization: <access-token>" \
+  # https://api.github.com/repos/glpi-project/docker-images/actions/workflows/<workflow-id>/dispatches \
+  # -d '{"ref":"main", "inputs": { "php-version": "8.4", "glpi-version":"10.0.18" }}'
   workflow_dispatch:
     inputs:
       php-version:
