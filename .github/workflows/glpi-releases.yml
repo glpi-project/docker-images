@@ -1,38 +1,50 @@
 name: "GLPI images for official releases"
 
 on:
-  # Enable manual run and trigger by another workflow (from glpi-project/glpi repository)
+  # Enable manual run
+  #
+  # or trigger by another external workflow, e.g:
+  #
+  # curl -X POST \
+  # -H "Accept: application/vnd.github.v3+json" \
+  # https://api.github.com/repos/glpi-project/docker-images/actions/workflows/42/dispatches \
+  # -d '{"php-version: "8.2", "glpi-version": "10.0.18"}'
   workflow_dispatch:
     inputs:
       php-version:
-        description: 'Input a PHP version (e.g., 8.4)'
+        description: "PHP version to use for the build"
         required: true
-        default: '8.4'
+        default: "8.4"
       glpi-version:
-        description: 'Input a version (e.g., 10.0.18)'
+        description: "GLPI version to build, e.g. 10.0.18"
         required: true
 
 jobs:
   build:
-    name: "Build ${{ matrix.glpi-version }} on PHP ${{ matrix.php-version }}"
+    name: "Build ${{ github.event.inputs.glpi-version }} on PHP ${{ github.event.inputs.php-version }}"
     runs-on: "ubuntu-latest"
     strategy:
       fail-fast: false
     steps:
       - name: "Set variables"
         run: |
+          # extract the asked versions from the inputs
+          echo "PHP_VERSION=${{ github.event.inputs.php-version }}" >> $GITHUB_ENV
+          echo "GLPI_VERSION=${{ github.event.inputs.glpi-version }}" >> $GITHUB_ENV
+
+          # set the outputs for the build-push-action
           OUTPUTS="type=image"
           if [[ "${{ github.ref }}" = 'refs/heads/main' && "${{ github.repository }}" = 'glpi-project/docker-images' ]]; then
               OUTPUTS="$OUTPUTS,push=true"
           fi
           echo "OUTPUTS=$OUTPUTS" >> $GITHUB_ENV
-          IMAGE_VERSION=$(echo ${{ github.event.inputs.glpi-version }} | sed -E 's|/|-|')
+          IMAGE_VERSION=$(echo ${{ env.PHP_VERSION }} | sed -E 's|/|-|')
           echo "IMAGE_TAG=ghcr.io/glpi-project/glpi:$IMAGE_VERSION" >> $GITHUB_ENV
       - name: "Checkout"
         uses: "actions/checkout@v4"
       - name: "Get sources from glpi-project/glpi"
         run: |
-          curl https://github.com/glpi-project/glpi/archive/${{ github.event.inputs.glpi-version }}.tar.gz --location --output glpi.tar.gz
+          curl https://github.com/glpi-project/glpi/archive/${{ env.GLPI_VERSION }}.tar.gz --location --output glpi.tar.gz
           mkdir glpi-production-env/sources
           tar --extract --ungzip --strip 1 --file glpi.tar.gz --directory glpi-production-env/sources
       - name: "Set up Docker Buildx"
@@ -52,8 +64,8 @@ jobs:
         uses: "docker/build-push-action@v6"
         with:
           build-args: |
-            BUILDER_IMAGE=php:${{ github.event.inputs.php-version }}-cli-alpine
-            APP_IMAGE=php:${{ github.event.inputs.php-version }}-apache
+            BUILDER_IMAGE=php:${{ env.PHP_VERSION }}-cli-alpine
+            APP_IMAGE=php:${{ env.PHP_VERSION }}-apache
           cache-from: "type=gha"
           cache-to: "type=gha,mode=max"
           context: "glpi-production-env"
