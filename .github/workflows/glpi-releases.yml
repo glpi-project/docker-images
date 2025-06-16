@@ -3,6 +3,14 @@ name: "GLPI images for official releases"
 on:
   # Enable manual run and trigger by another workflow (from glpi-project/glpi repository)
   workflow_dispatch:
+    inputs:
+      php-version:
+        description: 'Input a PHP version (e.g., 8.4)'
+        required: true
+        default: '8.4'
+      glpi-version:
+        description: 'Input a version (e.g., 10.0.18)'
+        required: true
 
 jobs:
   build:
@@ -10,9 +18,6 @@ jobs:
     runs-on: "ubuntu-latest"
     strategy:
       fail-fast: false
-      matrix:
-        include:
-          - {php-version: "8.4", glpi-version: "10.0.18"}
     steps:
       - name: "Set variables"
         run: |
@@ -21,13 +26,13 @@ jobs:
               OUTPUTS="$OUTPUTS,push=true"
           fi
           echo "OUTPUTS=$OUTPUTS" >> $GITHUB_ENV
-          IMAGE_VERSION=$(echo ${{ matrix.glpi-version }} | sed -E 's|/|-|')
+          IMAGE_VERSION=$(echo ${{ github.event.inputs.glpi-version }} | sed -E 's|/|-|')
           echo "IMAGE_TAG=ghcr.io/glpi-project/glpi:$IMAGE_VERSION" >> $GITHUB_ENV
       - name: "Checkout"
         uses: "actions/checkout@v4"
       - name: "Get sources from glpi-project/glpi"
         run: |
-          curl https://github.com/glpi-project/glpi/archive/${{ matrix.glpi-version }}.tar.gz --location --output glpi.tar.gz
+          curl https://github.com/glpi-project/glpi/archive/${{ github.event.inputs.glpi-version }}.tar.gz --location --output glpi.tar.gz
           mkdir glpi-production-env/sources
           tar --extract --ungzip --strip 1 --file glpi.tar.gz --directory glpi-production-env/sources
       - name: "Set up Docker Buildx"
@@ -47,8 +52,8 @@ jobs:
         uses: "docker/build-push-action@v6"
         with:
           build-args: |
-            BUILDER_IMAGE=php:${{ matrix.php-version }}-cli-alpine
-            APP_IMAGE=php:${{ matrix.php-version }}-apache
+            BUILDER_IMAGE=php:${{ github.event.inputs.php-version }}-cli-alpine
+            APP_IMAGE=php:${{ github.event.inputs.php-version }}-apache
           cache-from: "type=gha"
           cache-to: "type=gha,mode=max"
           context: "glpi-production-env"
