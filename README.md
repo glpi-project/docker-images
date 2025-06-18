@@ -10,7 +10,7 @@ You can use it with the help of the following docker-compose file:
 version: "3.9"
 services:
   glpi:
-    image: glpi-project/glpi:latest
+    image: glpi/glpi:latest
     restart: unless-stopped
     volumes:
       - glpi-files:/var/www/glpi/files:rw
