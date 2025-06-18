@@ -72,4 +72,5 @@ jobs:
           context: "glpi-production-env"
           outputs: "${{ env.OUTPUTS }}"
           pull: true
+          push: true
           tags: "${{ env.IMAGE_TAG }}"
