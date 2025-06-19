@@ -60,7 +60,7 @@ jobs:
               TAGS="$TAGS,glpi/glpi:$IMAGE_VERSION_MAJOR,ghcr.io/glpi-project/glpi:$IMAGE_VERSION_MAJOR"
 
               # populate minor version tags, ex 10.0.18 -> 10.0
-              IMAGE_VERSION_MINOR=$(echo "$IMAGE_VERSION" | cut -d. -f1)
+              IMAGE_VERSION_MINOR=$(echo "$IMAGE_VERSION" | cut -d. -f1-2)
               TAGS="$TAGS,glpi/glpi:$IMAGE_VERSION_MINOR,ghcr.io/glpi-project/glpi:$IMAGE_VERSION_MINOR"
 
             # find if the current version is the latest
