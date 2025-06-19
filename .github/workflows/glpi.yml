@@ -49,7 +49,28 @@ jobs:
           if [[ "${{ inputs.image-suffix }}" != '' ]]; then
               IMAGE_VERSION="$IMAGE_VERSION-${{ inputs.image-suffix }}"
           fi
-          echo "tags=glpi/glpi:$IMAGE_VERSION,ghcr.io/glpi-project/glpi:$IMAGE_VERSION" >> $GITHUB_OUTPUT
+
+          # prepare the tags to push
+          TAGS="glpi/glpi:$IMAGE_VERSION,ghcr.io/glpi-project/glpi:$IMAGE_VERSION"
+
+          PRERELEASE_FLAG="$( echo "${{ inputs.glpi-version }}" | grep -Po '(\-\w+)?$' )"
+          if [[ -z "$PRERELEASE_FLAG" ]]; then
+              # populate major version tags, ex 10.0.18 -> 10
+              IMAGE_VERSION_MAJOR=$(echo "${{ inputs.glpi-version }}" | cut -d. -f1)
+              TAGS="$TAGS,glpi/glpi:$IMAGE_VERSION_MAJOR,ghcr.io/glpi-project/glpi:$IMAGE_VERSION_MAJOR"
+
+              # populate minor version tags, ex 10.0.18 -> 10.0
+              IMAGE_VERSION_MINOR=$(echo "${{ inputs.glpi-version }}" | cut -d. -f1-2)
+              TAGS="$TAGS,glpi/glpi:$IMAGE_VERSION_MINOR,ghcr.io/glpi-project/glpi:$IMAGE_VERSION_MINOR"
+
+            # find if the current version is the latest
+            if [[ "${{ inputs.glpi-version }}" = "$(curl -s https://api.github.com/repos/glpi-project/glpi/releases/latest | jq -r .tag_name)" ]]; then
+                TAGS="$TAGS,glpi/glpi:latest,ghcr.io/glpi-project/glpi:latest"
+            fi
+          fi
+
+          echo "tags=$TAGS" >> $GITHUB_OUTPUT
+          echo $TAGS
       - name: "Checkout"
         uses: "actions/checkout@v4"
       - name: "Get sources from glpi-project/glpi"
