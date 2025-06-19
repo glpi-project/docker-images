@@ -1,31 +1,41 @@
-name: "Github actions nightly images"
+name: "GLPI images for official releases"
 
 on:
-  push:
-    branches:
-      - "main"
-    paths:
-      - ".github/workflows/glpi-nightly.yml"
-      - "glpi/**"
-  pull_request:
-    paths:
-      - ".github/workflows/glpi-nightly.yml"
-      - "glpi/**"
-  schedule:
-    - cron:  '0 0 * * 1'
+  # Enable execution from another workflow
+  workflow_call:
+    inputs:
+      glpi-version:
+        required: true
+        type: string
+      image-suffix:
+        required: false
+        type: string
+        default: ""
   # Enable manual run
+  #
+  # It can be executed by a curl command:
+  #
+  # curl -X POST \
+  # -H "Accept: application/vnd.github.v3+json" \
+  # -H "Authorization: <access-token>" \
+  # https://api.github.com/repos/glpi-project/docker-images/actions/workflows/<workflow-id>/dispatches \
+  # -d '{"ref":"main", "inputs": { "glpi-version":"10.0.18" }}'
   workflow_dispatch:
+    inputs:
+      glpi-version:
+        description: "GLPI version to build, e.g. 10.0.18"
+        required: true
+        type: string
+      image-suffix:
+        description: "Suffix to add to the image name, e.g. 'nighlty'"
+        required: false
+        type: string
+        default: ""
 
 jobs:
   build:
-    name: "Build ${{ matrix.branch }} on PHP ${{ matrix.php-version }}"
+    name: "Build GLPI ${{ inputs.glpi-version }}"
     runs-on: "ubuntu-latest"
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - {php-version: "8.2", branch: "main"}
-          - {php-version: "8.1", branch: "10.0/bugfixes"}
     steps:
       - name: "Set variables"
         id: "variables"
@@ -35,13 +45,16 @@ jobs:
               DESTINATIONS="type=registry"
           fi
           echo "destinations=$DESTINATIONS" >> $GITHUB_OUTPUT
-          IMAGE_VERSION=$(echo ${{ matrix.branch }} | sed -E 's|/|-|')
-          echo "tags=glpi/glpi:$IMAGE_VERSION-nightly,ghcr.io/glpi-project/glpi-nightly:$IMAGE_VERSION" >> $GITHUB_OUTPUT
+          IMAGE_VERSION="$(echo ${{ inputs.glpi-version }} | sed -E 's|/|-|')"
+          if [[ "${{ inputs.image-suffix }}" != '' ) ]]; then
+              IMAGE_VERSION="$IMAGE_VERSION-${{ inputs.image-suffix }}"
+          fi
+          echo "tags=glpi/glpi:$IMAGE_VERSION,ghcr.io/glpi-project/glpi:$IMAGE_VERSION" >> $GITHUB_OUTPUT
       - name: "Checkout"
         uses: "actions/checkout@v4"
       - name: "Get sources from glpi-project/glpi"
         run: |
-          curl https://github.com/glpi-project/glpi/archive/${{ matrix.branch }}.tar.gz --location --output glpi.tar.gz
+          curl https://github.com/glpi-project/glpi/archive/${{ inputs.glpi-version }}.tar.gz --location --output glpi.tar.gz
           mkdir glpi/sources
           tar --extract --ungzip --strip 1 --file glpi.tar.gz --directory glpi/sources
       - name: "Set up Docker Buildx"
@@ -61,8 +74,8 @@ jobs:
         uses: "docker/build-push-action@v6"
         with:
           build-args: |
-            BUILDER_IMAGE=php:${{ matrix.php-version }}-cli-alpine
-            APP_IMAGE=php:${{ matrix.php-version }}-apache
+            BUILDER_IMAGE=php:8.4-cli-alpine
+            APP_IMAGE=php:8.4-apache
           cache-from: "type=gha"
           cache-to: "type=gha,mode=max"
           context: "glpi"
