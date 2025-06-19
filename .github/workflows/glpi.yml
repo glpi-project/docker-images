@@ -45,8 +45,8 @@ jobs:
               DESTINATIONS="type=registry"
           fi
           echo "destinations=$DESTINATIONS" >> $GITHUB_OUTPUT
-          IMAGE_VERSION="$(echo ${{ inputs.glpi-version }} | sed -E 's|/|-|')"
-          if [[ "${{ inputs.image-suffix }}" != '' ) ]]; then
+          IMAGE_VERSION="$(echo '${{ inputs.glpi-version }}' | sed -E 's|/|-|')"
+          if [[ "${{ inputs.image-suffix }}" != '' ]]; then
               IMAGE_VERSION="$IMAGE_VERSION-${{ inputs.image-suffix }}"
           fi
           echo "tags=glpi/glpi:$IMAGE_VERSION,ghcr.io/glpi-project/glpi:$IMAGE_VERSION" >> $GITHUB_OUTPUT
