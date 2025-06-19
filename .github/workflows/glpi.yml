@@ -70,6 +70,7 @@ jobs:
           fi
 
           echo "tags=$TAGS" >> $GITHUB_OUTPUT
+          echo $TAGS
       - name: "Checkout"
         uses: "actions/checkout@v4"
       - name: "Get sources from glpi-project/glpi"
