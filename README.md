@@ -1,32 +1,31 @@
 # GLPI Docker Images
 
-
 This repository contains build files for docker images available in [Github Container Registry](https://github.com/orgs/glpi-project/packages?ecosystem=container).
 
 Apart developments images, we maintain a production image for each GLPI version.
 You can use it with the help of the following docker-compose file:
 
 ```yaml
-version: "3.9"
 services:
   glpi:
-    image: glpi/glpi:latest
-    restart: unless-stopped
+    image: "glpi/glpi:latest"
+    restart: "unless-stopped"
     volumes:
-      - glpi-files:/var/www/glpi/files:rw
-      - glpi-config:/var/www/glpi/config:rw
+      - "./storage/glpi/config:/var/www/glpi/config:rw"
+      - "./storage/glpi/files:/var/www/glpi/files:rw"
+      - "./storage/glpi/plugins:/var/www/glpi/marketplace:rw"
     depends_on:
-      - db
+      - "db"
     ports:
       - "80:80"
 
   db:
     image: "mysql"
-    restart: "always"
+    restart: "unless-stopped"
     volumes:
-       - ./storage/mysql:/var/lib/mysql
+       - "./storage/mysql:/var/lib/mysql"
     environment:
-      MYSQL_ROOT_PASSWORD: "glpi"
+      MYSQL_RANDOM_ROOT_PASSWORD: "yes"
       MYSQL_DATABASE: "glpi"
       MYSQL_USER: "glpi"
       MYSQL_PASSWORD: "glpi"

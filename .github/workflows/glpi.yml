@@ -7,6 +7,10 @@ on:
       glpi-version:
         required: true
         type: string
+      image-suffix:
+        required: false
+        type: string
+        default: ""
   # Enable manual run
   #
   # It can be executed by a curl command:
@@ -22,6 +26,11 @@ on:
         description: "GLPI version to build, e.g. 10.0.18"
         required: true
         type: string
+      image-suffix:
+        description: "Suffix to add to the image name, e.g. 'nighlty'"
+        required: false
+        type: string
+        default: ""
 
 jobs:
   build:
@@ -36,15 +45,18 @@ jobs:
               DESTINATIONS="type=registry"
           fi
           echo "destinations=$DESTINATIONS" >> $GITHUB_OUTPUT
-          IMAGE_VERSION=$(echo ${{ inputs.glpi-version }} | sed -E 's|/|-|')
+          IMAGE_VERSION="$(echo ${{ inputs.glpi-version }} | sed -E 's|/|-|')"
+          if [[ "${{ inputs.image-suffix }}" != '' ) ]]; then
+              IMAGE_VERSION="$IMAGE_VERSION-${{ inputs.image-suffix }}"
+          fi
           echo "tags=glpi/glpi:$IMAGE_VERSION,ghcr.io/glpi-project/glpi:$IMAGE_VERSION" >> $GITHUB_OUTPUT
       - name: "Checkout"
         uses: "actions/checkout@v4"
       - name: "Get sources from glpi-project/glpi"
         run: |
           curl https://github.com/glpi-project/glpi/archive/${{ inputs.glpi-version }}.tar.gz --location --output glpi.tar.gz
-          mkdir glpi-production-env/sources
-          tar --extract --ungzip --strip 1 --file glpi.tar.gz --directory glpi-production-env/sources
+          mkdir glpi/sources
+          tar --extract --ungzip --strip 1 --file glpi.tar.gz --directory glpi/sources
       - name: "Set up Docker Buildx"
         uses: "docker/setup-buildx-action@v3"
       - name: "Login to DockerHub"
@@ -66,7 +78,7 @@ jobs:
             APP_IMAGE=php:8.4-apache
           cache-from: "type=gha"
           cache-to: "type=gha,mode=max"
-          context: "glpi-production-env"
+          context: "glpi"
           outputs: "${{ steps.variables.outputs.destinations }}"
           pull: true
           tags: "${{ steps.variables.outputs.tags }}"
