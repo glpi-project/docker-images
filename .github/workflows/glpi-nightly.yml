@@ -28,14 +28,15 @@ jobs:
           - {php-version: "8.1", branch: "10.0/bugfixes"}
     steps:
       - name: "Set variables"
+        id: "variables"
         run: |
-          OUTPUTS="type=image"
-          if [[ "${{ github.ref }}" = 'refs/heads/main' && "${{ github.repository }}" = 'glpi-project/docker-images' ]]; then
-              OUTPUTS="$OUTPUTS,push=true"
+          DESTINATIONS="type=image"
+          if [[ "${{ github.repository }}" = 'glpi-project/docker-images' && ( "${{ github.event_name }}" = "workflow_dispatch" || "${{ github.ref }}" = 'refs/heads/main' ) ]]; then
+              DESTINATIONS="type=registry"
           fi
-          echo "OUTPUTS=$OUTPUTS" >> $GITHUB_ENV
+          echo "destinations=$DESTINATIONS" >> $GITHUB_OUTPUT
           IMAGE_VERSION=$(echo ${{ matrix.branch }} | sed -E 's|/|-|')
-          echo "IMAGE_TAG=ghcr.io/glpi-project/glpi-nightly:$IMAGE_VERSION" >> $GITHUB_ENV
+          echo "tags=glpi-nightly:$IMAGE_VERSION ghcr.io/glpi-project/glpi-nightly:$IMAGE_VERSION" >> $GITHUB_OUTPUT
       - name: "Checkout"
         uses: "actions/checkout@v4"
       - name: "Get sources from glpi-project/glpi"
@@ -65,7 +66,6 @@ jobs:
           cache-from: "type=gha"
           cache-to: "type=gha,mode=max"
           context: "glpi-production-env"
-          outputs: "${{ env.OUTPUTS }}"
+          outputs: "${{ steps.variables.outputs.destinations }}"
           pull: true
-          push: true
-          tags: "${{ env.IMAGE_TAG }}"
+          tags: "${{ steps.variables.outputs.tags }}"
