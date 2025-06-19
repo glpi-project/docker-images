@@ -1,16 +1,6 @@
 name: "GLPI images for official releases"
 
 on:
-  push:
-    branches:
-      - "main"
-    paths:
-      - ".github/workflows/glpi-releases.yml"
-      - "glpi-production-env/**"
-  pull_request:
-    paths:
-      - ".github/workflows/glpi-releases.yml"
-      - "glpi-production-env/**"
   # Enable execution from another workflow
   workflow_call:
     inputs:
