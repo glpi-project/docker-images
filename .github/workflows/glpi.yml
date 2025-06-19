@@ -53,7 +53,7 @@ jobs:
           # prepare the tags to push
           TAGS="glpi/glpi:$IMAGE_VERSION,ghcr.io/glpi-project/glpi:$IMAGE_VERSION"
           
-          PRERELEASE_FLAG="$( echo "$TAG" | grep -Po '(\-\w+)?$' )"
+          PRERELEASE_FLAG="$( echo "${{ inputs.glpi-version }}" | grep -Po '(\-\w+)?$' )"
           if [[ -z "$PRERELEASE_FLAG" ]]; then
               # populate major version tags, ex 10.0.18 -> 10
               IMAGE_VERSION_MAJOR=$(echo "$IMAGE_VERSION" | cut -d. -f1)
