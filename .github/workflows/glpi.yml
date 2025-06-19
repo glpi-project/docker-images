@@ -11,6 +11,11 @@ on:
         required: false
         type: string
         default: ""
+      php-version:
+        required: false
+        type: string
+        default: "8.4"
+
   # Enable manual run
   #
   # It can be executed by a curl command:
@@ -31,6 +36,11 @@ on:
         required: false
         type: string
         default: ""
+      php-version:
+        description: "PHP version to use for the build"
+        required: true
+        type: string
+        default: "8.4"
 
 jobs:
   build:
@@ -95,8 +105,8 @@ jobs:
         uses: "docker/build-push-action@v6"
         with:
           build-args: |
-            BUILDER_IMAGE=php:8.4-cli-alpine
-            APP_IMAGE=php:8.4-apache
+            BUILDER_IMAGE=php:${{inputs.php-version}}-cli-alpine
+            APP_IMAGE=php:${{inputs.php-version}}-apache
           cache-from: "type=gha"
           cache-to: "type=gha,mode=max"
           context: "glpi"
