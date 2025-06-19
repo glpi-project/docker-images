@@ -36,7 +36,7 @@ jobs:
           fi
           echo "destinations=$DESTINATIONS" >> $GITHUB_OUTPUT
           IMAGE_VERSION=$(echo ${{ matrix.branch }} | sed -E 's|/|-|')
-          echo "tags=glpi-nightly:$IMAGE_VERSION,ghcr.io/glpi-project/glpi-nightly:$IMAGE_VERSION" >> $GITHUB_OUTPUT
+          echo "tags=glpi/glpi:$IMAGE_VERSION-nightly,ghcr.io/glpi-project/glpi-nightly:$IMAGE_VERSION" >> $GITHUB_OUTPUT
       - name: "Checkout"
         uses: "actions/checkout@v4"
       - name: "Get sources from glpi-project/glpi"
