@@ -95,8 +95,8 @@ jobs:
         uses: "docker/build-push-action@v6"
         with:
           build-args: |
-            BUILDER_IMAGE=php:8.4-cli-alpine
-            APP_IMAGE=php:8.4-apache
+            BUILDER_IMAGE=php:8.3-cli-alpine
+            APP_IMAGE=php:8.3-apache
           cache-from: "type=gha"
           cache-to: "type=gha,mode=max"
           context: "glpi"
