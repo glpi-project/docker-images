@@ -1,4 +1,4 @@
-name: "Github actions nightly images"
+name: "GLPI nightly images"
 
 on:
   push:
@@ -18,14 +18,14 @@ on:
 
 jobs:
   build:
-    name: "Build ${{ matrix.branch }} on PHP ${{ matrix.php-version }}"
+    name: "Build GLPI ${{ matrix.branch }}"
     runs-on: "ubuntu-latest"
     strategy:
       fail-fast: false
       matrix:
         include:
-          - {php-version: "8.2", branch: "main"}
-          - {php-version: "8.1", branch: "10.0/bugfixes"}
+          - {branch: "main", tag: "11.0-nightly"}
+          - {branch: "10.0/bugfixes", tag: "10.0-nightly"}
     steps:
       - name: "Set variables"
         id: "variables"
@@ -35,8 +35,7 @@ jobs:
               DESTINATIONS="type=registry"
           fi
           echo "destinations=$DESTINATIONS" >> $GITHUB_OUTPUT
-          IMAGE_VERSION=$(echo ${{ matrix.branch }} | sed -E 's|/|-|')
-          echo "tags=glpi/glpi:$IMAGE_VERSION-nightly,ghcr.io/glpi-project/glpi-nightly:$IMAGE_VERSION" >> $GITHUB_OUTPUT
+          echo "tags=glpi/glpi:${{ matrix.tag }},ghcr.io/glpi-project/glpi:${{ matrix.tag }}" >> $GITHUB_OUTPUT
       - name: "Checkout"
         uses: "actions/checkout@v4"
       - name: "Get sources from glpi-project/glpi"
@@ -61,8 +60,8 @@ jobs:
         uses: "docker/build-push-action@v6"
         with:
           build-args: |
-            BUILDER_IMAGE=php:${{ matrix.php-version }}-cli-alpine
-            APP_IMAGE=php:${{ matrix.php-version }}-apache
+            BUILDER_IMAGE=php:8.4-cli-alpine
+            APP_IMAGE=php:8.4-apache
           cache-from: "type=gha"
           cache-to: "type=gha,mode=max"
           context: "glpi"
