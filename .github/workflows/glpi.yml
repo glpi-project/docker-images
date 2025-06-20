@@ -76,7 +76,7 @@ jobs:
       - name: "Get sources from glpi-project/glpi"
         run: |
           curl https://github.com/glpi-project/glpi/archive/${{ inputs.glpi-version }}.tar.gz --location --output glpi.tar.gz
-          mkdir glpi/sources
+          mkdir -p glpi/sources
           tar --extract --ungzip --strip 1 --file glpi.tar.gz --directory glpi/sources
       - name: "Set up Docker Buildx"
         uses: "docker/setup-buildx-action@v3"
