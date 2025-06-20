@@ -75,7 +75,7 @@ jobs:
         uses: "actions/checkout@v4"
       - name: "Get sources from glpi-project/glpi"
         run: |
-          curl https://github.com/${{ github.repository_owner }}/${{ github.repository }}/archive/${{ inputs.glpi-version }}.tar.gz --location --output glpi.tar.gz
+          curl https://github.com/${{ github.repository }}/archive/${{ inputs.glpi-version }}.tar.gz --location --output glpi.tar.gz
           mkdir -p glpi/sources
           tar --extract --ungzip --strip 1 --file glpi.tar.gz --directory glpi/sources
       - name: "Set up Docker Buildx"
