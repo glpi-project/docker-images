@@ -131,14 +131,15 @@ RUN crontab -u www-data /etc/cron.d/glpi
 # Copy GLPI application.
 COPY --from=builder --chown=www-data:www-data /usr/src/glpi /var/www/glpi
 
-# Declare a volume for "config" and "files" directory
+# Declare a volume for "config", "marketplace" and "files" directory
 RUN mkdir /var/glpi && chown www-data:www-data /var/glpi
 VOLUME /var/glpi
 
 # Define GLPI environment variables
 ENV \
   GLPI_INSTALL_MODE=DOCKER \
-  GLPI_CONFIG_DIR=/var/glpi/config \
+  GLPI_CONFIG_DIR=/var/glpi/config  \
+  GLPI_MARKETPLACE_DIR=/var/glpi/marketplace \
   GLPI_VAR_DIR=/var/glpi/files
 
 # Make startup script executable and executes it as default command.
