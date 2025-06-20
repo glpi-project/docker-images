@@ -83,6 +83,8 @@ jobs:
           echo $TAGS
       - name: "Checkout"
         uses: "actions/checkout@v4"
+        with:
+          repository: glpi-project/docker-images
       - name: "Get sources from glpi-project/glpi"
         run: |
           curl https://github.com/glpi-project/glpi/archive/${{ inputs.glpi-version }}.tar.gz --location --output glpi.tar.gz
