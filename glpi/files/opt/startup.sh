@@ -26,11 +26,13 @@ do
     then
         mkdir "$dir"
     fi
-    setfacl -m user:www-data:rwx,group:www-data:rwx "$dir"
+    chown www-data:www-data "$dir"
+    chmod 775 "$dir"
 done
 
 # Set ACL for www-data user on marketplace directory
-setfacl -m user:www-data:rwx,group:www-data:rwx "/var/www/glpi/marketplace"
+chown www-data:www-data "/var/www/glpi/marketplace"
+chmod 775 "/var/www/glpi/marketplace"
 
 # Run cron service.
 cron
