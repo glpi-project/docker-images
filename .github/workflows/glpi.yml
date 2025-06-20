@@ -11,6 +11,11 @@ on:
         required: false
         type: string
         default: ""
+    secrets:
+      DOCKER_HUB_USERNAME:
+        required: true
+      DOCKER_HUB_TOKEN:
+        required: true
   # Enable manual run
   #
   # It can be executed by a curl command:
