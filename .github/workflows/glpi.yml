@@ -15,6 +15,15 @@ on:
         required: false
         type: string
         default: "8.4"
+    secrets:
+      DOCKER_HUB_USERNAME:
+        required: true
+      DOCKER_HUB_TOKEN:
+        required: true
+      GHCR_USERNAME:
+        required: true
+      GHCR_ACCESS_TOKEN:
+        required: true
 
   # Enable manual run
   #
