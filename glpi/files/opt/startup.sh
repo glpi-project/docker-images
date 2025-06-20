@@ -1,6 +1,6 @@
 #!/bin/bash -e
 
-# Create config and files volume (sub)directories that are missing
+# Create `config`, `marketplace` and `files` volume (sub)directories that are missing
 # and set ACL for www-data user
 dirs=(
     "/var/glpi/config"
@@ -19,22 +19,24 @@ dirs=(
     "/var/glpi/files/_tmp"
     "/var/glpi/files/_uploads"
     "/var/glpi/files/_inventories"
+    "/var/glpi/marketplace"
 )
 for dir in "${dirs[@]}"
 do
     if [ ! -d "$dir" ]
     then
+        echo "Creating $dir..."
         mkdir "$dir"
     fi
-    setfacl -m user:www-data:rwx,group:www-data:rwx "$dir"
+    echo "Setting $dir ACLs..."
+    chown -R www-data:www-data "$dir"
+    chmod u+rwx "$dir"
+    find "$dir" -type d -exec chmod u+rwx {} \;
+    find "$dir" -type f -exec chmod u+rw {} \;
 done
-
-# Set ACL for www-data user on marketplace directory
-setfacl -m user:www-data:rwx,group:www-data:rwx "/var/www/glpi/marketplace"
 
 # Run cron service.
 cron
 
 # Run command previously defined in base php-apache Dockerfile.
 apache2-foreground
-
