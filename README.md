@@ -1,6 +1,6 @@
 # GLPI Docker Images
 
-This repository contains build files for docker images available in [Github Container Registry](https://github.com/orgs/glpi-project/packages?ecosystem=container).
+This repository contains build files for docker images available in [Github Container Registry](https://github.com/orgs/glpi-project/packages?ecosystem=container) and [Docker hub](https://hub.docker.com/r/glpi/glpi).
 
 Apart developments images, we maintain a production image for each GLPI version.
 You can use it with the help of the following docker-compose file:
