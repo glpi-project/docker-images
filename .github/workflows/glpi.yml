@@ -50,11 +50,6 @@ jobs:
       - name: "Set variables"
         id: "variables"
         run: |
-          DESTINATIONS="type=image"
-          if [[ "${{ github.repository }}" = 'glpi-project/docker-images' && ( "${{ github.event_name }}" = "workflow_dispatch" || "${{ github.ref }}" = 'refs/heads/main' ) ]]; then
-              DESTINATIONS="type=registry"
-          fi
-          echo "destinations=$DESTINATIONS" >> $GITHUB_OUTPUT
           IMAGE_VERSION="$(echo '${{ inputs.glpi-version }}' | sed -E 's|/|-|')"
           if [[ "${{ inputs.image-suffix }}" != '' ]]; then
               IMAGE_VERSION="$IMAGE_VERSION-${{ inputs.image-suffix }}"
@@ -112,6 +107,6 @@ jobs:
           cache-from: "type=gha"
           cache-to: "type=gha,mode=max"
           context: "glpi"
-          outputs: "${{ steps.variables.outputs.destinations }}"
+          outputs: "type=registry"
           pull: true
           tags: "${{ steps.variables.outputs.tags }}"
