@@ -146,7 +146,7 @@ ENV \
 RUN ln -sf /dev/stdout /var/glpi/files/_log/event.log \
   && ln -sf /dev/stdout /var/glpi/files/_log/cron.log \
   && ln -sf /dev/stdout /var/glpi/files/_log/mail.log \
-  && ln -sf /dev/stderr /var/glpi/files/_log/php_errors.log \
+  && ln -sf /dev/stderr /var/glpi/files/_log/php-errors.log \
   && ln -sf /dev/stderr /var/glpi/files/_log/sql-errors.log \
   && ln -sf /dev/stderr /var/glpi/files/_log/mail-errors.log \
   && ln -sf /dev/stderr /var/glpi/files/_log/access-errors.log
