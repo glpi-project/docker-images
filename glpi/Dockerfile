@@ -142,6 +142,15 @@ ENV \
   GLPI_MARKETPLACE_DIR=/var/glpi/marketplace \
   GLPI_VAR_DIR=/var/glpi/files
 
+# Forward GLPI logs to stdout/stderr.
+RUN ln -sf /dev/stdout /var/glpi/files/_log/event.log \
+  && ln -sf /dev/stdout /var/glpi/files/_log/cron.log \
+  && ln -sf /dev/stdout /var/glpi/files/_log/mail.log \
+  && ln -sf /dev/stderr /var/glpi/files/_log/php_errors.log \
+  && ln -sf /dev/stderr /var/glpi/files/_log/sql-errors.log \
+  && ln -sf /dev/stderr /var/glpi/files/_log/mail-errors.log \
+  && ln -sf /dev/stderr /var/glpi/files/_log/access-errors.log
+
 # Make startup script executable and executes it as default command.
 RUN chmod u+x /opt/startup.sh
 CMD /opt/startup.sh
