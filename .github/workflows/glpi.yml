@@ -91,7 +91,7 @@ jobs:
           repository: glpi-project/docker-images
       - name: "Get sources from glpi-project/glpi"
         run: |
-          curl https://github.com/${{ github.repository }}/archive/${{ inputs.glpi-version }}.tar.gz --location --output glpi.tar.gz
+          curl https://github.com/glpi-project/glpi/archive/${{ inputs.glpi-version }}.tar.gz --location --output glpi.tar.gz
           mkdir -p glpi/sources
           tar --extract --ungzip --strip 1 --file glpi.tar.gz --directory glpi/sources
       - name: "Set up Docker Buildx"
