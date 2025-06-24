@@ -135,21 +135,25 @@ COPY --from=builder --chown=www-data:www-data /usr/src/glpi /var/www/glpi
 RUN mkdir /var/glpi && chown www-data:www-data /var/glpi
 VOLUME /var/glpi
 
+# make a directory for GLPI logs.
+RUN mkdir -p /var/log/glpi && chown www-data:www-data /var/log/glpi
+
 # Define GLPI environment variables
 ENV \
   GLPI_INSTALL_MODE=DOCKER \
   GLPI_CONFIG_DIR=/var/glpi/config  \
   GLPI_MARKETPLACE_DIR=/var/glpi/marketplace \
-  GLPI_VAR_DIR=/var/glpi/files
+  GLPI_VAR_DIR=/var/glpi/files \
+  GLPI_LOG_DIR=/var/glpi/logs
 
 # Forward GLPI logs to stdout/stderr.
-RUN ln -sf /dev/stdout /var/glpi/files/_log/event.log \
-  && ln -sf /dev/stdout /var/glpi/files/_log/cron.log \
-  && ln -sf /dev/stdout /var/glpi/files/_log/mail.log \
-  && ln -sf /dev/stderr /var/glpi/files/_log/php-errors.log \
-  && ln -sf /dev/stderr /var/glpi/files/_log/sql-errors.log \
-  && ln -sf /dev/stderr /var/glpi/files/_log/mail-errors.log \
-  && ln -sf /dev/stderr /var/glpi/files/_log/access-errors.log
+RUN ln -sf /dev/stdout /var/log/glpi/event.log \
+  && ln -sf /dev/stdout /var/log/glpi/cron.log \
+  && ln -sf /dev/stdout /var/log/glpi/mail.log \
+  && ln -sf /dev/stderr /var/log/glpi/php-errors.log \
+  && ln -sf /dev/stderr /var/log/glpi/sql-errors.log \
+  && ln -sf /dev/stderr /var/log/glpi/mail-errors.log \
+  && ln -sf /dev/stderr /var/log/glpi/access-errors.log
 
 # Make startup script executable and executes it as default command.
 RUN chmod u+x /opt/startup.sh
