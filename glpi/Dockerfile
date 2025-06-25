@@ -115,6 +115,10 @@ RUN apt-get update \
   # Clean sources list.
   && rm -rf /var/lib/apt/lists/*
 
+# Use the default production configuration
+# ref: https://github.com/docker-library/docs/tree/master/php#configuration
+RUN ln -s $PHP_INI_DIR/php.ini-production $PHP_INI_DIR/php.ini
+
 # Copy services configuration files and startup script to container.
 COPY ./files/etc/apache2/sites-available/000-default.conf /etc/apache2/sites-available/000-default.conf
 COPY ./files/etc/cron.d/glpi /etc/cron.d/glpi
