@@ -135,11 +135,21 @@ COPY --from=builder --chown=www-data:www-data /usr/src/glpi /var/www/glpi
 RUN mkdir /var/glpi && chown www-data:www-data /var/glpi
 VOLUME /var/glpi
 
+# make a directory for GLPI logs.
+RUN mkdir -p /var/log/glpi && chown www-data:www-data /var/log/glpi
+
 # Define GLPI environment variables
 ENV \
   GLPI_INSTALL_MODE=DOCKER \
   GLPI_CONFIG_DIR=/var/glpi/config \
-  GLPI_VAR_DIR=/var/glpi/files
+  GLPI_VAR_DIR=/var/glpi/files \
+  GLPI_LOG_DIR=/var/log/glpi
+
+# disable apache access logs
+RUN rm /var/log/apache2/access.log
+RUN rm /var/log/apache2/other_vhosts_access.log
+RUN ln -sfT /dev/null /var/log/apache2/access.log
+RUN ln -sfT /dev/null /var/log/apache2/other_vhosts_access.log
 
 # Make startup script executable and executes it as default command.
 RUN chmod u+x /opt/startup.sh
