@@ -35,6 +35,30 @@ do
     find "$dir" -type f -exec chmod u+rw {} \;
 done
 
+# Set ACL for www-data user on marketplace directory
+setfacl -m user:www-data:rwx,group:www-data:rwx "/var/www/glpi/marketplace"
+
+# forward logs files to /proc/1/fd/1
+# see https://stackoverflow.com/a/63713129
+logs=(
+    "event.log"
+    "cron.log"
+    "mail.log"
+    "php-errors.log"
+    "sql-errors.log"
+    "mail-errors.log"
+    "access-error.log"
+)
+for log in "${logs[@]}"
+do
+    if [ ! -f /var/log/glpi/$log ];
+    then
+        touch /var/log/glpi/$log
+        setfacl -m user:www-data:rwx,group:www-data:rwx /var/log/glpi/$log
+    fi
+done
+tail -f /var/log/glpi/*.log > /proc/1/fd/1 &
+
 # Run cron service.
 cron
 
