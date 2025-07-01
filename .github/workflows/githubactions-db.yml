@@ -31,6 +31,7 @@ jobs:
           - {base-image: "mariadb", target-image: "mariadb", version: "10.11", config-dir: "/etc/mysql/conf.d"}
           - {base-image: "mariadb", target-image: "mariadb", version: "11.0", config-dir: "/etc/mysql/conf.d"}
           - {base-image: "mariadb", target-image: "mariadb", version: "11.4", config-dir: "/etc/mysql/conf.d"}
+          - {base-image: "mariadb", target-image: "mariadb", version: "11.8", config-dir: "/etc/mysql/conf.d"}
           - {base-image: "mysql", target-image: "mysql", version: "5.7", config-dir: "/etc/mysql/conf.d"}
           - {base-image: "mysql", target-image: "mysql", version: "8.0", config-dir: "/etc/mysql/conf.d"}
           - {base-image: "mysql", target-image: "mysql", version: "8.4", config-dir: "/etc/mysql/conf.d"}
