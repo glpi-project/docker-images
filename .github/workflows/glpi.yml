@@ -12,6 +12,7 @@ on:
         type: string
         default: ""
       php-version:
+        required: false
         type: string
         default: "8.4"
     secrets:
