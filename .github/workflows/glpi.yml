@@ -16,7 +16,7 @@ on:
         type: string
         default: "8.4"
 # Following secrets are inherited.
-# This wrokflow is not supposed to be executed from another organization.
+# This workflow is not supposed to be executed from another organization.
 #    secrets:
 #      DOCKER_HUB_USERNAME:
 #        required: true
