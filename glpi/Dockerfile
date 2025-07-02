@@ -135,9 +135,6 @@ COPY --from=builder --chown=www-data:www-data /usr/src/glpi /var/www/glpi
 RUN mkdir /var/glpi && chown www-data:www-data /var/glpi
 VOLUME /var/glpi
 
-# make a directory for GLPI logs.
-RUN mkdir -p /var/log/glpi && chown www-data:www-data /var/log/glpi
-
 # Define GLPI environment variables
 ENV \
   GLPI_INSTALL_MODE=DOCKER \

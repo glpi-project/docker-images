@@ -11,7 +11,6 @@ dirs=(
     "/var/glpi/files/_graphs"
     "/var/glpi/files/_locales"
     "/var/glpi/files/_lock"
-    "/var/glpi/files/_log"
     "/var/glpi/files/_pictures"
     "/var/glpi/files/_plugins"
     "/var/glpi/files/_rss"
@@ -20,6 +19,7 @@ dirs=(
     "/var/glpi/files/_uploads"
     "/var/glpi/files/_inventories"
     "/var/glpi/marketplace"
+    "/var/glpi/logs"
 )
 for dir in "${dirs[@]}"
 do
@@ -38,26 +38,37 @@ done
 # Set ACL for www-data user on marketplace directory
 setfacl -m user:www-data:rwx,group:www-data:rwx "/var/www/glpi/marketplace"
 
-# forward logs files to /proc/1/fd/1
+# forward logs files to stdout/stderr
 # see https://stackoverflow.com/a/63713129
-logs=(
-    "event.log"
-    "cron.log"
-    "mail.log"
-    "php-errors.log"
-    "sql-errors.log"
-    "mail-errors.log"
-    "access-error.log"
+info_logs=(
+    "/var/glpi/logs/event.log"
+    "/var/glpi/logs/cron.log"
+    "/var/glpi/logs/mail.log"
 )
-for log in "${logs[@]}"
+error_logs=(
+    "/var/glpi/logs/php-errors.log"
+    "/var/glpi/logs/sql-errors.log"
+    "/var/glpi/logs/mail-errors.log"
+    "/var/glpi/logs/access-error.log"
+)
+# Create log files if they do not exist and set rights for www-data user
+all_logs=(
+    "${info_logs[@]}"
+    "${error_logs[@]}"
+)
+for log in "${all_logs[@]}"
 do
-    if [ ! -f /var/log/glpi/$log ];
+    if [ ! -f $log ];
     then
-        touch /var/log/glpi/$log
-        setfacl -m user:www-data:rwx,group:www-data:rwx /var/log/glpi/$log
+        touch $log
+        chown www-data:www-data "$log"
+        chmod u+rw "$log"
     fi
 done
-tail -f /var/log/glpi/*.log > /proc/1/fd/1 &
+# info log files to stdout
+tail -F ${info_logs[@]} > /proc/1/fd/1 2>&1 &
+# error log files to stderr
+tail -F ${error_logs[@]} > /proc/1/fd/2 2>&1 &
 
 # Run cron service.
 cron
