@@ -35,9 +35,6 @@ do
     find "$dir" -type f -exec chmod u+rw {} \;
 done
 
-# Set ACL for www-data user on marketplace directory
-setfacl -m user:www-data:rwx,group:www-data:rwx "/var/www/glpi/marketplace"
-
 # forward logs files to stdout/stderr
 # see https://stackoverflow.com/a/63713129
 info_logs=(
@@ -66,9 +63,9 @@ do
     fi
 done
 # info log files to stdout
-tail -F ${info_logs[@]} > /proc/1/fd/1 2>&1 &
+tail -F ${info_logs[@]} > /proc/1/fd/1 &
 # error log files to stderr
-tail -F ${error_logs[@]} > /proc/1/fd/2 2>&1 &
+tail -F ${error_logs[@]} > /proc/1/fd/2 &
 
 # Run cron service.
 cron
