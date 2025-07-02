@@ -15,15 +15,17 @@ on:
         required: false
         type: string
         default: "8.4"
-    secrets:
-      DOCKER_HUB_USERNAME:
-        required: true
-      DOCKER_HUB_TOKEN:
-        required: true
-      GHCR_USERNAME:
-        required: true
-      GHCR_ACCESS_TOKEN:
-        required: true
+# Following secrets are inherited.
+# This wrokflow is not supposed to be executed from another organization.
+#    secrets:
+#      DOCKER_HUB_USERNAME:
+#        required: true
+#      DOCKER_HUB_TOKEN:
+#        required: true
+#      GHCR_USERNAME:
+#        required: true
+#      GHCR_ACCESS_TOKEN:
+#        required: true
 
   # Enable manual run
   #
