@@ -46,7 +46,7 @@ error_logs=(
     "${GLPI_LOG_DIR}/php-errors.log"
     "${GLPI_LOG_DIR}/sql-errors.log"
     "${GLPI_LOG_DIR}/mail-errors.log"
-    "${GLPI_LOG_DIR}/access-error.log"
+    "${GLPI_LOG_DIR}/access-errors.log"
 )
 # Create log files if they do not exist and set rights for www-data user
 all_logs=(
@@ -57,15 +57,23 @@ for log in "${all_logs[@]}"
 do
     if [ ! -f $log ];
     then
-        touch $log
+        touch "$log"
         chown www-data:www-data "$log"
         chmod u+rw "$log"
     fi
 done
+
 # info log files to stdout
-tail -F ${info_logs[@]} > /proc/1/fd/1 &
+for log in "${info_logs[@]}"
+do
+    tail -F "$log" > /proc/1/fd/1 &
+done
+
 # error log files to stderr
-tail -F ${error_logs[@]} > /proc/1/fd/2 &
+for log in "${error_logs[@]}"
+do
+    tail -F "$log" > /proc/1/fd/2 &
+done
 
 # Run cron service.
 cron
