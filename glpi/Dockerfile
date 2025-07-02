@@ -146,12 +146,6 @@ ENV \
   GLPI_VAR_DIR=/var/glpi/files \
   GLPI_LOG_DIR=/var/glpi/logs
 
-# disable apache access logs
-RUN rm /var/log/apache2/access.log
-RUN rm /var/log/apache2/other_vhosts_access.log
-RUN ln -sfT /dev/null /var/log/apache2/access.log
-RUN ln -sfT /dev/null /var/log/apache2/other_vhosts_access.log
-
 # Make startup script executable and executes it as default command.
 RUN chmod u+x /opt/startup.sh
 CMD /opt/startup.sh
