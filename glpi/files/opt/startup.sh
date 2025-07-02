@@ -38,15 +38,15 @@ done
 # forward logs files to stdout/stderr
 # see https://stackoverflow.com/a/63713129
 info_logs=(
-    "/var/glpi/logs/event.log"
-    "/var/glpi/logs/cron.log"
-    "/var/glpi/logs/mail.log"
+    "${GLPI_LOG_DIR}/event.log"
+    "${GLPI_LOG_DIR}/cron.log"
+    "${GLPI_LOG_DIR}/mail.log"
 )
 error_logs=(
-    "/var/glpi/logs/php-errors.log"
-    "/var/glpi/logs/sql-errors.log"
-    "/var/glpi/logs/mail-errors.log"
-    "/var/glpi/logs/access-error.log"
+    "${GLPI_LOG_DIR}/php-errors.log"
+    "${GLPI_LOG_DIR}/sql-errors.log"
+    "${GLPI_LOG_DIR}/mail-errors.log"
+    "${GLPI_LOG_DIR}/access-error.log"
 )
 # Create log files if they do not exist and set rights for www-data user
 all_logs=(
