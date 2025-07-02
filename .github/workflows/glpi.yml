@@ -13,7 +13,6 @@ on:
         default: ""
       php-version:
         type: string
-        required: true
         default: "8.4"
     secrets:
       DOCKER_HUB_USERNAME:
