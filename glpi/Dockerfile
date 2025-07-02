@@ -140,7 +140,8 @@ ENV \
   GLPI_INSTALL_MODE=DOCKER \
   GLPI_CONFIG_DIR=/var/glpi/config  \
   GLPI_MARKETPLACE_DIR=/var/glpi/marketplace \
-  GLPI_VAR_DIR=/var/glpi/files
+  GLPI_VAR_DIR=/var/glpi/files \
+  GLPI_LOG_DIR=/var/glpi/logs
 
 # Make startup script executable and executes it as default command.
 RUN chmod u+x /opt/startup.sh
