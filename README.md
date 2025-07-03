@@ -16,6 +16,7 @@ This repository contains build files for docker images available in [Github Cont
 
 ### via [docker compose](https://github.com/docker/compose)
 
+**docker-compose.yml**
 ```yaml
 services:
   glpi:
@@ -25,6 +26,7 @@ services:
       - "./storage/glpi:/var/glpi:rw"
     depends_on:
       - "db"
+        condition: service_healthy
     ports:
       - "80:80"
 
@@ -35,11 +37,28 @@ services:
        - "./storage/mysql:/var/lib/mysql"
     environment:
       MYSQL_RANDOM_ROOT_PASSWORD: "yes"
-      MYSQL_DATABASE: "glpi"
-      MYSQL_USER: "glpi"
-      MYSQL_PASSWORD: "glpi"
+      MYSQL_DATABASE: ${GLPI_DB_NAME}
+      MYSQL_USER: ${GLPI_DB_USER}
+      MYSQL_PASSWORD: ${GLPI_DB_PASSWORD}
+    healthcheck:
+      test: mysqladmin ping -h 127.0.0.1 -u $$MYSQL_USER --password=$$MYSQL_PASSWORD
+      start_period: 5s
+      interval: 5s
+      timeout: 5s
+      retries: 55
     expose:
       - "3306"
+```
+
+And an .env file:
+
+**.env**
+```env
+GLPI_DB_HOST=db
+GLPI_DB_PORT=3306
+GLPI_DB_NAME=glpi
+GLPI_DB_USER=glpi
+GLPI_DB_PASSWORD=glpi
 ```
 
 Then launch it with:
