@@ -123,7 +123,7 @@ RUN ln -s $PHP_INI_DIR/php.ini-production $PHP_INI_DIR/php.ini
 COPY ./files/etc/apache2/sites-available/000-default.conf /etc/apache2/sites-available/000-default.conf
 COPY ./files/etc/cron.d/glpi /etc/cron.d/glpi
 COPY ./files/etc/php/conf.d/glpi.ini $PHP_INI_DIR/conf.d/glpi.ini
-COPY ./files/opt/startup.sh /opt/startup.sh
+COPY ./files/opt/* /opt/
 
 # Install GLPI crontab.
 RUN crontab -u www-data /etc/cron.d/glpi
@@ -138,14 +138,14 @@ VOLUME /var/glpi
 # Define GLPI environment variables
 ENV \
   GLPI_INSTALL_MODE=DOCKER \
-  GLPI_CONFIG_DIR=/var/glpi/config  \
+  GLPI_CONFIG_DIR=/var/glpi/config \
   GLPI_MARKETPLACE_DIR=/var/glpi/marketplace \
   GLPI_VAR_DIR=/var/glpi/files \
   GLPI_LOG_DIR=/var/glpi/logs
 
 # Make startup script executable and executes it as default command.
 RUN chmod u+x /opt/startup.sh
-CMD /opt/startup.sh
+CMD ["/opt/startup.sh"]
 
 # Define application path as base working dir.
 WORKDIR /var/www/glpi
