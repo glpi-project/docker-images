@@ -118,6 +118,9 @@ RUN \
 COPY --from=composer /usr/bin/composer /usr/bin/composer
 
 # Copy files to container
+RUN mkdir /etc/apache2/vhosts
+COPY ./files/etc/apache2/ports.conf /etc/apache2/ports.conf
+COPY ./files/etc/apache2/vhosts/glpi-common.conf /etc/apache2/vhosts/glpi-common.conf
 COPY ./files/etc/apache2/sites-available/000-default.conf /etc/apache2/sites-available/000-default.conf
 
 RUN \
