@@ -55,5 +55,5 @@ if ! GLPI_Installed; then
 else
     echo "GLPI is already installed. Starting update..."
     Update_GLPI
-    greetings
+    greetings false
 fi
