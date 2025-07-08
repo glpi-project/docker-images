@@ -24,6 +24,7 @@ services:
     restart: "unless-stopped"
     volumes:
       - "./storage/glpi:/var/glpi:rw"
+    env_file: glpi.env
     depends_on:
       db:
         condition: service_healthy
@@ -52,7 +53,7 @@ services:
 
 And an .env file:
 
-**.env**
+**glpi.env**
 ```env
 GLPI_DB_HOST=db
 GLPI_DB_PORT=3306
