@@ -14,23 +14,25 @@ Install_GLPI() {
 greetings() {
     local new_installation="$1"
 
-    echo "Welcome to\n"
-    echo " ██████╗ ██╗     ██████╗ ██╗"
-    echo "██╔════╝ ██║     ██╔══██╗██║"
-    echo "██║  ███╗██║     ██████╔╝██║"
-    echo "██║   ██║██║     ██╔═══╝ ██║"
-    echo "╚██████╔╝███████╗██║     ██║"
-    echo " ╚═════╝ ╚══════╝╚═╝     ╚═╝\n"
+    echo $'\n\n================================================================'
+    echo $'Welcome to\n'
+    echo $' ██████╗ ██╗     ██████╗ ██╗'
+    echo $'██╔════╝ ██║     ██╔══██╗██║'
+    echo $'██║  ███╗██║     ██████╔╝██║'
+    echo $'██║   ██║██║     ██╔═══╝ ██║'
+    echo $'╚██████╔╝███████╗██║     ██║'
+    echo $' ╚═════╝ ╚══════╝╚═╝     ╚═╝\n'
 
-    echo "https://glpi-project.org"
+    echo $'https://glpi-project.org'
 
     if [ "$new_installation" = true ]; then
-        echo "\n\n\n================================================================"
-        echo "GLPI installation completed successfully!"
-        echo "Please access GLPI via your web browser to complete the setup."
-        echo "You can use the following credentials:"
-        echo "Username: glpi"
-        echo "Password: glpi"
+        echo $'\n================================================================'
+        echo $'GLPI installation completed successfully!\n'
+        echo $'Please access GLPI via your web browser to complete the setup.'
+        echo $'You can use the following credentials:\n'
+        echo $'- Username: glpi'
+        echo $'- Password: glpi'
+        echo $'================================================================\n'
     fi
 }
 
