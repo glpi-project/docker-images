@@ -112,6 +112,9 @@ RUN apt-get update \
   # Install acl to manage acl of writable directories.
   && apt-get install --assume-yes --no-install-recommends --quiet acl \
   \
+  # install mysql client
+  && apt-get install --assume-yes --no-install-recommends --quiet default-mysql-client \
+  \
   # Clean sources list.
   && rm -rf /var/lib/apt/lists/*
 
