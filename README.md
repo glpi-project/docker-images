@@ -25,7 +25,7 @@ services:
     volumes:
       - "./storage/glpi:/var/glpi:rw"
     depends_on:
-      - "db"
+      db:
         condition: service_healthy
     ports:
       - "80:80"
