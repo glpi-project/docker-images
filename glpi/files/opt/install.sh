@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e -u -x -o pipefail
+set -e -u -o pipefail
 
 Install_GLPI() {
     bin/console database:install \
