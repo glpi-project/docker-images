@@ -68,6 +68,12 @@ Then launch it with:
 docker-compose up -d
 ```
 
+Please note that we setup a random root password for the MySQL database, so you will need to check the logs of the `db` container to find it:
+
+```bash
+docker logs <db_container_id>
+```
+
 Once the containers are running, you can access GLPI at `http://localhost` and follow the installation instructions.
 At the time of database creation, you can use the following credentials:
 
@@ -75,6 +81,21 @@ At the time of database creation, you can use the following credentials:
 - Database: `glpi`
 - User: `glpi`
 - Password: `glpi`
+
+### Timezones support
+
+If you want to initialize the timezones support for GLPI, we need to first GRANT the glpi user to access the `mysql.time_zone` table. So with the docker container running, you can run the following command:
+
+```bash
+docker exec -it <db_container_id> mysql -u root -p -e "GRANT SELECT ON mysql.time_zone_name TO 'glpi'@'%';FLUSH PRIVILEGES;"
+```
+The root password will be the one you found in the logs of the `db` container previously.
+
+Then you can run the following command to initialize the timezones on the GLPI container:
+
+```bash
+docker exec -it <glpi_container_id> /var/www/glpi/bin/console database:enable_timezones
+```
 
 ### Volumes
 
