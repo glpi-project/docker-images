@@ -65,7 +65,7 @@ GLPI_DB_PASSWORD=glpi
 Then launch it with:
 
 ```bash
-docker-compose up -d
+docker compose up -d
 ```
 
 Please note that we setup a random root password for the MySQL database, so you will need to check the logs of the `db` container to find it:
