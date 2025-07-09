@@ -2,13 +2,13 @@
 set -e -u -o pipefail
 
 Install_GLPI() {
-    bin/console database:install \
+    su www-data -s /bin/bash -c 'bin/console database:install \
         --db-host="$GLPI_DB_HOST" \
         --db-port="$GLPI_DB_PORT" \
         --db-name="$GLPI_DB_NAME" \
         --db-user="$GLPI_DB_USER" \
         --db-password="$GLPI_DB_PASSWORD" \
-        --no-interaction --reconfigure
+        --no-interaction --reconfigure'
 }
 
 greetings() {
@@ -37,7 +37,8 @@ greetings() {
 }
 
 Update_GLPI() {
-    bin/console database:check_schema_integrity || bin/console database:update --no-interaction
+    su www-data -s /bin/bash -c 'bin/console database:check_schema_integrity' \
+ || su www-data -s /bin/bash -c 'bin/console database:update --no-interaction'
 }
 
 GLPI_Installed() {
