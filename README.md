@@ -59,3 +59,4 @@ At the time of database creation, you can use the following credentials:
 ### Volumes
 
 By default, the `glpi/glpi` image provides a volume containing its `config`, `marketplace` and `files` directories.
+For GLPI 10.0.x version the marketplace directory is not declared in the volume as the path differs. You may want to create a manual volume for the path `/var/www/glpi/marketplace` if you plan to use it.
