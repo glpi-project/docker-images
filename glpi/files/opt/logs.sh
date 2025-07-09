@@ -21,7 +21,7 @@ all_logs=(
 )
 for log in "${all_logs[@]}"
 do
-    if [ ! -f $log ];
+    if [ ! -f "$log" ];
     then
         touch "$log"
         chown www-data:www-data "$log"

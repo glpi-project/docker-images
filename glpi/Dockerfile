@@ -128,7 +128,9 @@ COPY ./files/etc/apache2/conf-available/zzz-glpi.conf /etc/apache2/conf-availabl
 COPY ./files/etc/apache2/conf-enabled/servername.conf /etc/apache2/conf-enabled/servername.conf
 COPY ./files/etc/cron.d/glpi /etc/cron.d/glpi
 COPY ./files/etc/php/conf.d/glpi.ini $PHP_INI_DIR/conf.d/glpi.ini
-COPY ./files/opt/* /opt/
+COPY ./files/opt/startup.sh /opt/startup.sh
+COPY ./files/opt/logs.sh /opt/logs.sh
+COPY ./files/opt/install.sh /opt/install.sh
 
 # Enable custom Apache configuration
 RUN a2enconf zzz-glpi.conf
