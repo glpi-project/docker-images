@@ -8,7 +8,7 @@ Install_GLPI() {
         --db-name="$GLPI_DB_NAME" \
         --db-user="$GLPI_DB_USER" \
         --db-password="$GLPI_DB_PASSWORD" \
-        --no-interaction --reconfigure'
+        --no-interaction --reconfigure --quiet'
 }
 
 greetings() {
@@ -38,7 +38,7 @@ greetings() {
 
 Update_GLPI() {
     su www-data -s /bin/bash -c 'bin/console database:check_schema_integrity' \
- || su www-data -s /bin/bash -c 'bin/console database:update --no-interaction'
+ || su www-data -s /bin/bash -c 'bin/console database:update --no-interaction --quiet'
 }
 
 GLPI_Installed() {
@@ -58,6 +58,7 @@ GLPI_Installed() {
 
 if ! GLPI_Installed; then
     echo "GLPI is not installed. Starting installation..."
+    echo "Please wait until you see the greeting, this may take a minute..."
     Install_GLPI
     greetings true
 else
