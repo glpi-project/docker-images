@@ -126,7 +126,7 @@ COPY ./files/etc/php/conf.d/glpi.ini $PHP_INI_DIR/conf.d/glpi.ini
 COPY ./files/opt/startup.sh /opt/startup.sh
 
 # Install GLPI crontab.
-RUN crontab -u www-data /etc/cron.d/glpi
+RUN crontab -u root /etc/cron.d/glpi
 
 # Copy GLPI application.
 COPY --from=builder --chown=www-data:www-data /usr/src/glpi /var/www/glpi
@@ -142,6 +142,9 @@ ENV \
   GLPI_MARKETPLACE_DIR=/var/glpi/marketplace \
   GLPI_VAR_DIR=/var/glpi/files \
   GLPI_LOG_DIR=/var/glpi/logs
+
+# Copy the env variables to `/etc/environment`, to make them available for the commands executed by the cron service
+RUN printenv > /etc/environment
 
 # Make startup script executable and executes it as default command.
 RUN chmod u+x /opt/startup.sh
