@@ -27,6 +27,7 @@ jobs:
           - {base-image: "php:8.2-apache-bullseye", php-version: "8.2"}
           - {base-image: "php:8.3-apache-bullseye", php-version: "8.3"}
           - {base-image: "php:8.4-apache-bullseye", php-version: "8.4"}
+          - {base-image: "php:8.5-rc-apache-bullseye", php-version: "8.5"}
     steps:
       - name: "Set variables"
         run: |
