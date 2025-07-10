@@ -119,15 +119,15 @@ RUN apt-get update \
 # ref: https://github.com/docker-library/docs/tree/master/php#configuration
 RUN ln -s $PHP_INI_DIR/php.ini-production $PHP_INI_DIR/php.ini
 
-# Limit server fingerprinting
-RUN sed -i '/^[^#]*ServerTokens/s/ServerTokens.*/ServerTokens Prod/' /etc/apache2/conf-enabled/security.conf \
-  && sed -i '/^[^#]*ServerSignature/s/ServerSignature.*/ServerSignature Off/' /etc/apache2/conf-enabled/security.conf
-
 # Copy services configuration files and startup script to container.
 COPY ./files/etc/apache2/sites-available/000-default.conf /etc/apache2/sites-available/000-default.conf
+COPY ./files/etc/apache2/conf-available/000-default.conf /etc/apache2/conf-available/zzz-glpi.conf
 COPY ./files/etc/cron.d/glpi /etc/cron.d/glpi
 COPY ./files/etc/php/conf.d/glpi.ini $PHP_INI_DIR/conf.d/glpi.ini
 COPY ./files/opt/startup.sh /opt/startup.sh
+
+# Enable Apache files
+RUN ln -s /etc/apache2/conf-available/zzz-glpi.conf /etc/apache2/conf-enabled/zzz-glpi.conf
 
 # Install GLPI crontab.
 RUN crontab -u www-data /etc/cron.d/glpi
