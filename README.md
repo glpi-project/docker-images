@@ -1,6 +1,6 @@
 # GLPI Docker Images
 
-![GLPI logo](https://raw.githubusercontent.com/glpi-project/glpi/main/public/pics/logos/logo-GLPI-250-black.png)
+![GLPI on docker illustration](./docs/illustration.png.png)
 
 [GLPI](https://glpi-project.org) is a free and open source Asset and IT Management Software package, Data center management, ITIL Service Desk, licenses tracking and software auditing.
 
