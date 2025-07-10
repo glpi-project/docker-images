@@ -76,6 +76,10 @@ do
 done
 
 # Run cron service.
+touch /var/log/cron-output.log
+touch /var/log/cron-errors.log
+tail -F /var/log/cron-output.log &
+tail -F /var/log/cron-errors.log &
 cron
 
 # Run command previously defined in base php-apache Dockerfile.
