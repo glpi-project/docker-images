@@ -125,7 +125,6 @@ RUN ln -s $PHP_INI_DIR/php.ini-production $PHP_INI_DIR/php.ini
 # Copy services configuration files and startup script to container.
 COPY ./files/etc/apache2/sites-available/000-default.conf /etc/apache2/sites-available/000-default.conf
 COPY ./files/etc/apache2/conf-available/zzz-glpi.conf /etc/apache2/conf-available/zzz-glpi.conf
-COPY ./files/etc/apache2/conf-available/servername.conf /etc/apache2/conf-available/servername.conf
 COPY ./files/etc/cron.d/glpi /etc/cron.d/glpi
 COPY ./files/etc/php/conf.d/glpi.ini $PHP_INI_DIR/conf.d/glpi.ini
 COPY ./files/opt/startup.sh /opt/startup.sh
@@ -134,7 +133,6 @@ COPY ./files/opt/install.sh /opt/install.sh
 
 # Enable custom Apache configuration
 RUN a2enconf zzz-glpi.conf
-RUN a2enconf servername.conf
 
 # Install GLPI crontab.
 RUN crontab -u root /etc/cron.d/glpi
