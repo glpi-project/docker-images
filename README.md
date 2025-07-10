@@ -74,8 +74,12 @@ Please note that we setup a random root password for the MySQL database, so you 
 docker logs <db_container_id>
 ```
 
-Once the containers are running, you can access GLPI at `http://localhost` and follow the installation instructions.
-At the time of database creation, you can use the following credentials:
+Once the containers are running, you can access GLPI at `http://localhost`
+GLPI will automatically install or update itself if needed.
+
+You can disable this behavior by setting the environment variable `GLPI_SKIP_AUTOINSTALL` to `true` in the `.env` file. Same with `GLPI_SKIP_AUTOUPDATE` to disable automatic updates.
+
+If so, when accessing the web interface, installation wizard will ask you to provide the database connection details. You can use the following credentials:
 
 - Hostname: `db`
 - Database: `glpi`

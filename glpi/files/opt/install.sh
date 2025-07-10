@@ -57,12 +57,16 @@ GLPI_Installed() {
 }
 
 if ! GLPI_Installed; then
-    echo "GLPI is not installed. Starting installation..."
-    echo "Please wait until you see the greeting, this may take a minute..."
-    Install_GLPI
-    greetings true
+    if [[ -z "$GLPI_SKIP_AUTOINSTALL" ]]; then
+        echo "GLPI is not installed. but auto-install is enabled. Starting installation."
+        echo "Please wait until you see the greeting, this may take a minute..."
+        Install_GLPI
+        greetings true
+    fi
 else
-    echo "GLPI is already installed. Starting update..."
-    Update_GLPI
-    greetings false
+    if [[ -z "$GLPI_SKIP_AUTOUPDATE" ]]; then
+        echo "GLPI is not installed, but auto-update is enabled. Starting update..."
+        Update_GLPI
+        greetings false
+    fi
 fi
