@@ -150,8 +150,8 @@ ENV \
   GLPI_CONFIG_DIR=/var/glpi/config \
   GLPI_MARKETPLACE_DIR=/var/glpi/marketplace \
   GLPI_VAR_DIR=/var/glpi/files \
-  GLPI_LOG_DIR=/var/glpi/logs
-  GLPI_SKIP_AUTOINSTALL=false
+  GLPI_LOG_DIR=/var/glpi/logs \
+  GLPI_SKIP_AUTOINSTALL=false \
   GLPI_SKIP_AUTOUPDATE=false
 
 # Copy the env variables to `/etc/environment`, to make them available for the commands executed by the cron service
