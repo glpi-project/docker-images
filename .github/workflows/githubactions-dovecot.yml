@@ -45,8 +45,6 @@ jobs:
       - name: "Build and push"
         uses: "docker/build-push-action@v6"
         with:
-          build-args: |
-            BASE_IMAGE=debian:buster-slim
           cache-from: "type=gha"
           cache-to: "type=gha,mode=max"
           context: "githubactions-dovecot"

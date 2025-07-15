@@ -1,6 +1,4 @@
-ARG BASE_IMAGE=debian:buster-slim
-
-FROM $BASE_IMAGE
+FROM debian:bookworm-slim
 
 LABEL \
   org.opencontainers.image.title="GLPI Github Actions Dovecot container" \
@@ -21,7 +19,7 @@ RUN \
   && apt-get update \
   \
   # Install mail server and getmail utility.
-  && apt-get install --assume-yes --no-install-recommends --quiet dovecot-imapd dovecot-pop3d getmail4 \
+  && apt-get install --assume-yes --no-install-recommends --quiet dovecot-imapd dovecot-pop3d getmail6 \
   && maildirmake.dovecot /home/glpi/Maildir glpi \
   \
   # Clean sources list.
