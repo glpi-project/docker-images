@@ -46,7 +46,7 @@ services:
       start_period: 5s
       interval: 5s
       timeout: 5s
-      retries: 55
+      retries: 10
     expose:
       - "3306"
 ```
