@@ -43,7 +43,7 @@ Update_GLPI() {
 GLPI_Installed() {
     if [ -f "${GLPI_CONFIG_DIR}/config_db.php" ]; then
         # check if the glpi_logs table exists (-N to skip column names, -s for non tabular output)
-        if [ $(mysql -N -s -h "$GLPI_DB_HOST" -u "$GLPI_DB_USER" -p"$GLPI_DB_PASSWORD" -e "select count(*) from information_schema.tables where \
+        if [ $(mysql -N -s -h "$GLPI_DB_HOST" -P "$GLPI_DB_PORT" -u "$GLPI_DB_USER" -p"$GLPI_DB_PASSWORD" -e "select count(*) from information_schema.tables where \
         table_schema='$GLPI_DB_NAME' and table_name='glpi_logs';") -eq 1 ]
         then
             return 0
