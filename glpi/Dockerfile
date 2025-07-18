@@ -127,9 +127,8 @@ COPY ./files/etc/apache2/sites-available/000-default.conf /etc/apache2/sites-ava
 COPY ./files/etc/apache2/conf-available/zzz-glpi.conf /etc/apache2/conf-available/zzz-glpi.conf
 COPY ./files/etc/cron.d/glpi /etc/cron.d/glpi
 COPY ./files/etc/php/conf.d/glpi.ini $PHP_INI_DIR/conf.d/glpi.ini
-COPY ./files/opt/startup.sh /opt/startup.sh
-COPY ./files/opt/logs.sh /opt/logs.sh
-COPY ./files/opt/install.sh /opt/install.sh
+COPY ./files/opt/glpi/ /opt/glpi/
+RUN chmod u+x /opt/glpi/*.sh
 
 # Enable custom Apache configuration
 RUN a2enconf zzz-glpi.conf
@@ -158,8 +157,8 @@ ENV \
 RUN printenv > /etc/environment
 
 # Make startup script executable and executes it as default command.
-RUN chmod u+x /opt/startup.sh
-CMD ["/opt/startup.sh"]
+ENTRYPOINT ["/opt/glpi/docker-entrypoint.sh"]
+CMD ["/opt/glpi/install-and-start.sh"]
 
 # Define application path as base working dir.
 WORKDIR /var/www/glpi

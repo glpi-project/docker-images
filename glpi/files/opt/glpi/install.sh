@@ -64,7 +64,7 @@ if ! GLPI_Installed; then
     fi
 else
     if ! $GLPI_SKIP_AUTOUPDATE; then
-        echo "GLPI is not installed, but auto-update is enabled. Starting update..."
+        echo "GLPI is installed, but auto-update is enabled. Starting update..."
         Update_GLPI
         greetings false
     fi
