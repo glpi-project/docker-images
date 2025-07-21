@@ -42,21 +42,3 @@ do
     find "$dir" -type d -exec chmod u+rwx {} \;
     find "$dir" -type f -exec chmod u+rw {} \;
 done
-
-# run logs script
-chmod u+x /opt/logs.sh
-/opt/logs.sh
-
-# run install/update script
-chmod u+x /opt/install.sh
-/opt/install.sh
-
-# Run cron service.
-touch /var/log/cron-output.log
-touch /var/log/cron-errors.log
-tail -F /var/log/cron-output.log &
-tail -F /var/log/cron-errors.log &
-cron
-
-# Run command previously defined in base php-apache Dockerfile.
-apache2-foreground
