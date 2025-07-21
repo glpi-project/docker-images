@@ -19,6 +19,7 @@ LABEL \
 
 RUN apt update \
   && PHP_MAJOR_VERSION="$(echo $PHP_VERSION | cut -d '.' -f 1)" \
+  && PHP_MINOR_VERSION="$(echo $PHP_VERSION | cut -d '.' -f 2)" \
   \
   # Install bz2 extension (for marketplace).
   && apt install --assume-yes --no-install-recommends --quiet libbz2-dev \
@@ -52,8 +53,10 @@ RUN apt update \
   # Install bcmath PHP extension.
   && docker-php-ext-install bcmath \
   \
-  # Install opcache PHP extension.
-  && docker-php-ext-install opcache \
+  # Install opcache PHP extension (it is already enabled in PHP 8.5+ images).
+  && if [ $PHP_MINOR_VERSION -ne "8.5" ]; then \
+    docker-php-ext-install opcache \
+  ; fi \
   \
   # Install pcntl PHP extension (required for composer-require-checker).
   && docker-php-ext-install pcntl \
@@ -70,7 +73,11 @@ RUN apt update \
   && if [ $PHP_MAJOR_VERSION -lt "8" ]; then \
     pecl install xdebug-3.1.6 \
   ; else \
-    pecl install xdebug \
+    # xdebug 3.5.0 is not available on PECL, its distribution is now made through PIE
+    mkdir -p /tmp/xdebug \
+    && (curl --fail --silent --show-error --location https://github.com/xdebug/xdebug/archive/refs/tags/3.5.0.tar.gz | tar --extract --ungzip --verbose --directory="/tmp/xdebug" --strip 1) \
+    && docker-php-ext-install /tmp/xdebug \
+    && rm -rf /tmp/xdebug \
   ; fi \
   && docker-php-ext-enable xdebug \
   \
