@@ -24,7 +24,8 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - {branch: "main", tag: "11.0-nightly"}
+          - {branch: "main", tag: "dev-nightly"}
+          - {branch: "11.0/bugfixes", tag: "11.0-nightly"}
           - {branch: "10.0/bugfixes", tag: "10.0-nightly"}
     steps:
       - name: "Set variables"
