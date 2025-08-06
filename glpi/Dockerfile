@@ -30,6 +30,11 @@ RUN \
   # Install git and zip used by composer when fetching dependencies.
   && apk add git unzip \
   \
+  # Install intl PHP extension required to execute the GLPI console.
+  && apk add icu-dev \
+  && docker-php-ext-configure intl \
+  && docker-php-ext-install intl \
+  \
   # Clean sources list.
   && rm -rf /var/cache/apk/*
 
