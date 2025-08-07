@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e -u -x -o pipefail
+set -e -u -o pipefail
 
 # forward logs files to stdout/stderr
 # see https://stackoverflow.com/a/63713129

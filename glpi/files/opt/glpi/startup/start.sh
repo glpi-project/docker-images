@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e -u -x -o pipefail
+set -e -u -o pipefail
 
 # Run cron service.
 /opt/glpi/startup/cron.sh
