@@ -1,13 +1,6 @@
 #!/bin/bash
 set -e -u -x -o pipefail
 
-# get GLPI major version
-GLPI_MAJOR_VERSION=$(ls /var/www/glpi/version | sort -V | head -n 1 | cut -d. -f1)
-# fix marketplace directory for GLPI versions < 11
-if [ $GLPI_MAJOR_VERSION -lt 11 ]; then
-    GLPI_MARKETPLACE_DIR="/var/www/glpi/marketplace"
-fi
-
 # Create `config`, `marketplace` and `files` volume (sub)directories that are missing
 # and set ACL for www-data user
 dirs=(

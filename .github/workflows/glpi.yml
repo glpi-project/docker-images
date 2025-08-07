@@ -60,8 +60,11 @@ jobs:
         id: "variables"
         run: |
           IMAGE_VERSION="$(echo '${{ inputs.glpi-version }}' | sed -E 's|/|-|')"
+          IMAGE_VERSION_MAJOR=$(echo "${{ inputs.glpi-version }}" | cut -d. -f1)
+          IMAGE_VERSION_MINOR=$(echo "${{ inputs.glpi-version }}" | cut -d. -f1-2)
+
           if [[ "${{ inputs.image-suffix }}" != '' ]]; then
-              IMAGE_VERSION="$IMAGE_VERSION-${{ inputs.image-suffix }}"
+            IMAGE_VERSION="$IMAGE_VERSION-${{ inputs.image-suffix }}"
           fi
 
           # prepare the tags to push
@@ -69,22 +72,25 @@ jobs:
 
           PRERELEASE_FLAG="$( echo "${{ inputs.glpi-version }}" | grep -Po '(\-\w+)?$' )"
           if [[ -z "$PRERELEASE_FLAG" ]]; then
-              # populate major version tags, ex 10.0.18 -> 10
-              IMAGE_VERSION_MAJOR=$(echo "${{ inputs.glpi-version }}" | cut -d. -f1)
-              TAGS="$TAGS,glpi/glpi:$IMAGE_VERSION_MAJOR,ghcr.io/glpi-project/glpi:$IMAGE_VERSION_MAJOR"
+            # populate major version tags, ex 10.0.18 -> 10
+            TAGS="$TAGS,glpi/glpi:$IMAGE_VERSION_MAJOR,ghcr.io/glpi-project/glpi:$IMAGE_VERSION_MAJOR"
 
-              # populate minor version tags, ex 10.0.18 -> 10.0
-              IMAGE_VERSION_MINOR=$(echo "${{ inputs.glpi-version }}" | cut -d. -f1-2)
-              TAGS="$TAGS,glpi/glpi:$IMAGE_VERSION_MINOR,ghcr.io/glpi-project/glpi:$IMAGE_VERSION_MINOR"
+            # populate minor version tags, ex 10.0.18 -> 10.0
+            TAGS="$TAGS,glpi/glpi:$IMAGE_VERSION_MINOR,ghcr.io/glpi-project/glpi:$IMAGE_VERSION_MINOR"
 
             # find if the current version is the latest
             if [[ "${{ inputs.glpi-version }}" = "$(curl -s https://api.github.com/repos/glpi-project/glpi/releases/latest | jq -r .tag_name)" ]]; then
-                TAGS="$TAGS,glpi/glpi:latest,ghcr.io/glpi-project/glpi:latest"
+              TAGS="$TAGS,glpi/glpi:latest,ghcr.io/glpi-project/glpi:latest"
             fi
           fi
-
           echo "tags=$TAGS" >> $GITHUB_OUTPUT
-          echo $TAGS
+
+          # compute the marketplace dir
+          MARKETPLACE_DIR="/var/glpi/marketplace"
+          if [[ "$IMAGE_VERSION_MAJOR" = "10" ]]; then
+            MARKETPLACE_DIR="/var/www/glpi/marketplace"
+          fi
+          echo "marketplace_dir=$MARKETPLACE_DIR" >> $GITHUB_OUTPUT
       - name: "Checkout"
         uses: "actions/checkout@v4"
         with:
@@ -113,6 +119,7 @@ jobs:
           build-args: |
             BUILDER_IMAGE=php:${{inputs.php-version}}-cli-alpine
             APP_IMAGE=php:${{inputs.php-version}}-apache
+            GLPI_MARKETPLACE_DIR=${{ steps.variables.outputs.marketplace_dir }}
           cache-from: "type=gha"
           cache-to: "type=gha,mode=max"
           context: "glpi"
