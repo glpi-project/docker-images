@@ -135,7 +135,7 @@ COPY ./files/etc/apache2/conf-available/zzz-glpi.conf /etc/apache2/conf-availabl
 COPY ./files/etc/cron.d/glpi /etc/cron.d/glpi
 COPY ./files/etc/php/conf.d/glpi.ini $PHP_INI_DIR/conf.d/glpi.ini
 COPY ./files/opt/glpi/ /opt/glpi/
-RUN chmod u+x /opt/glpi/*.sh
+RUN find /opt/glpi -type f -iname "*.sh" -exec chmod u+x {} \;
 
 # Enable custom Apache configuration
 RUN a2enconf zzz-glpi.conf
@@ -163,9 +163,9 @@ ENV \
 # Copy the env variables to `/etc/environment`, to make them available for the commands executed by the cron service
 RUN printenv > /etc/environment
 
-# Make startup script executable and executes it as default command.
-ENTRYPOINT ["/opt/glpi/docker-entrypoint.sh"]
-CMD ["/opt/glpi/install-and-start.sh"]
+# Define entrypoint and default command.
+ENTRYPOINT ["/opt/glpi/entrypoint.sh"]
+CMD ["/opt/glpi/startup.sh"]
 
 # Define application path as base working dir.
 WORKDIR /var/www/glpi

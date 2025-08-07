@@ -1,8 +1,8 @@
 #!/bin/bash
-set -e -u -x -o pipefail
+set -e -u -o pipefail
 
-# forward logs files to stdout/stderr
-# see https://stackoverflow.com/a/63713129
+# Create GLPI log files if they do not exist, set rights for www-data user
+# and forward them to stdout/stderr (see https://stackoverflow.com/a/63713129).
 info_logs=(
     "${GLPI_LOG_DIR}/event.log"
     "${GLPI_LOG_DIR}/cron.log"
@@ -14,7 +14,6 @@ error_logs=(
     "${GLPI_LOG_DIR}/mail-errors.log"
     "${GLPI_LOG_DIR}/access-errors.log"
 )
-# Create log files if they do not exist and set rights for www-data user
 all_logs=(
     "${info_logs[@]}"
     "${error_logs[@]}"
@@ -40,3 +39,10 @@ for log in "${error_logs[@]}"
 do
     tail -F "$log" > /proc/1/fd/2 &
 done
+
+
+# Forward GLPI cron logs to stdout/stderr (see https://stackoverflow.com/a/63713129).
+touch /var/log/cron-output.log
+touch /var/log/cron-errors.log
+tail -F /var/log/cron-output.log > /proc/1/fd/1 &
+tail -F /var/log/cron-errors.log > /proc/1/fd/2 &
