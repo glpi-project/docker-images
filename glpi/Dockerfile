@@ -54,6 +54,8 @@ RUN /usr/src/glpi/tools/build_glpi.sh
 #####
 FROM $APP_IMAGE
 
+ARG GLPI_MARKETPLACE_DIR=/var/glpi/marketplace
+
 LABEL \
   org.opencontainers.image.title="GLPI nightly build" \
   org.opencontainers.image.description="This container contains Apache/PHP and a nightly build of GLPI. \
@@ -152,7 +154,7 @@ VOLUME /var/glpi
 ENV \
   GLPI_INSTALL_MODE=DOCKER \
   GLPI_CONFIG_DIR=/var/glpi/config \
-  GLPI_MARKETPLACE_DIR=/var/glpi/marketplace \
+  GLPI_MARKETPLACE_DIR=${GLPI_MARKETPLACE_DIR} \
   GLPI_VAR_DIR=/var/glpi/files \
   GLPI_LOG_DIR=/var/glpi/logs \
   GLPI_SKIP_AUTOINSTALL=false \
