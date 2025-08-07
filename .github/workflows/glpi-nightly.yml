@@ -37,6 +37,13 @@ jobs:
           fi
           echo "destinations=$DESTINATIONS" >> $GITHUB_OUTPUT
           echo "tags=glpi/glpi:${{ matrix.tag }},ghcr.io/glpi-project/glpi:${{ matrix.tag }}" >> $GITHUB_OUTPUT
+
+          # compute the marketplace dir
+          MARKETPLACE_DIR="/var/glpi/marketplace"
+          if [[ "${{ matrix.branch }}" = "10.0/bugfixes" ]]; then
+            MARKETPLACE_DIR="/var/www/glpi/marketplace"
+          fi
+          echo "marketplace_dir=$MARKETPLACE_DIR" >> $GITHUB_OUTPUT
       - name: "Checkout"
         uses: "actions/checkout@v4"
       - name: "Get sources from glpi-project/glpi"
@@ -63,6 +70,7 @@ jobs:
           build-args: |
             BUILDER_IMAGE=php:8.4-cli-alpine
             APP_IMAGE=php:8.4-apache
+            GLPI_MARKETPLACE_DIR=${{ steps.variables.outputs.marketplace_dir }}
           cache-from: "type=gha"
           cache-to: "type=gha,mode=max"
           context: "glpi"
