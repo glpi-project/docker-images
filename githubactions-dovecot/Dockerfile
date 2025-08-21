@@ -1,4 +1,4 @@
-FROM debian:bookworm-slim
+FROM debian:trixie-slim
 
 LABEL \
   org.opencontainers.image.title="GLPI Github Actions Dovecot container" \
