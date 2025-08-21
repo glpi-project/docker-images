@@ -12,7 +12,7 @@ on:
       - ".github/workflows/glpi-nightly.yml"
       - "glpi/**"
   schedule:
-    - cron:  '0 0 * * 1'
+    - cron:  '0 0 * * *'
   # Enable manual run
   workflow_dispatch:
 
