@@ -1,4 +1,4 @@
-ARG BASE_IMAGE=php:fpm-bullseye
+ARG BASE_IMAGE=php:fpm-trixie
 
 
 #####

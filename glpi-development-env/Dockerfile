@@ -1,4 +1,4 @@
-ARG BASE_IMAGE=php:apache-bullseye
+ARG BASE_IMAGE=php:apache-trixie
 
 
 #####

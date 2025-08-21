@@ -22,10 +22,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        php-version: ["7.4", "8.0", "8.1", "8.2", "8.3"]
-        latest: ["false"]
         include:
-          - {php-version: "8.4", latest: "true"}
+          - {base-image: "php:7.4-apache-bullseye", php-version: "7.4", latest: "false"}
+          - {base-image: "php:8.0-apache-bullseye", php-version: "8.0", latest: "false"}
+          - {base-image: "php:8.1-apache-trixie", php-version: "8.1", latest: "false"}
+          - {base-image: "php:8.2-apache-trixie", php-version: "8.2", latest: "false"}
+          - {base-image: "php:8.3-apache-trixie", php-version: "8.3", latest: "false"}
+          - {base-image: "php:8.4-apache-trixie", php-version: "8.4", latest: "true"}
     steps:
       - name: "Set variables"
         run: |
@@ -53,7 +56,7 @@ jobs:
         uses: "docker/build-push-action@v6"
         with:
           build-args: |
-            BASE_IMAGE=php:${{ matrix.php-version }}-apache-bullseye
+            BASE_IMAGE=${{ matrix.base-image }}
           cache-from: "type=gha"
           cache-to: "type=gha,mode=max"
           context: "glpi-development-env"
