@@ -9,6 +9,7 @@ LABEL \
 # Create glpi user and its home directory
 RUN groupadd --gid 1000 glpi
 RUN useradd --create-home --home-dir /home/glpi --gid 1000 --uid 1000 glpi
+RUN usermod --append --groups mail glpi
 
 RUN \
   # Clean APT sources list to prevent packages list update error:
