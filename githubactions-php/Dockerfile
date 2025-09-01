@@ -93,10 +93,7 @@ RUN \
   && apt install --assume-yes --no-install-recommends --quiet git unzip \
   \
   # Install gettext used for translation files.
-  && mkdir -p /tmp/gettext \
-  && (curl -LsfS https://ftp.gnu.org/pub/gnu/gettext/gettext-0.25.tar.gz | tar --extract --ungzip --verbose --directory="/tmp/gettext" --strip 1) \
-  && (cd /tmp/gettext && ./configure && make && make install) \
-  && rm -rf /tmp/gettext \
+  && apt install --assume-yes --no-install-recommends --quiet gettext \
   \
   # Install Cypress dependencies
   && apt install --assume-yes --no-install-recommends --quiet libgtk2.0-0 libgtk-3-0 libgbm-dev libnotify-dev libnss3 libxss1 libasound2 libxtst6 xauth xvfb \
@@ -117,10 +114,6 @@ USER glpi
 VOLUME /home/glpi
 VOLUME /var/www/glpi
 WORKDIR /var/www/glpi
-
-# Define the library path where built gettext shared libraries are located
-ENV \
-  LD_LIBRARY_PATH="/usr/local/lib"
 
 # Define GLPI environment variables
 ENV \
