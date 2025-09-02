@@ -45,7 +45,7 @@ jobs:
           fi
           echo "marketplace_dir=$MARKETPLACE_DIR" >> $GITHUB_OUTPUT
       - name: "Checkout"
-        uses: "actions/checkout@v4"
+        uses: "actions/checkout@v5"
       - name: "Get sources from glpi-project/glpi"
         run: |
           curl https://github.com/glpi-project/glpi/archive/${{ matrix.branch }}.tar.gz --location --output glpi.tar.gz
