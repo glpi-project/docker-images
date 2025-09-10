@@ -42,15 +42,20 @@ Update_GLPI() {
 
 GLPI_Installed() {
     if [ -f "${GLPI_CONFIG_DIR}/config_db.php" ]; then
-        # check if the glpi_logs table exists (-N to skip column names, -s for non tabular output)
-        if [ $(mysql -N -s -h "$GLPI_DB_HOST" -P "$GLPI_DB_PORT" -u "$GLPI_DB_USER" -p"$GLPI_DB_PASSWORD" -e "select count(*) from information_schema.tables where \
-        table_schema='$GLPI_DB_NAME' and table_name='glpi_logs';") -eq 1 ]
-        then
+        su www-data -s /bin/bash -c 'bin/console db:check --quiet'
+        # GLPI error code for db:check command:
+        # 0: Everything is ok
+        # 1-4: Warnings related to sql diffs (not critical)
+        # 5: Database connection error
+        # 6: version cannot be found
+        # 7: no tables found
+        # if the command above return an error below 5, GLPI is ok and we can return 0
+        if [ $? -lt 5 ]; then
             return 0
         fi
     fi
 
-    # If the config_db.php file does not exist or the glpi_logs table is not found,
+    # If the config_db.php file does not exist or there is something wrong with the database,
     # GLPI is not installed
     return 1
 }
