@@ -101,6 +101,10 @@ RUN apt-get update \
   # Install opcache PHP extension.
   && docker-php-ext-install opcache \
   \
+  # Install Redis PHP extension.
+  && pecl install redis \
+  && docker-php-ext-enable redis \
+  \
   # Install soap PHP extension (required for some plugins).
   && apt-get install --assume-yes --no-install-recommends --quiet libxml2-dev \
   && docker-php-ext-install soap \
