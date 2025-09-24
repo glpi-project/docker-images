@@ -70,6 +70,11 @@ RUN apt-get update \
   && docker-php-ext-enable apcu \
   && echo "apc.enable=1" >> /usr/local/etc/php/conf.d/docker-php-ext-apcu.ini \
   \
+  # Install Redis PHP extension.
+  && pecl install redis \
+  && docker-php-ext-enable redis \
+  && echo "redis.enable=1" >> /usr/local/etc/php/conf.d/docker-php-ext-redis.ini \
+  \
   # Install bz2 PHP extension.
   && apt-get install --assume-yes --no-install-recommends --quiet libbz2-dev \
   && docker-php-ext-install bz2 \
