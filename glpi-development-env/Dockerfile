@@ -19,6 +19,7 @@ LABEL \
 
 RUN apt update \
   && PHP_MAJOR_VERSION="$(echo $PHP_VERSION | cut -d '.' -f 1)" \
+  && PHP_MINOR_VERSION="$(echo $PHP_VERSION | cut -d '.' -f 2)" \
   \
   # Install bz2 extension (for marketplace).
   && apt install --assume-yes --no-install-recommends --quiet libbz2-dev \
@@ -52,8 +53,10 @@ RUN apt update \
   # Install bcmath PHP extension.
   && docker-php-ext-install bcmath \
   \
-  # Install opcache PHP extension.
-  && docker-php-ext-install opcache \
+  # Install opcache PHP extension (it is already enabled in PHP 8.5+ images).
+  && if [ $PHP_MINOR_VERSION -ne "8.5" ]; then \
+    docker-php-ext-install opcache \
+  ; fi \
   \
   # Install pcntl PHP extension (required for composer-require-checker).
   && docker-php-ext-install pcntl \
