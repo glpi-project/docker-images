@@ -19,5 +19,4 @@ RUN \
   && composer --working-dir=/var/www/glpi build \
   \
   # Clean useless files
-  && rm -rf /tmp/glpi \
-  && rm -rf /var/www/glpi/node_modules
+  && rm -rf /tmp/glpi
