@@ -11,6 +11,14 @@ Install_GLPI() {
         --no-interaction --quiet'
 }
 
+Configure_Redis_Cache() {
+    if [ "${GLPI_USE_REDIS_SESSION:-false}" = "true" ]; then
+        echo "Configuring GLPI to use Redis for cache..."
+        su www-data -s /bin/bash -c "bin/console cache:configure --context core --dsn redis://${GLPI_REDIS_SESSION_HOST}/1 --no-interaction"
+        echo "Redis cache configuration applied."
+    fi
+}
+
 greetings() {
     local new_installation="$1"
 
@@ -65,12 +73,14 @@ if ! GLPI_Installed; then
         echo "GLPI is not installed. but auto-install is enabled. Starting installation."
         echo "Please wait until you see the greeting, this may take a minute..."
         Install_GLPI
+        Configure_Redis_Cache
         greetings true
     fi
 else
     if ! $GLPI_SKIP_AUTOUPDATE; then
         echo "GLPI is installed, and auto-update is enabled. Starting update..."
         Update_GLPI
+        Configure_Redis_Cache
         greetings false
     fi
 fi

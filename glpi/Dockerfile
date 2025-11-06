@@ -137,7 +137,6 @@ RUN ln -s $PHP_INI_DIR/php.ini-production $PHP_INI_DIR/php.ini
 COPY ./files/etc/apache2/sites-available/000-default.conf /etc/apache2/sites-available/000-default.conf
 COPY ./files/etc/apache2/conf-available/zzz-glpi.conf /etc/apache2/conf-available/zzz-glpi.conf
 COPY ./files/etc/cron.d/glpi /etc/cron.d/glpi
-COPY ./files/etc/php/conf.d/glpi.ini $PHP_INI_DIR/conf.d/glpi.ini
 COPY ./files/opt/glpi/ /opt/glpi/
 RUN find /opt/glpi -type f -iname "*.sh" -exec chmod u+x {} \;
 
@@ -162,7 +161,24 @@ ENV \
   GLPI_VAR_DIR=/var/glpi/files \
   GLPI_LOG_DIR=/var/glpi/logs \
   GLPI_SKIP_AUTOINSTALL=false \
-  GLPI_SKIP_AUTOUPDATE=false
+  GLPI_SKIP_AUTOUPDATE=false \
+  GLPI_USE_REDIS_SESSION=false \
+  GLPI_REDIS_SESSION_HOST=redis:6379
+
+# PHP configuration environment variables
+ENV \
+  PHP_SESSION_COOKIE_HTTPONLY=on \
+  PHP_SESSION_COOKIE_SAMESITE=Strict \
+  PHP_EXPOSE_PHP=off \
+  PHP_POST_MAX_SIZE=20M \
+  PHP_UPLOAD_MAX_FILESIZE=20M \
+  PHP_MEMORY_LIMIT=256M \
+  PHP_MAX_INPUT_VARS=5000 \
+  PHP_MAX_EXECUTION_TIME=60 \
+  PHP_OPCACHE_VALIDATE_TIMESTAMPS=1 \
+  PHP_OPCACHE_MAX_ACCELERATED_FILES=10000 \
+  PHP_OPCACHE_MEMORY_CONSUMPTION=128 \
+  PHP_OPCACHE_MAX_WASTED_PERCENTAGE=5
 
 # Copy the env variables to `/etc/environment`, to make them available for the commands executed by the cron service
 RUN printenv > /etc/environment
