@@ -20,9 +20,7 @@ This repository contains build files for docker images available in [Github Cont
 ```yaml
 services:
   glpi:
-    build:
-      context: ./glpi
-      dockerfile: Dockerfile
+    image: "glpi/glpi:latest"
     restart: "unless-stopped"
     volumes:
       - "./storage/glpi:/var/glpi:rw"
