@@ -132,11 +132,13 @@ RUN mkdir /etc/apache2/vhosts
 COPY ./files/etc/apache2/ports.conf /etc/apache2/ports.conf
 COPY ./files/etc/apache2/vhosts/glpi-common.conf /etc/apache2/vhosts/glpi-common.conf
 COPY ./files/etc/apache2/sites-available/000-default.conf /etc/apache2/sites-available/000-default.conf
+COPY ./files/etc/apache2/sites-available/glpi-10.x.conf /etc/apache2/sites-available/glpi-10.x.conf
 COPY ./files/etc/php/conf.d/glpi.ini $PHP_INI_DIR/conf.d/glpi.ini
 
 # Define GLPI environment variables
 ENV \
-  GLPI_ENVIRONMENT_TYPE=development
+  GLPI_ENVIRONMENT_TYPE=development \
+  GLPI_URI=http://localhost:8080
 
 USER www-data
 WORKDIR /var/www/glpi
