@@ -92,7 +92,7 @@ jobs:
           fi
           echo "marketplace_dir=$MARKETPLACE_DIR" >> $GITHUB_OUTPUT
       - name: "Checkout"
-        uses: "actions/checkout@v5"
+        uses: "actions/checkout@v6"
         with:
           repository: glpi-project/docker-images
       - name: "Get sources from glpi-project/glpi"
