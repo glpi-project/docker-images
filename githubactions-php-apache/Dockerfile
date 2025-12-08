@@ -111,6 +111,9 @@ RUN \
   # sudo may also be usefull to temporarly install upcoming required system components.
   && apt install --assume-yes --no-install-recommends --quiet acl sudo \
   \
+  # Install jq that is used for JSON files manipulations.
+  && apt install --assume-yes --no-install-recommends --quiet jq \
+  \
   # Clean sources list
   && rm -rf /var/lib/apt/lists/*
 
