@@ -125,6 +125,9 @@ RUN apt update \
   # Install misc util packages commonly used by developers
   && apt install --assume-yes --no-install-recommends --quiet htop nano sudo vim zsh \
   \
+  # Install jq that is used for JSON files manipulations.
+  && apt install --assume-yes --no-install-recommends --quiet jq \
+  \
   # Clean sources list
   && rm -rf /var/lib/apt/lists/*
 
