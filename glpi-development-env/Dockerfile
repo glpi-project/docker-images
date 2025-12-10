@@ -123,10 +123,7 @@ RUN apt update \
   && (cd /usr/local/bin/ && curl --silent --location https://raw.githubusercontent.com/transifex/cli/master/install.sh | bash) \
   \
   # Install misc util packages commonly used by developers
-  && apt install --assume-yes --no-install-recommends --quiet htop nano sudo vim zsh \
-  \
-  # Install jq that is used for JSON files manipulations.
-  && apt install --assume-yes --no-install-recommends --quiet jq \
+  && apt install --assume-yes --no-install-recommends --quiet htop jq nano sudo vim zsh \
   \
   # Clean sources list
   && rm -rf /var/lib/apt/lists/*
