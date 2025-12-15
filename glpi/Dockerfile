@@ -164,9 +164,6 @@ ENV \
   GLPI_SKIP_AUTOINSTALL=false \
   GLPI_SKIP_AUTOUPDATE=false
 
-# Copy the env variables to `/etc/environment`, to make them available for the commands executed by the cron service
-RUN printenv > /etc/environment
-
 # Define entrypoint and default command.
 ENTRYPOINT ["/opt/glpi/entrypoint.sh"]
 CMD ["/opt/glpi/startup.sh"]
