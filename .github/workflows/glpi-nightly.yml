@@ -68,8 +68,8 @@ jobs:
         uses: "docker/build-push-action@v6"
         with:
           build-args: |
-            BUILDER_IMAGE=php:8.4-cli-alpine
-            APP_IMAGE=php:8.4-apache
+            BUILDER_IMAGE=php:8.5-cli-alpine
+            APP_IMAGE=php:8.5-apache
             GLPI_MARKETPLACE_DIR=${{ steps.variables.outputs.marketplace_dir }}
           cache-from: "type=gha"
           cache-to: "type=gha,mode=max"
