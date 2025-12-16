@@ -64,6 +64,8 @@ It can be used to test latest features and bug fixes." \
   org.opencontainers.image.source="git@github.com:glpi-project/docker-images"
 
 RUN apt-get update \
+  && PHP_MAJOR_VERSION="$(echo $PHP_VERSION | cut -d '.' -f 1)" \
+  && PHP_MINOR_VERSION="$(echo $PHP_VERSION | cut -d '.' -f 2)" \
   \
   # Install APCU PHP extension.
   && pecl install apcu \
@@ -98,8 +100,10 @@ RUN apt-get update \
   # Install bcmath PHP extension.
   && docker-php-ext-install bcmath \
   \
-  # Install opcache PHP extension.
-  && docker-php-ext-install opcache \
+  # Install opcache PHP extension (it is already enabled in PHP 8.5+ images).
+  && if [ $PHP_MINOR_VERSION -ne "8.5" ]; then \
+    docker-php-ext-install opcache \
+  ; fi \
   \
   # Install Redis PHP extension.
   && pecl install redis \
