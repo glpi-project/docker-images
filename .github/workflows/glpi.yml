@@ -14,7 +14,7 @@ on:
       php-version:
         required: false
         type: string
-        default: "8.4"
+        default: "8.5"
     secrets:
       DOCKER_HUB_USERNAME:
         required: true
@@ -49,7 +49,7 @@ on:
         description: "PHP version to use for the build"
         required: true
         type: string
-        default: "8.4"
+        default: "8.5"
 
 jobs:
   build:
