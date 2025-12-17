@@ -105,3 +105,28 @@ docker exec -it <glpi_container_id> /var/www/glpi/bin/console database:enable_ti
 
 By default, the `glpi/glpi` image provides a volume containing its `config`, `marketplace` and `files` directories.
 For GLPI 10.0.x version the marketplace directory is not declared in the volume as the path differs. You may want to create a manual volume for the path `/var/www/glpi/marketplace` if you plan to use it.
+
+### Custom php.ini
+
+1. Create an ini file like `custom-config.ini`.
+2. Update the docker glpi config volumes
+
+   ```yaml
+   volumes:
+     - "./custom-config.ini:/usr/local/etc/php/conf.d/custom-config.ini:ro"
+   ```
+
+3. Restart the docker
+
+   ```bash
+   docker compose down
+   docker compose up -d
+   ```
+
+4. Check the configuration by running on the glpi container:
+
+   ```bash
+   docker compose exec glpi sh -c 'php -r "phpinfo();" | grep memory_limit'
+   ```
+
+   Or by browsing the glpi website under `Setup > General > System > Server`.
