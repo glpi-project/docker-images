@@ -114,7 +114,7 @@ The following example sets the memory limit to 256M
    ```ini
    memory_limit = 256M
    ```
-2. Update the docker glpi config volumes
+2. Update the volumes configuration
 
    ```yaml
    volumes:
@@ -127,10 +127,10 @@ The following example sets the memory limit to 256M
    docker compose up -d
    ```
 
-4. Check the configuration by running on the glpi container:
+4. Check the configuration by running on the GLPI container:
 
    ```bash
    docker compose exec glpi sh -c 'php -r "phpinfo();" | grep memory_limit'
    ```
 
-   Or by browsing the glpi website under `Setup > General > System > Server`.
+   Or by browsing the GLPI website under `Setup > General > System > Server`.
