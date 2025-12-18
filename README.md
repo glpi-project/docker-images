@@ -8,6 +8,7 @@ A few links:
 
 - [Report an issue](https://github.com/glpi-project/glpi/issues/new?template=bug_report.yml)
 - [Documentation](https://glpi-project.org/documentation/)
+- [Contributing](CONTRIBUTING.md)
 
 
 This repository contains build files for docker images available in [Github Container Registry](https://github.com/orgs/glpi-project/packages?ecosystem=container) and [Docker hub](https://hub.docker.com/r/glpi/glpi).

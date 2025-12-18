@@ -1,0 +1,43 @@
+name: glpi_docker_dev
+
+services:
+  glpi:
+    build:
+      context: ./glpi
+    restart: "no"
+    volumes:
+      # Using a named volume avoids permission issues on host (automatically managed by Docker)
+      - glpi_data:/var/glpi
+    environment:
+      - GLPI_DB_HOST=db
+      - GLPI_DB_NAME=glpi
+      - GLPI_DB_USER=glpi
+      - GLPI_DB_PASSWORD=glpi
+      - GLPI_DB_PORT=3306
+      - GLPI_INSTALL_MODE=DOCKER
+    ports:
+      - "8080:80"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: mariadb:10.11
+    restart: "no"
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: glpi
+      MYSQL_USER: glpi
+      MYSQL_PASSWORD: glpi
+    volumes:
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      start_period: 10s
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+volumes:
+  glpi_data:
+  db_data:
