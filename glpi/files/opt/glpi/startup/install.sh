@@ -2,13 +2,13 @@
 set -e -u -o pipefail
 
 Install_GLPI() {
-    su www-data -s /bin/bash -c 'bin/console database:install \
+    bin/console database:install \
         --db-host="$GLPI_DB_HOST" \
         --db-port="$GLPI_DB_PORT" \
         --db-name="$GLPI_DB_NAME" \
         --db-user="$GLPI_DB_USER" \
         --db-password="$GLPI_DB_PASSWORD" \
-        --no-interaction --quiet'
+        --no-interaction --quiet
 }
 
 greetings() {
@@ -37,12 +37,12 @@ greetings() {
 }
 
 Update_GLPI() {
-    su www-data -s /bin/bash -c 'bin/console database:update --no-interaction --quiet'
+    bin/console database:update --no-interaction --quiet
 }
 
 GLPI_Installed() {
     if [ -f "${GLPI_CONFIG_DIR}/config_db.php" ]; then
-        su www-data -s /bin/bash -c 'bin/console db:check --quiet'
+        bin/console db:check --quiet
         # GLPI error code for db:check command:
         # 0: Everything is ok
         # 1-4: Warnings related to sql diffs (not critical)

@@ -23,8 +23,6 @@ do
     if [ ! -f "$log" ];
     then
         touch "$log"
-        chown www-data:www-data "$log"
-        chmod u+rw "$log"
     fi
 done
 
@@ -41,8 +39,4 @@ do
 done
 
 
-# Forward GLPI cron logs to stdout/stderr (see https://stackoverflow.com/a/63713129).
-touch /var/log/cron-output.log
-touch /var/log/cron-errors.log
-tail -F /var/log/cron-output.log > /proc/1/fd/1 &
-tail -F /var/log/cron-errors.log > /proc/1/fd/2 &
+
