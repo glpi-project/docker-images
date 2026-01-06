@@ -65,7 +65,7 @@ RUN \
   \
   # Install XMLRPC PHP extension.
   && apt install --assume-yes --no-install-recommends --quiet libxml2-dev \
-  && if [ $PHP_MAJOR_VERSION -lt "8" ]; then \
+  && if [ "$PHP_MAJOR_VERSION" -lt "8" ]; then \
     # For PHP < 8.x, install bundled extension
     docker-php-ext-install xmlrpc \
   ; else \
