@@ -18,8 +18,11 @@ LABEL \
   org.opencontainers.image.source="git@github.com:glpi-project/docker-images"
 
 RUN \
+     PHP_MAJOR_VERSION="$(echo $PHP_VERSION | cut -d '.' -f 1)" \
+  && PHP_MINOR_VERSION="$(echo $PHP_VERSION | cut -d '.' -f 2)" \
+  \
   # Update package list.
-  apt update \
+  && apt update \
   \
   # Install exif extension.
   && docker-php-ext-install exif \
@@ -61,13 +64,18 @@ RUN \
   && docker-php-ext-install zip \
   \
   # Install XMLRPC PHP extension.
-  # Install from Github (extension should be available on PECL but is not)
   && apt install --assume-yes --no-install-recommends --quiet libxml2-dev \
-  && mkdir -p /tmp/xmlrpc \
-  && (curl --fail --silent --show-error --location https://github.com/php/pecl-networking-xmlrpc/archive/0f782ffe52cebd0a65356427b7ab72d48b72d20c/xmlrpc-0f782ff.tar.gz | tar --extract --ungzip --verbose --directory="/tmp/xmlrpc" --strip 1) \
-  && docker-php-ext-configure /tmp/xmlrpc --with-xmlrpc \
-  && docker-php-ext-install /tmp/xmlrpc \
-  && rm -rf /tmp/xmlrpc \
+  && if [ $PHP_MAJOR_VERSION -lt "8" ]; then \
+    # For PHP < 8.x, install bundled extension
+    docker-php-ext-install xmlrpc \
+  ; else \
+    # For PHP 8+, install from Github (extension should be available on PECL but is not)
+    mkdir -p /tmp/xmlrpc \
+    && (curl --fail --silent --show-error --location https://github.com/php/pecl-networking-xmlrpc/archive/0f782ffe52cebd0a65356427b7ab72d48b72d20c/xmlrpc-0f782ff.tar.gz | tar --extract --ungzip --verbose --directory="/tmp/xmlrpc" --strip 1) \
+    && docker-php-ext-configure /tmp/xmlrpc --with-xmlrpc \
+    && docker-php-ext-install /tmp/xmlrpc \
+    && rm -rf /tmp/xmlrpc \
+  ; fi \
   \
   # Install APCU PHP extension.
   && pecl install apcu \
