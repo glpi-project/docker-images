@@ -2,7 +2,6 @@
 set -e -u -o pipefail
 
 # Create `config`, `marketplace` and `files` volume (sub)directories that are missing
-# and set ACL for www-data user
 roots=(
     "${GLPI_CONFIG_DIR}"
     "${GLPI_VAR_DIR}"
@@ -27,14 +26,18 @@ vars=(
 all_dirs=("${roots[@]}" "${vars[@]}")
 for dir in "${all_dirs[@]}"
 do
-    echo "Creating $dir if does not exists..."
-    mkdir -p -- "$dir"
+    if [ ! -d "$dir" ]; then
+        echo "Creating $dir..."
+        mkdir -p -- "$dir"
+    fi
 done
 
+# Check permissions
 for dir in "${roots[@]}"
 do
-    echo "Setting $dir ACLs..."
-    chown -R -- www-data:www-data "$dir"
-    find "$dir" -type d -exec chmod u+rwx {} +
-    find "$dir" -type f -exec chmod u+rw {} +
+    if [ ! -w "$dir" ]; then
+        echo "ERROR: Directory $dir is not writable by current user (UID $(id -u))."
+        echo "Please ensure that the mounted volume is writable by UID $(id -u) (usually www-data)."
+        exit 1
+    fi
 done

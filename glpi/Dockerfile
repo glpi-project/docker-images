@@ -121,8 +121,11 @@ RUN apt-get update \
   # Enable apache mods.
   && a2enmod rewrite \
   \
-  # Install cron service.
-  && apt-get install --assume-yes --no-install-recommends --quiet cron \
+  # Install supervisor service.
+  && apt-get install --assume-yes --no-install-recommends --quiet supervisor \
+  \
+  # Install libcap2-bin for setcap
+  && apt-get install --assume-yes --no-install-recommends --quiet libcap2-bin \
   \
   # Install acl to manage acl of writable directories.
   && apt-get install --assume-yes --no-install-recommends --quiet acl \
@@ -137,19 +140,19 @@ RUN apt-get update \
 # ref: https://github.com/docker-library/docs/tree/master/php#configuration
 RUN ln -s $PHP_INI_DIR/php.ini-production $PHP_INI_DIR/php.ini
 
+# Allow apache process to bind to port 80 as non-root user
+RUN setcap cap_net_bind_service=+ep /usr/sbin/apache2
+
 # Copy services configuration files and startup script to container.
 COPY ./files/etc/apache2/sites-available/000-default.conf /etc/apache2/sites-available/000-default.conf
 COPY ./files/etc/apache2/conf-available/zzz-glpi.conf /etc/apache2/conf-available/zzz-glpi.conf
-COPY ./files/etc/cron.d/glpi /etc/cron.d/glpi
+COPY ./files/etc/supervisor/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 COPY ./files/etc/php/conf.d/glpi.ini $PHP_INI_DIR/conf.d/glpi.ini
 COPY ./files/opt/glpi/ /opt/glpi/
-RUN find /opt/glpi -type f -iname "*.sh" -exec chmod u+x {} \;
+RUN find /opt/glpi -type f -iname "*.sh" -exec chmod +x {} \;
 
 # Enable custom Apache configuration
 RUN a2enconf zzz-glpi.conf
-
-# Install GLPI crontab.
-RUN crontab -u root /etc/cron.d/glpi
 
 # Copy GLPI application.
 COPY --from=builder --chown=www-data:www-data /usr/src/glpi /var/www/glpi
@@ -168,9 +171,12 @@ ENV \
   GLPI_SKIP_AUTOINSTALL=false \
   GLPI_SKIP_AUTOUPDATE=false
 
+# Pass the execution to the www-data user
+USER www-data
+
 # Define entrypoint and default command.
 ENTRYPOINT ["/opt/glpi/entrypoint.sh"]
-CMD ["/opt/glpi/startup.sh"]
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
 
 # Define application path as base working dir.
 WORKDIR /var/www/glpi

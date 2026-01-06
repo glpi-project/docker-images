@@ -1,1 +1,0 @@
-* * * * * su www-data -s /usr/local/bin/php /var/www/glpi/front/cron.php 2>> /var/log/cron-errors.log 1>> /var/log/cron-output.log
