@@ -148,7 +148,7 @@ COPY ./files/etc/apache2/sites-available/000-default.conf /etc/apache2/sites-ava
 COPY ./files/etc/apache2/conf-available/zzz-glpi.conf /etc/apache2/conf-available/zzz-glpi.conf
 COPY ./files/etc/supervisor/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 COPY ./files/etc/php/conf.d/glpi.ini $PHP_INI_DIR/conf.d/glpi.ini
-COPY --chown=www-data:www-data ./files/opt/glpi/ /opt/glpi/
+COPY ./files/opt/glpi/ /opt/glpi/
 RUN find /opt/glpi -type f -iname "*.sh" -exec chmod +x {} \;
 
 # Enable custom Apache configuration
