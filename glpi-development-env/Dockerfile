@@ -54,7 +54,7 @@ RUN apt update \
   && docker-php-ext-install bcmath \
   \
   # Install opcache PHP extension (it is already enabled in PHP 8.5+ images).
-  && if [ $PHP_MINOR_VERSION -ne "8.5" ]; then \
+  && if [ "$PHP_MINOR_VERSION" -ne "8.5" ]; then \
     docker-php-ext-install opcache \
   ; fi \
   \
@@ -70,7 +70,7 @@ RUN apt update \
   && docker-php-ext-install zip \
   \
   # Install xdebug PHP extension.
-  && if [ $PHP_MAJOR_VERSION -lt "8" ]; then \
+  && if [ "$PHP_MAJOR_VERSION" -lt "8" ]; then \
     pecl install xdebug-3.1.6 \
   ; else \
     # xdebug 3.5.0 is not available on PECL, its distribution is now made through PIE
@@ -83,7 +83,7 @@ RUN apt update \
   \
   # Install XMLRPC PHP extension.
   && apt install --assume-yes --no-install-recommends --quiet libxml2-dev \
-  && if [ $PHP_MAJOR_VERSION -lt "8" ]; then \
+  && if [ "$PHP_MAJOR_VERSION" -lt "8" ]; then \
     # For PHP < 8.x, install bundled extension
     docker-php-ext-install xmlrpc \
   ; else \

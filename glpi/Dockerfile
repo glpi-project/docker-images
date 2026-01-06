@@ -101,7 +101,7 @@ RUN apt-get update \
   && docker-php-ext-install bcmath \
   \
   # Install opcache PHP extension (it is already enabled in PHP 8.5+ images).
-  && if [ $PHP_MINOR_VERSION -ne "8.5" ]; then \
+  && if [ "$PHP_MINOR_VERSION" -ne "8.5" ]; then \
     docker-php-ext-install opcache \
   ; fi \
   \
