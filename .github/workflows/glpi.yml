@@ -100,6 +100,8 @@ jobs:
           curl https://github.com/glpi-project/glpi/archive/${{ inputs.glpi-version }}.tar.gz --location --output glpi.tar.gz
           mkdir glpi/sources
           tar --extract --ungzip --strip 1 --file glpi.tar.gz --directory glpi/sources
+      - name: "Set up QEMU"
+        uses: "docker/setup-qemu-action@v3"
       - name: "Set up Docker Buildx"
         uses: "docker/setup-buildx-action@v3"
       - name: "Login to DockerHub"
@@ -124,5 +126,6 @@ jobs:
           cache-to: "type=gha,mode=max"
           context: "glpi"
           outputs: "type=registry"
+          platforms: "linux/amd64,linux/arm64"
           pull: true
           tags: "${{ steps.variables.outputs.tags }}"
