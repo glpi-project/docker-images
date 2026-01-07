@@ -41,7 +41,7 @@ jobs:
       php-version: ${{ inputs.php-version }}
       glpi-version: ${{ inputs.glpi-version }}
       image-suffix: ${{ inputs.image-suffix }}
-      # Apply patch for GLPI 11.0.1-11.0.4 (PR #22381 will be included in 11.0.5+)
+      # Apply patch for GLPI 11.0.0-11.0.4 (PR #22381 will be included in 11.0.5+)
       post-extract-commands: |
         if [[ "${{ inputs.glpi-version }}" =~ ^11\.0\.[0-4]$ ]]; then
           curl https://patch-diff.githubusercontent.com/raw/glpi-project/glpi/pull/22381.diff --location --output composer-audit-config.diff
