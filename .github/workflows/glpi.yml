@@ -1,5 +1,9 @@
 name: "GLPI images for official releases"
 
+env:
+  DOCKERHUB_IMAGE: glpi/glpi
+  GHCR_IMAGE: ghcr.io/glpi-project/glpi
+
 on:
   # Enable execution from another workflow
   workflow_call:
@@ -52,45 +56,50 @@ on:
         default: "8.5"
 
 jobs:
-  build:
-    name: "Build GLPI ${{ inputs.glpi-version }}"
+  prepare:
+    name: "Prepare build matrix"
     runs-on: "ubuntu-latest"
+    outputs:
+      platforms: ${{ steps.set-matrix.outputs.platforms }}
     steps:
-      - name: "Set variables"
-        id: "variables"
+      - name: "Set matrix"
+        id: "set-matrix"
         run: |
-          IMAGE_VERSION="$(echo '${{ inputs.glpi-version }}' | sed -E 's|/|-|')"
-          IMAGE_VERSION_MAJOR=$(echo "${{ inputs.glpi-version }}" | cut -d. -f1)
-          IMAGE_VERSION_MINOR=$(echo "${{ inputs.glpi-version }}" | cut -d. -f1-2)
+          echo 'platforms<<EOF' >> $GITHUB_OUTPUT
+          echo '[
+            {"arch": "linux/amd64", "runner": "ubuntu-latest", "suffix": "amd64"},
+            {"arch": "linux/arm64", "runner": "ubuntu-24.04-arm", "suffix": "arm64"}
+          ]' >> $GITHUB_OUTPUT
+          echo 'EOF' >> $GITHUB_OUTPUT
 
-          if [[ "${{ inputs.image-suffix }}" != '' ]]; then
-            IMAGE_VERSION="$IMAGE_VERSION-${{ inputs.image-suffix }}"
-          fi
-
-          # prepare the tags to push
-          TAGS="glpi/glpi:$IMAGE_VERSION,ghcr.io/glpi-project/glpi:$IMAGE_VERSION"
-
-          PRERELEASE_FLAG="$( echo "${{ inputs.glpi-version }}" | grep -Po '(\-\w+)?$' )"
-          if [[ -z "$PRERELEASE_FLAG" ]]; then
-            # populate major version tags, ex 10.0.18 -> 10
-            TAGS="$TAGS,glpi/glpi:$IMAGE_VERSION_MAJOR,ghcr.io/glpi-project/glpi:$IMAGE_VERSION_MAJOR"
-
-            # populate minor version tags, ex 10.0.18 -> 10.0
-            TAGS="$TAGS,glpi/glpi:$IMAGE_VERSION_MINOR,ghcr.io/glpi-project/glpi:$IMAGE_VERSION_MINOR"
-
-            # find if the current version is the latest
-            if [[ "${{ inputs.glpi-version }}" = "$(curl -s https://api.github.com/repos/glpi-project/glpi/releases/latest | jq -r .tag_name)" ]]; then
-              TAGS="$TAGS,glpi/glpi:latest,ghcr.io/glpi-project/glpi:latest"
-            fi
-          fi
-          echo "tags=$TAGS" >> $GITHUB_OUTPUT
+  build:
+    name: "Build GLPI ${{ inputs.glpi-version }} (${{ matrix.platform.suffix }})"
+    runs-on: "${{ matrix.platform.runner }}"
+    needs: [prepare]
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: ${{ fromJson(needs.prepare.outputs.platforms) }}
+    steps:
+      - name: "Prepare"
+        run: |
+          platform=${{ matrix.platform.arch }}
+          echo "PLATFORM_PAIR=${platform//\//-}" >> $GITHUB_ENV
 
           # compute the marketplace dir
+          IMAGE_VERSION_MAJOR=$(echo "${{ inputs.glpi-version }}" | cut -d. -f1)
           MARKETPLACE_DIR="/var/glpi/marketplace"
           if [[ "$IMAGE_VERSION_MAJOR" = "10" ]]; then
             MARKETPLACE_DIR="/var/www/glpi/marketplace"
           fi
-          echo "marketplace_dir=$MARKETPLACE_DIR" >> $GITHUB_OUTPUT
+          echo "MARKETPLACE_DIR=$MARKETPLACE_DIR" >> $GITHUB_ENV
+      - name: "Docker meta"
+        id: "meta"
+        uses: "docker/metadata-action@v5"
+        with:
+          images: |
+            ${{ env.DOCKERHUB_IMAGE }}
+            ${{ env.GHCR_IMAGE }}
       - name: "Checkout"
         uses: "actions/checkout@v6"
         with:
@@ -117,17 +126,107 @@ jobs:
           registry: "ghcr.io"
           username: "${{ secrets.GHCR_USERNAME }}"
           password: "${{ secrets.GHCR_ACCESS_TOKEN }}"
-      - name: "Build and push"
+      - name: "Build and push by digest"
+        id: "build"
         uses: "docker/build-push-action@v6"
         with:
           build-args: |
-            BUILDER_IMAGE=php:${{inputs.php-version}}-cli-alpine
-            APP_IMAGE=php:${{inputs.php-version}}-apache
-            GLPI_MARKETPLACE_DIR=${{ steps.variables.outputs.marketplace_dir }}
-          cache-from: "type=gha"
-          cache-to: "type=gha,mode=max"
+            BUILDER_IMAGE=php:${{ inputs.php-version }}-cli-alpine
+            APP_IMAGE=php:${{ inputs.php-version }}-apache
+            GLPI_MARKETPLACE_DIR=${{ env.MARKETPLACE_DIR }}
+          cache-from: |
+            type=gha,scope=${{ github.ref_name }}-${{ matrix.platform.suffix }}
+            type=gha,scope=main-${{ matrix.platform.suffix }}
+          cache-to: "type=gha,mode=max,scope=${{ github.ref_name }}-${{ matrix.platform.suffix }}"
           context: "glpi"
-          outputs: "type=registry"
-          platforms: "linux/amd64,linux/arm64"
+          labels: "${{ steps.meta.outputs.labels }}"
+          platforms: "${{ matrix.platform.arch }}"
           pull: true
-          tags: "${{ steps.variables.outputs.tags }}"
+          outputs: "type=image,\"name=${{ env.DOCKERHUB_IMAGE }},${{ env.GHCR_IMAGE }}\",push-by-digest=true,name-canonical=true,push=true"
+      - name: "Export digest"
+        run: |
+          mkdir -p ${{ runner.temp }}/digests
+          digest="${{ steps.build.outputs.digest }}"
+          touch "${{ runner.temp }}/digests/${digest#sha256:}"
+      - name: "Upload digest"
+        uses: "actions/upload-artifact@v4"
+        with:
+          name: "digests-${{ env.PLATFORM_PAIR }}"
+          path: "${{ runner.temp }}/digests/*"
+          if-no-files-found: "error"
+          retention-days: 1
+
+  merge-manifests:
+    name: "Create multi-arch manifest for GLPI ${{ inputs.glpi-version }}"
+    runs-on: "ubuntu-latest"
+    needs: [prepare, build]
+    steps:
+      - name: "Download digests"
+        uses: "actions/download-artifact@v4"
+        with:
+          path: "${{ runner.temp }}/digests"
+          pattern: "digests-*"
+          merge-multiple: true
+      - name: "Set up Docker Buildx"
+        uses: "docker/setup-buildx-action@v3"
+      - name: "Login to DockerHub"
+        uses: "docker/login-action@v3"
+        with:
+          username: "${{ secrets.DOCKER_HUB_USERNAME }}"
+          password: "${{ secrets.DOCKER_HUB_TOKEN }}"
+      - name: "Login to Github container registry"
+        uses: "docker/login-action@v3"
+        with:
+          registry: "ghcr.io"
+          username: "${{ secrets.GHCR_USERNAME }}"
+          password: "${{ secrets.GHCR_ACCESS_TOKEN }}"
+      - name: "Compute tags"
+        id: "tags"
+        run: |
+          IMAGE_VERSION="$(echo '${{ inputs.glpi-version }}' | sed -E 's|/|-|')"
+          IMAGE_VERSION_MAJOR=$(echo "${{ inputs.glpi-version }}" | cut -d. -f1)
+          IMAGE_VERSION_MINOR=$(echo "${{ inputs.glpi-version }}" | cut -d. -f1-2)
+
+          if [[ "${{ inputs.image-suffix }}" != '' ]]; then
+            IMAGE_VERSION="$IMAGE_VERSION-${{ inputs.image-suffix }}"
+          fi
+
+          # Start with the version tag
+          TAGS="${{ env.DOCKERHUB_IMAGE }}:$IMAGE_VERSION,${{ env.GHCR_IMAGE }}:$IMAGE_VERSION"
+
+          PRERELEASE_FLAG="$( echo "${{ inputs.glpi-version }}" | grep -Po '(\-\w+)?$' )"
+          if [[ -z "$PRERELEASE_FLAG" ]]; then
+            # Major version tags (e.g., 11)
+            TAGS="$TAGS,${{ env.DOCKERHUB_IMAGE }}:$IMAGE_VERSION_MAJOR,${{ env.GHCR_IMAGE }}:$IMAGE_VERSION_MAJOR"
+
+            # Minor version tags (e.g., 11.0)
+            TAGS="$TAGS,${{ env.DOCKERHUB_IMAGE }}:$IMAGE_VERSION_MINOR,${{ env.GHCR_IMAGE }}:$IMAGE_VERSION_MINOR"
+
+            # Check if this is the latest release
+            LATEST_TAG="$(curl -s https://api.github.com/repos/glpi-project/glpi/releases/latest | jq -r .tag_name)"
+            if [[ "${{ inputs.glpi-version }}" = "$LATEST_TAG" ]]; then
+              TAGS="$TAGS,${{ env.DOCKERHUB_IMAGE }}:latest,${{ env.GHCR_IMAGE }}:latest"
+            fi
+          fi
+
+          echo "tags=$TAGS" >> $GITHUB_OUTPUT
+      - name: "Create and push manifest"
+        working-directory: "${{ runner.temp }}/digests"
+        run: |
+          # Build the tag arguments
+          TAG_ARGS=""
+          IFS=',' read -ra TAG_ARRAY <<< "${{ steps.tags.outputs.tags }}"
+          for tag in "${TAG_ARRAY[@]}"; do
+            TAG_ARGS="$TAG_ARGS -t $tag"
+          done
+
+          # Create manifest for DockerHub
+          docker buildx imagetools create $TAG_ARGS \
+            $(printf '${{ env.DOCKERHUB_IMAGE }}@sha256:%s ' *)
+      - name: "Inspect image"
+        run: |
+          IMAGE_VERSION="$(echo '${{ inputs.glpi-version }}' | sed -E 's|/|-|')"
+          if [[ "${{ inputs.image-suffix }}" != '' ]]; then
+            IMAGE_VERSION="$IMAGE_VERSION-${{ inputs.image-suffix }}"
+          fi
+          docker buildx imagetools inspect ${{ env.DOCKERHUB_IMAGE }}:$IMAGE_VERSION
