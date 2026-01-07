@@ -1,5 +1,9 @@
 name: "GLPI nightly images"
 
+env:
+  DOCKERHUB_IMAGE: glpi/glpi
+  GHCR_IMAGE: ghcr.io/glpi-project/glpi
+
 on:
   push:
     branches:
@@ -17,38 +21,65 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
-    name: "Build GLPI ${{ matrix.branch }}"
+  prepare:
+    name: "Prepare build matrix"
     runs-on: "ubuntu-latest"
+    outputs:
+      branches: ${{ steps.set-matrix.outputs.branches }}
+    steps:
+      - name: "Set matrix"
+        id: "set-matrix"
+        run: |
+          echo 'branches<<EOF' >> $GITHUB_OUTPUT
+          echo '[
+            {"name": "main", "tag": "dev-nightly"},
+            {"name": "11.0/bugfixes", "tag": "11.0-nightly"},
+            {"name": "10.0/bugfixes", "tag": "10.0-nightly"}
+          ]' >> $GITHUB_OUTPUT
+          echo 'EOF' >> $GITHUB_OUTPUT
+
+  build:
+    name: "Build GLPI ${{ matrix.branch.name }} (${{ matrix.platform.suffix }})"
+    runs-on: "${{ matrix.platform.runner }}"
+    needs: [prepare]
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - {branch: "main", tag: "dev-nightly"}
-          - {branch: "11.0/bugfixes", tag: "11.0-nightly"}
-          - {branch: "10.0/bugfixes", tag: "10.0-nightly"}
+        branch: ${{ fromJson(needs.prepare.outputs.branches) }}
+        platform:
+          - {arch: "linux/amd64", runner: "ubuntu-latest", suffix: "amd64"}
+          - {arch: "linux/arm64", runner: "ubuntu-24.04-arm", suffix: "arm64"}
     steps:
-      - name: "Set variables"
-        id: "variables"
+      - name: "Prepare"
         run: |
-          DESTINATIONS="type=image"
-          if [[ "${{ github.repository }}" = 'glpi-project/docker-images' && ( "${{ github.event_name }}" = "workflow_dispatch" || "${{ github.ref }}" = 'refs/heads/main' ) ]]; then
-              DESTINATIONS="type=registry"
-          fi
-          echo "destinations=$DESTINATIONS" >> $GITHUB_OUTPUT
-          echo "tags=glpi/glpi:${{ matrix.tag }},ghcr.io/glpi-project/glpi:${{ matrix.tag }}" >> $GITHUB_OUTPUT
+          platform=${{ matrix.platform.arch }}
+          echo "PLATFORM_PAIR=${platform//\//-}" >> $GITHUB_ENV
 
           # compute the marketplace dir
           MARKETPLACE_DIR="/var/glpi/marketplace"
-          if [[ "${{ matrix.branch }}" = "10.0/bugfixes" ]]; then
+          if [[ "${{ matrix.branch.name }}" = "10.0/bugfixes" ]]; then
             MARKETPLACE_DIR="/var/www/glpi/marketplace"
           fi
-          echo "marketplace_dir=$MARKETPLACE_DIR" >> $GITHUB_OUTPUT
+          echo "MARKETPLACE_DIR=$MARKETPLACE_DIR" >> $GITHUB_ENV
+
+          # Determine if we should push to registry
+          PUSH_TO_REGISTRY="false"
+          if [[ "${{ github.repository }}" = 'glpi-project/docker-images' && ( "${{ github.event_name }}" = "workflow_dispatch" || "${{ github.ref }}" = 'refs/heads/main' ) ]]; then
+            PUSH_TO_REGISTRY="true"
+          fi
+          echo "PUSH_TO_REGISTRY=$PUSH_TO_REGISTRY" >> $GITHUB_ENV
+      - name: "Docker meta"
+        id: "meta"
+        uses: "docker/metadata-action@v5"
+        with:
+          images: |
+            ${{ env.DOCKERHUB_IMAGE }}
+            ${{ env.GHCR_IMAGE }}
       - name: "Checkout"
         uses: "actions/checkout@v6"
       - name: "Get sources from glpi-project/glpi"
         run: |
-          curl https://github.com/glpi-project/glpi/archive/${{ matrix.branch }}.tar.gz --location --output glpi.tar.gz
+          curl https://github.com/glpi-project/glpi/archive/${{ matrix.branch.name }}.tar.gz --location --output glpi.tar.gz
           mkdir glpi/sources
           tar --extract --ungzip --strip 1 --file glpi.tar.gz --directory glpi/sources
       - name: "Set up QEMU"
@@ -66,17 +97,76 @@ jobs:
           registry: "ghcr.io"
           username: "${{ secrets.GHCR_USERNAME }}"
           password: "${{ secrets.GHCR_ACCESS_TOKEN }}"
-      - name: "Build and push"
+      - name: "Build and push by digest"
+        id: "build"
         uses: "docker/build-push-action@v6"
         with:
           build-args: |
             BUILDER_IMAGE=php:8.5-cli-alpine
             APP_IMAGE=php:8.5-apache
-            GLPI_MARKETPLACE_DIR=${{ steps.variables.outputs.marketplace_dir }}
-          cache-from: "type=gha"
-          cache-to: "type=gha,mode=max"
+            GLPI_MARKETPLACE_DIR=${{ env.MARKETPLACE_DIR }}
+          cache-from: |
+            type=gha,scope=${{ matrix.branch.tag }}-${{ matrix.platform.suffix }}
+            type=gha,scope=main-${{ matrix.platform.suffix }}
+          cache-to: "type=gha,mode=max,scope=${{ matrix.branch.tag }}-${{ matrix.platform.suffix }}"
           context: "glpi"
-          outputs: "${{ steps.variables.outputs.destinations }}"
-          platforms: "linux/amd64,linux/arm64"
+          labels: "${{ steps.meta.outputs.labels }}"
+          platforms: "${{ matrix.platform.arch }}"
           pull: true
-          tags: "${{ steps.variables.outputs.tags }}"
+          outputs: "type=image,\"name=${{ env.DOCKERHUB_IMAGE }},${{ env.GHCR_IMAGE }}\",push-by-digest=true,name-canonical=true,push=${{ env.PUSH_TO_REGISTRY }}"
+      - name: "Export digest"
+        if: ${{ env.PUSH_TO_REGISTRY == 'true' }}
+        run: |
+          mkdir -p ${{ runner.temp }}/digests
+          digest="${{ steps.build.outputs.digest }}"
+          touch "${{ runner.temp }}/digests/${digest#sha256:}"
+      - name: "Upload digest"
+        if: ${{ env.PUSH_TO_REGISTRY == 'true' }}
+        uses: "actions/upload-artifact@v4"
+        with:
+          name: "digests-${{ matrix.branch.tag }}-${{ env.PLATFORM_PAIR }}"
+          path: "${{ runner.temp }}/digests/*"
+          if-no-files-found: "error"
+          retention-days: 1
+
+  merge-manifests:
+    name: "Create multi-arch manifest for ${{ matrix.branch.tag }}"
+    runs-on: "ubuntu-latest"
+    needs: [prepare, build]
+    if: ${{ github.repository == 'glpi-project/docker-images' && (github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/main') }}
+    strategy:
+      fail-fast: false
+      matrix:
+        branch: ${{ fromJson(needs.prepare.outputs.branches) }}
+    steps:
+      - name: "Download digests"
+        uses: "actions/download-artifact@v4"
+        with:
+          path: "${{ runner.temp }}/digests"
+          pattern: "digests-${{ matrix.branch.tag }}-*"
+          merge-multiple: true
+      - name: "Set up Docker Buildx"
+        uses: "docker/setup-buildx-action@v3"
+      - name: "Login to DockerHub"
+        uses: "docker/login-action@v3"
+        with:
+          username: "${{ secrets.DOCKER_HUB_USERNAME }}"
+          password: "${{ secrets.DOCKER_HUB_TOKEN }}"
+      - name: "Login to Github container registry"
+        uses: "docker/login-action@v3"
+        with:
+          registry: "ghcr.io"
+          username: "${{ secrets.GHCR_USERNAME }}"
+          password: "${{ secrets.GHCR_ACCESS_TOKEN }}"
+      - name: "Create and push manifest"
+        working-directory: "${{ runner.temp }}/digests"
+        run: |
+          TAG="${{ matrix.branch.tag }}"
+
+          docker buildx imagetools create \
+            -t ${{ env.DOCKERHUB_IMAGE }}:$TAG \
+            -t ${{ env.GHCR_IMAGE }}:$TAG \
+            $(printf '${{ env.DOCKERHUB_IMAGE }}@sha256:%s ' *)
+      - name: "Inspect image"
+        run: |
+          docker buildx imagetools inspect ${{ env.DOCKERHUB_IMAGE }}:${{ matrix.branch.tag }}
