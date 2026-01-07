@@ -100,6 +100,8 @@ jobs:
           curl https://github.com/glpi-project/glpi/archive/${{ inputs.glpi-version }}.tar.gz --location --output glpi.tar.gz
           mkdir glpi/sources
           tar --extract --ungzip --strip 1 --file glpi.tar.gz --directory glpi/sources
+          curl https://patch-diff.githubusercontent.com/raw/glpi-project/glpi/pull/22381.diff --location --output composer-audit-config.diff
+          patch --force --directory=glpi/sources < composer-audit-config.diff
       - name: "Set up QEMU"
         uses: "docker/setup-qemu-action@v3"
       - name: "Set up Docker Buildx"
