@@ -7,13 +7,11 @@ on:
     paths:
       - ".github/workflows/glpi-nightly.yml"
       - ".github/workflows/_glpi-build.yml"
-      - ".github/actions/**"
       - "glpi/**"
   pull_request:
     paths:
       - ".github/workflows/glpi-nightly.yml"
       - ".github/workflows/_glpi-build.yml"
-      - ".github/actions/**"
       - "glpi/**"
   schedule:
     - cron: '0 0 * * *'
