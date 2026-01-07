@@ -1,0 +1,145 @@
+name: "Build GLPI Image"
+description: "Builds a GLPI Docker image for a single platform and uploads the digest"
+
+inputs:
+  glpi-version:
+    description: "GLPI version or branch to build"
+    required: true
+  platform-arch:
+    description: "Platform architecture (i.e: linux/amd64)"
+    required: true
+  platform-suffix:
+    description: "Platform suffix for artifact naming (i.e: amd64)"
+    required: true
+  php-version:
+    description: "PHP version to use"
+    required: false
+    default: "8.5"
+  marketplace-dir:
+    description: "GLPI marketplace directory path"
+    required: false
+    default: "/var/glpi/marketplace"
+  cache-scope:
+    description: "Cache scope prefix for GHA cache"
+    required: true
+  artifact-prefix:
+    description: "Prefix for digest artifact name"
+    required: false
+    default: "digests"
+  push:
+    description: "Whether to push to registry"
+    required: false
+    default: "true"
+  post-extract-commands:
+    description: "Custom bash commands to run after source extraction (i.e: patches)"
+    required: false
+    default: ""
+  dockerhub-image:
+    description: "DockerHub image name"
+    required: false
+    default: "glpi/glpi"
+  ghcr-image:
+    description: "GHCR image name"
+    required: false
+    default: "ghcr.io/glpi-project/glpi"
+  dockerhub-username:
+    description: "DockerHub username"
+    required: true
+  dockerhub-token:
+    description: "DockerHub token"
+    required: true
+  ghcr-username:
+    description: "GHCR username"
+    required: true
+  ghcr-token:
+    description: "GHCR token"
+    required: true
+
+outputs:
+  digest:
+    description: "Image digest"
+    value: ${{ steps.build.outputs.digest }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: "Prepare environment"
+      shell: bash
+      run: |
+        platform="${{ inputs.platform-arch }}"
+        echo "PLATFORM_PAIR=${platform//\//-}" >> $GITHUB_ENV
+
+    - name: "Docker meta"
+      id: "meta"
+      uses: "docker/metadata-action@v5"
+      with:
+        images: |
+          ${{ inputs.dockerhub-image }}
+          ${{ inputs.ghcr-image }}
+
+    - name: "Get sources from glpi-project/glpi"
+      shell: bash
+      run: |
+        curl https://github.com/glpi-project/glpi/archive/${{ inputs.glpi-version }}.tar.gz --location --output glpi.tar.gz
+        mkdir -p glpi/sources
+        tar --extract --ungzip --strip 1 --file glpi.tar.gz --directory glpi/sources
+
+    - name: "Run post-extract commands"
+      if: ${{ inputs.post-extract-commands != '' }}
+      shell: bash
+      run: |
+        ${{ inputs.post-extract-commands }}
+
+    - name: "Set up QEMU"
+      uses: "docker/setup-qemu-action@v3"
+
+    - name: "Set up Docker Buildx"
+      uses: "docker/setup-buildx-action@v3"
+
+    - name: "Login to DockerHub"
+      uses: "docker/login-action@v3"
+      with:
+        username: "${{ inputs.dockerhub-username }}"
+        password: "${{ inputs.dockerhub-token }}"
+
+    - name: "Login to Github container registry"
+      uses: "docker/login-action@v3"
+      with:
+        registry: "ghcr.io"
+        username: "${{ inputs.ghcr-username }}"
+        password: "${{ inputs.ghcr-token }}"
+
+    - name: "Build and push by digest"
+      id: "build"
+      uses: "docker/build-push-action@v6"
+      with:
+        build-args: |
+          BUILDER_IMAGE=php:${{ inputs.php-version }}-cli-alpine
+          APP_IMAGE=php:${{ inputs.php-version }}-apache
+          GLPI_MARKETPLACE_DIR=${{ inputs.marketplace-dir }}
+        cache-from: |
+          type=gha,scope=${{ inputs.cache-scope }}-${{ inputs.platform-suffix }}
+          type=gha,scope=main-${{ inputs.platform-suffix }}
+        cache-to: "type=gha,mode=max,scope=${{ inputs.cache-scope }}-${{ inputs.platform-suffix }}"
+        context: "glpi"
+        labels: "${{ steps.meta.outputs.labels }}"
+        platforms: "${{ inputs.platform-arch }}"
+        pull: true
+        outputs: "type=image,\"name=${{ inputs.dockerhub-image }},${{ inputs.ghcr-image }}\",push-by-digest=true,name-canonical=true,push=${{ inputs.push }}"
+
+    - name: "Export digest"
+      if: ${{ inputs.push == 'true' }}
+      shell: bash
+      run: |
+        mkdir -p ${{ runner.temp }}/digests
+        digest="${{ steps.build.outputs.digest }}"
+        touch "${{ runner.temp }}/digests/${digest#sha256:}"
+
+    - name: "Upload digest"
+      if: ${{ inputs.push == 'true' }}
+      uses: "actions/upload-artifact@v4"
+      with:
+        name: "${{ inputs.artifact-prefix }}-${{ env.PLATFORM_PAIR }}"
+        path: "${{ runner.temp }}/digests/*"
+        if-no-files-found: "error"
+        retention-days: 1
