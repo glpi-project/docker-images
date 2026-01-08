@@ -15,8 +15,8 @@ on:
         required: false
         type: boolean
         default: false
-      post-extract-commands:
-        description: "Custom bash commands to run after source extraction (i.e: patches)"
+      patch-url:
+        description: "URL to a .diff/.patch file to apply after source download, multiple patches can be separated by space"
         required: false
         type: string
         default: ""
@@ -105,25 +105,6 @@ jobs:
           fi
           echo "tags=$TAGS" >> $GITHUB_OUTPUT
 
-      - name: "Get sources from glpi-project/glpi"
-        run: |
-          curl https://github.com/glpi-project/glpi/archive/${{ inputs.glpi-version }}.tar.gz --location --output glpi.tar.gz
-          mkdir -p glpi/sources
-          tar --extract --ungzip --strip 1 --file glpi.tar.gz --directory glpi/sources
-
-      - name: "Run post-extract commands"
-        if: ${{ inputs.post-extract-commands != '' }}
-        run: |
-          ${{ inputs.post-extract-commands }}
-
-      - name: "Upload sources"
-        uses: "actions/upload-artifact@v4"
-        with:
-          name: "glpi-sources-${{ steps.set-vars.outputs.artifact_prefix }}"
-          path: "glpi/"
-          include-hidden-files: true
-          retention-days: 1
-
   build:
     name: "Build [${{ matrix.platform.suffix }}]"
     runs-on: "${{ matrix.platform.runner }}"
@@ -142,12 +123,6 @@ jobs:
         run: |
           platform="${{ matrix.platform.arch }}"
           echo "PLATFORM_PAIR=${platform//\//-}" >> $GITHUB_ENV
-
-      - name: "Download sources"
-        uses: "actions/download-artifact@v4"
-        with:
-          name: "glpi-sources-${{ needs.prepare.outputs.artifact-prefix }}"
-          path: "glpi"
 
       - name: "Docker meta"
         id: "meta"
@@ -181,6 +156,8 @@ jobs:
         uses: "docker/build-push-action@v6"
         with:
           build-args: |
+            GLPI_VERSION=${{ inputs.glpi-version }}
+            GLPI_PATCH_URL=${{ inputs.patch-url }}
             BUILDER_IMAGE=php:${{ inputs.php-version }}-cli-alpine
             APP_IMAGE=php:${{ inputs.php-version }}-apache
             GLPI_MARKETPLACE_DIR=${{ needs.prepare.outputs.marketplace-dir }}
