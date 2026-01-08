@@ -1,30 +1,6 @@
 name: "GLPI images for official releases"
 
 on:
-  # Enable execution from another workflow
-  workflow_call:
-    inputs:
-      glpi-version:
-        required: true
-        type: string
-      image-suffix:
-        required: false
-        type: string
-        default: ""
-      php-version:
-        required: false
-        type: string
-        default: "8.5"
-    secrets:
-      DOCKER_HUB_USERNAME:
-        required: true
-      DOCKER_HUB_TOKEN:
-        required: true
-      GHCR_USERNAME:
-        required: true
-      GHCR_ACCESS_TOKEN:
-        required: true
-
   # Enable manual run
   #
   # It can be executed by a curl command:
@@ -33,101 +9,50 @@ on:
   # -H "Accept: application/vnd.github.v3+json" \
   # -H "Authorization: <access-token>" \
   # https://api.github.com/repos/glpi-project/docker-images/actions/workflows/<workflow-id>/dispatches \
-  # -d '{"ref":"main", "inputs": { "glpi-version":"10.0.18" }}'
+  # -d '{"ref":"main", "inputs": { "glpi-version":"11.0.5", "push": true }}'
   workflow_dispatch:
     inputs:
+      push:
+        description: "Whether to push images to registries"
+        required: false
+        type: boolean
+        default: false
+      php-version:
+        description: "PHP version to use for the build"
+        required: false
+        type: string
+        default: "8.5"
       glpi-version:
-        description: "GLPI version to build, e.g. 10.0.18"
+        description: "GLPI version to build, i.e: 11.0.5"
         required: true
         type: string
       image-suffix:
-        description: "Suffix to add to the image name, e.g. 'nighlty'"
+        description: "Suffix to add to the image name, i.e: 'nightly'"
         required: false
         type: string
         default: ""
-      php-version:
-        description: "PHP version to use for the build"
-        required: true
-        type: string
-        default: "8.5"
 
 jobs:
   build:
     name: "Build GLPI ${{ inputs.glpi-version }}"
-    runs-on: "ubuntu-latest"
-    steps:
-      - name: "Set variables"
-        id: "variables"
-        run: |
-          IMAGE_VERSION="$(echo '${{ inputs.glpi-version }}' | sed -E 's|/|-|')"
-          IMAGE_VERSION_MAJOR=$(echo "${{ inputs.glpi-version }}" | cut -d. -f1)
-          IMAGE_VERSION_MINOR=$(echo "${{ inputs.glpi-version }}" | cut -d. -f1-2)
-
-          if [[ "${{ inputs.image-suffix }}" != '' ]]; then
-            IMAGE_VERSION="$IMAGE_VERSION-${{ inputs.image-suffix }}"
-          fi
-
-          # prepare the tags to push
-          TAGS="glpi/glpi:$IMAGE_VERSION,ghcr.io/glpi-project/glpi:$IMAGE_VERSION"
-
-          PRERELEASE_FLAG="$( echo "${{ inputs.glpi-version }}" | grep -Po '(\-\w+)?$' )"
-          if [[ -z "$PRERELEASE_FLAG" ]]; then
-            # populate major version tags, ex 10.0.18 -> 10
-            TAGS="$TAGS,glpi/glpi:$IMAGE_VERSION_MAJOR,ghcr.io/glpi-project/glpi:$IMAGE_VERSION_MAJOR"
-
-            # populate minor version tags, ex 10.0.18 -> 10.0
-            TAGS="$TAGS,glpi/glpi:$IMAGE_VERSION_MINOR,ghcr.io/glpi-project/glpi:$IMAGE_VERSION_MINOR"
-
-            # find if the current version is the latest
-            if [[ "${{ inputs.glpi-version }}" = "$(curl -s https://api.github.com/repos/glpi-project/glpi/releases/latest | jq -r .tag_name)" ]]; then
-              TAGS="$TAGS,glpi/glpi:latest,ghcr.io/glpi-project/glpi:latest"
-            fi
-          fi
-          echo "tags=$TAGS" >> $GITHUB_OUTPUT
-
-          # compute the marketplace dir
-          MARKETPLACE_DIR="/var/glpi/marketplace"
-          if [[ "$IMAGE_VERSION_MAJOR" = "10" ]]; then
-            MARKETPLACE_DIR="/var/www/glpi/marketplace"
-          fi
-          echo "marketplace_dir=$MARKETPLACE_DIR" >> $GITHUB_OUTPUT
-      - name: "Checkout"
-        uses: "actions/checkout@v6"
-        with:
-          repository: glpi-project/docker-images
-      - name: "Get sources from glpi-project/glpi"
-        run: |
-          curl https://github.com/glpi-project/glpi/archive/${{ inputs.glpi-version }}.tar.gz --location --output glpi.tar.gz
-          mkdir glpi/sources
-          tar --extract --ungzip --strip 1 --file glpi.tar.gz --directory glpi/sources
-          curl https://patch-diff.githubusercontent.com/raw/glpi-project/glpi/pull/22381.diff --location --output composer-audit-config.diff
-          patch --force --directory=glpi/sources < composer-audit-config.diff
-      - name: "Set up QEMU"
-        uses: "docker/setup-qemu-action@v3"
-      - name: "Set up Docker Buildx"
-        uses: "docker/setup-buildx-action@v3"
-      - name: "Login to DockerHub"
-        uses: "docker/login-action@v3"
-        with:
-          username: "${{ secrets.DOCKER_HUB_USERNAME }}"
-          password: "${{ secrets.DOCKER_HUB_TOKEN }}"
-      - name: "Login to Github container registry"
-        uses: "docker/login-action@v3"
-        with:
-          registry: "ghcr.io"
-          username: "${{ secrets.GHCR_USERNAME }}"
-          password: "${{ secrets.GHCR_ACCESS_TOKEN }}"
-      - name: "Build and push"
-        uses: "docker/build-push-action@v6"
-        with:
-          build-args: |
-            BUILDER_IMAGE=php:${{inputs.php-version}}-cli-alpine
-            APP_IMAGE=php:${{inputs.php-version}}-apache
-            GLPI_MARKETPLACE_DIR=${{ steps.variables.outputs.marketplace_dir }}
-          cache-from: "type=gha"
-          cache-to: "type=gha,mode=max"
-          context: "glpi"
-          outputs: "type=registry"
-          platforms: "linux/amd64,linux/arm64"
-          pull: true
-          tags: "${{ steps.variables.outputs.tags }}"
+    uses: ./.github/workflows/_glpi-build.yml
+    with:
+      push: ${{ inputs.push }}
+      php-version: ${{ inputs.php-version }}
+      glpi-version: ${{ inputs.glpi-version }}
+      image-suffix: ${{ inputs.image-suffix }}
+      # Patches for specific versions
+      # Format: Use startsWith() for ranges, exact match for single versions
+      # Multiple patches: separate URLs with spaces
+      #
+      # Examples:
+      #   Single version:  inputs.glpi-version == '11.0.5'
+      #   Version range:   startsWith(inputs.glpi-version, '11.0.') && inputs.glpi-version < '11.0.5'
+      #   Multiple patches: 'url1 url2'
+      patch-url: >-
+        ${{
+          (startsWith(inputs.glpi-version, '11.0.') && inputs.glpi-version < '11.0.5')
+          && 'https://patch-diff.githubusercontent.com/raw/glpi-project/glpi/pull/22381.diff'
+          || ''
+        }}
+    secrets: inherit

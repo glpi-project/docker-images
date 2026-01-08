@@ -1,5 +1,8 @@
 # GLPI Docker Images
 
+[![Release Build](https://github.com/glpi-project/docker-images/actions/workflows/glpi.yml/badge.svg)](https://github.com/glpi-project/docker-images/actions/workflows/glpi.yml)
+[![Nightly Build](https://github.com/glpi-project/docker-images/actions/workflows/glpi-nightly.yml/badge.svg)](https://github.com/glpi-project/docker-images/actions/workflows/glpi-nightly.yml)
+
 ![GLPI on docker illustration](https://raw.githubusercontent.com/glpi-project/docker-images/refs/heads/main/docs/illustration.png)
 
 [GLPI](https://glpi-project.org) is a free and open source Asset and IT Management Software package, Data center management, ITIL Service Desk, licenses tracking and software auditing.
@@ -8,6 +11,7 @@ A few links:
 
 - [Report an issue](https://github.com/glpi-project/glpi/issues/new?template=bug_report.yml)
 - [Documentation](https://glpi-project.org/documentation/)
+- [Contributing](CONTRIBUTING.md)
 
 
 This repository contains build files for docker images available in [Github Container Registry](https://github.com/orgs/glpi-project/packages?ecosystem=container) and [Docker hub](https://hub.docker.com/r/glpi/glpi).
