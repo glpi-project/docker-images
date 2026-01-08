@@ -3,6 +3,53 @@ ARG BUILDER_IMAGE=php:cli-alpine
 ARG APP_IMAGE=php:apache
 
 #####
+# Downloader image - Resolve version and download source
+#####
+FROM alpine AS downloader
+
+# GLPI_VERSION can be:
+# - "latest" (default): resolves to latest stable release
+# - A tag version: e.g., "10.0.18", "11.0.0"
+# - A branch name: e.g., "11.0/bugfixes", "main"
+# - A commit hash: e.g., "2186bc6bd410d8bcb048637b3c0fb86b7e320c0a"
+# - A direct URL: e.g., "https://github.com/glpi-project/glpi/archive/2186bc6.tar.gz"
+ARG GLPI_VERSION=latest
+# Optional patch URL to apply after download
+ARG GLPI_PATCH_URL=""
+
+RUN apk add --no-cache curl jq patch
+
+WORKDIR /download
+
+# Resolve version and download source
+RUN set -ex; \
+    INPUT="${GLPI_VERSION}"; \
+    # If input starts with https://, use it as-is \
+    if echo "$INPUT" | grep -q '^https://'; then \
+      URL="$INPUT"; \
+    else \
+      VERSION="$INPUT"; \
+      # If "latest", resolve from GitHub API \
+      if [ "$VERSION" = "latest" ]; then \
+        VERSION=$(curl -s https://api.github.com/repos/glpi-project/glpi/releases/latest | jq -r .tag_name); \
+      fi; \
+      # Use GitHub's generic archive format (works for branches, tags, and commits)
+      URL="https://github.com/glpi-project/glpi/archive/${VERSION}.tar.gz"; \
+    fi; \
+    echo "Downloading GLPI from $URL"; \
+    curl -L "$URL" | tar xz --strip-components=1
+
+# Apply optional patches if GLPI_PATCH_URL is provided (space-separated URLs)
+ARG GLPI_PATCH_URL
+RUN set -ex; \
+    if [ -n "${GLPI_PATCH_URL}" ]; then \
+      for PATCH in ${GLPI_PATCH_URL}; do \
+        echo "Applying patch from ${PATCH}"; \
+        curl -L "${PATCH}" | patch -p1; \
+      done; \
+    fi
+
+#####
 # Builder image
 #####
 FROM $BUILDER_IMAGE AS builder
@@ -41,8 +88,8 @@ RUN \
  # Update PHP configuration.
 RUN echo "memory_limit = 512M" >> /usr/local/etc/php/conf.d/docker-php-memory.ini
 
-# Copy GLPI source.
-COPY --chown=www-data:www-data ./sources /usr/src/glpi
+# Copy GLPI source from downloader stage.
+COPY --from=downloader --chown=www-data:www-data /download /usr/src/glpi
 
 # Ensure scripts are executable (artifact upload strips permissions)
 RUN find /usr/src/glpi/tools -name "*.sh" -exec chmod +x {} \; \
