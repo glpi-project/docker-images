@@ -44,6 +44,10 @@ RUN echo "memory_limit = 512M" >> /usr/local/etc/php/conf.d/docker-php-memory.in
 # Copy GLPI source.
 COPY --chown=www-data:www-data ./sources /usr/src/glpi
 
+# Ensure scripts are executable (artifact upload strips permissions)
+RUN find /usr/src/glpi/tools -name "*.sh" -exec chmod +x {} \; \
+    && chmod +x /usr/src/glpi/bin/console
+
 # Build GLPI app
 USER www-data
 RUN /usr/src/glpi/tools/build_glpi.sh

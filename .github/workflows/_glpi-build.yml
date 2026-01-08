@@ -53,20 +53,10 @@ jobs:
     name: "Prepare"
     runs-on: "ubuntu-latest"
     outputs:
-      platforms: ${{ steps.set-matrix.outputs.platforms }}
       marketplace-dir: ${{ steps.set-vars.outputs.marketplace_dir }}
       tags: ${{ steps.set-vars.outputs.tags }}
+      artifact-prefix: ${{ steps.set-vars.outputs.artifact_prefix }}
     steps:
-      - name: "Set matrix"
-        id: "set-matrix"
-        run: |
-          echo 'platforms<<EOF' >> $GITHUB_OUTPUT
-          echo '[
-            {"arch": "linux/amd64", "runner": "ubuntu-24.04", "suffix": "amd64"},
-            {"arch": "linux/arm64", "runner": "ubuntu-24.04-arm", "suffix": "arm64"}
-          ]' >> $GITHUB_OUTPUT
-          echo 'EOF' >> $GITHUB_OUTPUT
-
       - name: "Set variables"
         id: "set-vars"
         run: |
@@ -77,6 +67,14 @@ jobs:
             MARKETPLACE_DIR="/var/www/glpi/marketplace"
           fi
           echo "marketplace_dir=$MARKETPLACE_DIR" >> $GITHUB_OUTPUT
+
+          # Compute artifact prefix (unique per workflow call)
+          if [[ "${{ inputs.image-tag }}" != '' ]]; then
+            ARTIFACT_PREFIX="${{ inputs.image-tag }}"
+          else
+            ARTIFACT_PREFIX="$(echo '${{ inputs.glpi-version }}' | sed -E 's|/|-|g')"
+          fi
+          echo "artifact_prefix=$ARTIFACT_PREFIX" >> $GITHUB_OUTPUT
 
           # Compute tags
           if [[ "${{ inputs.image-tag }}" != '' ]]; then
@@ -107,31 +105,6 @@ jobs:
           fi
           echo "tags=$TAGS" >> $GITHUB_OUTPUT
 
-  build:
-    name: "Build [${{ matrix.platform.suffix }}]"
-    runs-on: "${{ matrix.platform.runner }}"
-    needs: [prepare]
-    strategy:
-      fail-fast: false
-      matrix:
-        platform: ${{ fromJson(needs.prepare.outputs.platforms) }}
-    steps:
-      - name: "Checkout"
-        uses: "actions/checkout@v6"
-
-      - name: "Prepare environment"
-        run: |
-          platform="${{ matrix.platform.arch }}"
-          echo "PLATFORM_PAIR=${platform//\//-}" >> $GITHUB_ENV
-
-      - name: "Docker meta"
-        id: "meta"
-        uses: "docker/metadata-action@v5"
-        with:
-          images: |
-            ${{ env.DOCKERHUB_IMAGE }}
-            ${{ env.GHCR_IMAGE }}
-
       - name: "Get sources from glpi-project/glpi"
         run: |
           curl https://github.com/glpi-project/glpi/archive/${{ inputs.glpi-version }}.tar.gz --location --output glpi.tar.gz
@@ -142,6 +115,47 @@ jobs:
         if: ${{ inputs.post-extract-commands != '' }}
         run: |
           ${{ inputs.post-extract-commands }}
+
+      - name: "Upload sources"
+        uses: "actions/upload-artifact@v4"
+        with:
+          name: "glpi-sources-${{ steps.set-vars.outputs.artifact_prefix }}"
+          path: "glpi/"
+          include-hidden-files: true
+          retention-days: 1
+
+  build:
+    name: "Build [${{ matrix.platform.suffix }}]"
+    runs-on: "${{ matrix.platform.runner }}"
+    needs: [prepare]
+    strategy:
+      fail-fast: false
+      matrix:
+        platform:
+          - { arch: "linux/amd64", runner: "ubuntu-24.04", suffix: "amd64" }
+          - { arch: "linux/arm64", runner: "ubuntu-24.04-arm", suffix: "arm64" }
+    steps:
+      - name: "Checkout"
+        uses: "actions/checkout@v6"
+
+      - name: "Prepare environment"
+        run: |
+          platform="${{ matrix.platform.arch }}"
+          echo "PLATFORM_PAIR=${platform//\//-}" >> $GITHUB_ENV
+
+      - name: "Download sources"
+        uses: "actions/download-artifact@v4"
+        with:
+          name: "glpi-sources-${{ needs.prepare.outputs.artifact-prefix }}"
+          path: "glpi"
+
+      - name: "Docker meta"
+        id: "meta"
+        uses: "docker/metadata-action@v5"
+        with:
+          images: |
+            ${{ env.DOCKERHUB_IMAGE }}
+            ${{ env.GHCR_IMAGE }}
 
       - name: "Set up QEMU"
         uses: "docker/setup-qemu-action@v3"
@@ -191,7 +205,7 @@ jobs:
         if: ${{ inputs.push }}
         uses: "actions/upload-artifact@v4"
         with:
-          name: "digests-${{ env.PLATFORM_PAIR }}"
+          name: "digests-${{ needs.prepare.outputs.artifact-prefix }}-${{ env.PLATFORM_PAIR }}"
           path: "${{ runner.temp }}/digests/*"
           if-no-files-found: "error"
           retention-days: 1
@@ -206,8 +220,15 @@ jobs:
         uses: "actions/download-artifact@v4"
         with:
           path: "${{ runner.temp }}/digests"
-          pattern: "digests-*"
+          pattern: "digests-${{ needs.prepare.outputs.artifact-prefix }}-*"
           merge-multiple: true
+      - name: "Verify digests"
+        run: |
+          mkdir -p "${{ runner.temp }}/digests"
+          if [ -z "$(ls -A ${{ runner.temp }}/digests)" ]; then
+            echo "::error::No digest files found! Build job may have failed or artifacts expired."
+            exit 1
+          fi
       - name: "Set up Docker Buildx"
         uses: "docker/setup-buildx-action@v3"
       - name: "Login to DockerHub"
