@@ -54,8 +54,10 @@ jobs:
     runs-on: "ubuntu-latest"
     outputs:
       marketplace-dir: ${{ steps.set-vars.outputs.marketplace_dir }}
-      tags: ${{ steps.set-vars.outputs.tags }}
       artifact-prefix: ${{ steps.set-vars.outputs.artifact_prefix }}
+      is-latest: ${{ steps.set-vars.outputs.is_latest }}
+      is-prerelease: ${{ steps.set-vars.outputs.is_prerelease }}
+      image-version: ${{ steps.set-vars.outputs.image_version }}
     steps:
       - name: "Set variables"
         id: "set-vars"
@@ -76,34 +78,30 @@ jobs:
           fi
           echo "artifact_prefix=$ARTIFACT_PREFIX" >> $GITHUB_OUTPUT
 
-          # Compute tags
-          if [[ "${{ inputs.image-tag }}" != '' ]]; then
-            # Use provided tag directly
-            TAGS="${{ env.DOCKERHUB_IMAGE }}:${{ inputs.image-tag }},${{ env.GHCR_IMAGE }}:${{ inputs.image-tag }}"
+          # Compute image version for metadata-action
+          IMAGE_VERSION="$(echo '${{ inputs.glpi-version }}' | sed -E 's|/|-|')"
+          if [[ "${{ inputs.image-suffix }}" != '' ]]; then
+            IMAGE_VERSION="$IMAGE_VERSION-${{ inputs.image-suffix }}"
+          fi
+          echo "image_version=$IMAGE_VERSION" >> $GITHUB_OUTPUT
+
+          # Detect prerelease (contains -rc, -beta, -alpha, etc.)
+          PRERELEASE_FLAG="$( echo "${{ inputs.glpi-version }}" | grep -Po '(\-\w+)?$' )"
+          if [[ -n "$PRERELEASE_FLAG" ]]; then
+            echo "is_prerelease=true" >> $GITHUB_OUTPUT
           else
-            # Compute from version
-            IMAGE_VERSION="$(echo '${{ inputs.glpi-version }}' | sed -E 's|/|-|')"
-            IMAGE_VERSION_MAJOR=$(echo "${{ inputs.glpi-version }}" | cut -d. -f1)
-            IMAGE_VERSION_MINOR=$(echo "${{ inputs.glpi-version }}" | cut -d. -f1-2)
+            echo "is_prerelease=false" >> $GITHUB_OUTPUT
+          fi
 
-            if [[ "${{ inputs.image-suffix }}" != '' ]]; then
-              IMAGE_VERSION="$IMAGE_VERSION-${{ inputs.image-suffix }}"
-            fi
-
-            TAGS="${{ env.DOCKERHUB_IMAGE }}:$IMAGE_VERSION,${{ env.GHCR_IMAGE }}:$IMAGE_VERSION"
-
-            PRERELEASE_FLAG="$( echo "${{ inputs.glpi-version }}" | grep -Po '(\-\w+)?$' )"
-            if [[ -z "$PRERELEASE_FLAG" ]]; then
-              TAGS="$TAGS,${{ env.DOCKERHUB_IMAGE }}:$IMAGE_VERSION_MAJOR,${{ env.GHCR_IMAGE }}:$IMAGE_VERSION_MAJOR"
-              TAGS="$TAGS,${{ env.DOCKERHUB_IMAGE }}:$IMAGE_VERSION_MINOR,${{ env.GHCR_IMAGE }}:$IMAGE_VERSION_MINOR"
-
-              LATEST_TAG="$(curl -s https://api.github.com/repos/glpi-project/glpi/releases/latest | jq -r .tag_name)"
-              if [[ "${{ inputs.glpi-version }}" = "$LATEST_TAG" ]]; then
-                TAGS="$TAGS,${{ env.DOCKERHUB_IMAGE }}:latest,${{ env.GHCR_IMAGE }}:latest"
-              fi
+          # Check if this is the latest release (only for non-prereleases)
+          IS_LATEST="false"
+          if [[ -z "$PRERELEASE_FLAG" && "${{ inputs.image-tag }}" == '' ]]; then
+            LATEST_TAG="$(curl -s https://api.github.com/repos/glpi-project/glpi/releases/latest | jq -r .tag_name)"
+            if [[ "${{ inputs.glpi-version }}" = "$LATEST_TAG" ]]; then
+              IS_LATEST="true"
             fi
           fi
-          echo "tags=$TAGS" >> $GITHUB_OUTPUT
+          echo "is_latest=$IS_LATEST" >> $GITHUB_OUTPUT
 
   build:
     name: "Build [${{ matrix.platform.suffix }}]"
@@ -221,21 +219,48 @@ jobs:
           registry: "ghcr.io"
           username: "${{ secrets.GHCR_USERNAME }}"
           password: "${{ secrets.GHCR_ACCESS_TOKEN }}"
+      - name: "Docker meta"
+        id: "meta"
+        uses: "docker/metadata-action@v5"
+        with:
+          images: |
+            ${{ env.DOCKERHUB_IMAGE }}
+            ${{ env.GHCR_IMAGE }}
+          # Disable automatic latest tag - we control it via is-latest
+          flavor: |
+            latest=false
+          tags: |
+            # If image-tag is explicitly provided, use it directly
+            type=raw,value=${{ inputs.image-tag }},enable=${{ inputs.image-tag != '' }}
+            # Base version tag (always, when no explicit image-tag)
+            type=raw,value=${{ needs.prepare.outputs.image-version }},enable=${{ inputs.image-tag == '' }}
+            # only for releases
+            type=semver,pattern={{major}},value=${{ inputs.glpi-version }},enable=${{ inputs.image-tag == '' && needs.prepare.outputs.is-prerelease == 'false' }}
+            type=semver,pattern={{major}}.{{minor}},value=${{ inputs.glpi-version }},enable=${{ inputs.image-tag == '' && needs.prepare.outputs.is-prerelease == 'false' }}
+
+            # Latest
+            type=raw,value=latest,enable=${{ needs.prepare.outputs.is-latest == 'true' }}
       - name: "Create and push manifest"
         working-directory: "${{ runner.temp }}/digests"
+        env:
+          TAGS: ${{ steps.meta.outputs.tags }}
         run: |
-          # Build the tag arguments
-          TAG_ARGS=""
-          IFS=',' read -ra TAG_ARRAY <<< "${{ needs.prepare.outputs.tags }}"
-          for tag in "${TAG_ARRAY[@]}"; do
-            TAG_ARGS="$TAG_ARGS -t $tag"
-          done
+          # Create manifest for DockerHub
+          DOCKERHUB_TAGS=$(echo "$TAGS" | grep "^${{ env.DOCKERHUB_IMAGE }}" | xargs -I {} echo "-t {}" | tr '\n' ' ')
+          if [[ -n "$DOCKERHUB_TAGS" ]]; then
+            echo "Creating DockerHub manifest..."
+            docker buildx imagetools create $DOCKERHUB_TAGS \
+              $(printf '${{ env.DOCKERHUB_IMAGE }}@sha256:%s ' *)
+          fi
 
-          # Create manifest
-          docker buildx imagetools create $TAG_ARGS \
-            $(printf '${{ env.DOCKERHUB_IMAGE }}@sha256:%s ' *)
+          # Create manifest for GHCR
+          GHCR_TAGS=$(echo "$TAGS" | grep "^${{ env.GHCR_IMAGE }}" | xargs -I {} echo "-t {}" | tr '\n' ' ')
+          if [[ -n "$GHCR_TAGS" ]]; then
+            echo "Creating GHCR manifest..."
+            docker buildx imagetools create $GHCR_TAGS \
+              $(printf '${{ env.GHCR_IMAGE }}@sha256:%s ' *)
+          fi
       - name: "Inspect image"
         run: |
           # Get first tag for inspection
-          FIRST_TAG=$(echo "${{ needs.prepare.outputs.tags }}" | cut -d',' -f1)
-          docker buildx imagetools inspect $FIRST_TAG
+          docker buildx imagetools inspect ${{ fromJSON(steps.meta.outputs.json).tags[0] }}
