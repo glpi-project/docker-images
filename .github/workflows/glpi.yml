@@ -32,7 +32,7 @@ on:
         type: string
         default: ""
       image-tag:
-        description: "Override image tag (ignores version computation). i.e: '11.0.5-beta1'"
+        description: "Override image tag (glpi-version otherwise). i.e: '11.0.5-beta1'"
         required: false
         type: string
         default: ""

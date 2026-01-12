@@ -57,6 +57,7 @@ jobs:
       artifact-prefix: ${{ steps.set-vars.outputs.artifact_prefix }}
       is-latest: ${{ steps.set-vars.outputs.is_latest }}
       is-latest-major: ${{ steps.set-vars.outputs.is_latest_major }}
+      sha-source-commit: ${{ steps.set-vars.outputs.sha_source_commit }}
       image-version: ${{ steps.set-vars.outputs.image_version }}
     steps:
       - name: "Set variables"
@@ -72,6 +73,20 @@ jobs:
           if echo "$GLPI_VERSION" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+'; then
             IS_SEMVER=true
           fi
+
+          # Fetch the commit SHA for this version/branch (for cache-busting)
+          # Same commit = cache hit, new commit = fresh build
+          if echo "$GLPI_VERSION" | grep -qE '^https://'; then
+            # For URLs, use empty (will always rebuild)
+            SOURCE_COMMIT=""
+          elif [[ "$GLPI_VERSION" = "latest" ]]; then
+            # Resolve "latest" to actual tag first, then get commit SHA
+            RESOLVED_TAG=$(curl -s "https://api.github.com/repos/glpi-project/glpi/releases/latest" | jq -r '.tag_name')
+            SOURCE_COMMIT=$(curl -s "https://api.github.com/repos/glpi-project/glpi/commits/$RESOLVED_TAG" | jq -r '.sha // empty')
+          else
+            SOURCE_COMMIT=$(curl -s "https://api.github.com/repos/glpi-project/glpi/commits/$GLPI_VERSION" | jq -r '.sha // empty')
+          fi
+          echo "sha_source_commit=$SOURCE_COMMIT" >> $GITHUB_OUTPUT
 
           # Compute marketplace dir (only v10 uses old path)
           MARKETPLACE_DIR="/var/glpi/marketplace"
@@ -195,6 +210,7 @@ jobs:
           build-args: |
             GLPI_VERSION=${{ inputs.glpi-version }}
             GLPI_PATCH_URL=${{ inputs.patch-url }}
+            GLPI_SHA_SOURCE_COMMIT=${{ needs.prepare.outputs.sha-source-commit }}
             BUILDER_IMAGE=php:${{ inputs.php-version }}-cli-alpine
             APP_IMAGE=php:${{ inputs.php-version }}-apache
             GLPI_MARKETPLACE_DIR=${{ needs.prepare.outputs.marketplace-dir }}

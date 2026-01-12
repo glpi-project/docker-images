@@ -16,6 +16,8 @@ FROM alpine AS downloader
 ARG GLPI_VERSION=latest
 # Optional patch URL to apply after download
 ARG GLPI_PATCH_URL=""
+# Cache-busting: SHA from GitHub API for _glpi-build.yaml workflows
+ARG GLPI_SHA_SOURCE_COMMIT=""
 
 RUN apk add --no-cache curl jq patch
 
