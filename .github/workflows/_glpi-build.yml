@@ -56,52 +56,91 @@ jobs:
       marketplace-dir: ${{ steps.set-vars.outputs.marketplace_dir }}
       artifact-prefix: ${{ steps.set-vars.outputs.artifact_prefix }}
       is-latest: ${{ steps.set-vars.outputs.is_latest }}
-      is-prerelease: ${{ steps.set-vars.outputs.is_prerelease }}
+      is-latest-major: ${{ steps.set-vars.outputs.is_latest_major }}
       image-version: ${{ steps.set-vars.outputs.image_version }}
     steps:
       - name: "Set variables"
         id: "set-vars"
         run: |
-          # Compute marketplace dir
-          IMAGE_VERSION_MAJOR=$(echo "${{ inputs.glpi-version }}" | cut -d. -f1)
+          GLPI_VERSION="${{ inputs.glpi-version }}"
+          IMAGE_TAG="${{ inputs.image-tag }}"
+          IMAGE_SUFFIX="${{ inputs.image-suffix }}"
+
+          # Determine if glpi-version is a semver tag (e.g., 10.0.18, 11.0.5-rc1)
+          # vs a branch, commit hash, or URL
+          IS_SEMVER=false
+          if echo "$GLPI_VERSION" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+'; then
+            IS_SEMVER=true
+          fi
+
+          # Compute marketplace dir (only v10 uses old path)
           MARKETPLACE_DIR="/var/glpi/marketplace"
-          if [[ "$IMAGE_VERSION_MAJOR" = "10" ]]; then
-            MARKETPLACE_DIR="/var/www/glpi/marketplace"
+          if [[ "$IS_SEMVER" = "true" ]]; then
+            IMAGE_VERSION_MAJOR=$(echo "$GLPI_VERSION" | cut -d. -f1)
+            if [[ "$IMAGE_VERSION_MAJOR" = "10" ]]; then
+              MARKETPLACE_DIR="/var/www/glpi/marketplace"
+            fi
           fi
           echo "marketplace_dir=$MARKETPLACE_DIR" >> $GITHUB_OUTPUT
 
           # Compute artifact prefix (unique per workflow call)
-          if [[ "${{ inputs.image-tag }}" != '' ]]; then
-            ARTIFACT_PREFIX="${{ inputs.image-tag }}"
+          if [[ "$IMAGE_TAG" != '' ]]; then
+            ARTIFACT_PREFIX="$IMAGE_TAG"
           else
-            ARTIFACT_PREFIX="$(echo '${{ inputs.glpi-version }}' | sed -E 's|/|-|g')"
+            # Replace slashes and colons with dashes for branches like 11.0/bugfixes
+            ARTIFACT_PREFIX="$(echo "$GLPI_VERSION" | sed -E 's|[/:]|-|g' | sed -E 's|https?--||')"
           fi
           echo "artifact_prefix=$ARTIFACT_PREFIX" >> $GITHUB_OUTPUT
 
           # Compute image version for metadata-action
-          IMAGE_VERSION="$(echo '${{ inputs.glpi-version }}' | sed -E 's|/|-|')"
-          if [[ "${{ inputs.image-suffix }}" != '' ]]; then
-            IMAGE_VERSION="$IMAGE_VERSION-${{ inputs.image-suffix }}"
+          if [[ "$IMAGE_TAG" != '' ]]; then
+            IMAGE_VERSION="$IMAGE_TAG"
+          else
+            IMAGE_VERSION="$(echo "$GLPI_VERSION" | sed -E 's|[/:]|-|g' | sed -E 's|https?--||')"
+            if [[ "$IMAGE_SUFFIX" != '' ]]; then
+              IMAGE_VERSION="$IMAGE_VERSION-$IMAGE_SUFFIX"
+            fi
           fi
           echo "image_version=$IMAGE_VERSION" >> $GITHUB_OUTPUT
 
-          # Detect prerelease (contains -rc, -beta, -alpha, etc.)
-          PRERELEASE_FLAG="$( echo "${{ inputs.glpi-version }}" | grep -Po '(\-\w+)?$' )"
-          if [[ -n "$PRERELEASE_FLAG" ]]; then
-            echo "is_prerelease=true" >> $GITHUB_OUTPUT
-          else
-            echo "is_prerelease=false" >> $GITHUB_OUTPUT
+          # Skip all version checks if:
+          # - image-tag is provided (explicit override)
+          # - glpi-version is not a semver (branch, commit, URL)
+          if [[ "$IMAGE_TAG" != '' ]] || [[ "$IS_SEMVER" != "true" ]]; then
+            echo "is_latest=false" >> $GITHUB_OUTPUT
+            echo "is_latest_major=false" >> $GITHUB_OUTPUT
+            exit 0
           fi
 
-          # Check if this is the latest release (only for non-prereleases)
-          IS_LATEST="false"
-          if [[ -z "$PRERELEASE_FLAG" && "${{ inputs.image-tag }}" == '' ]]; then
-            LATEST_TAG="$(curl -s https://api.github.com/repos/glpi-project/glpi/releases/latest | jq -r .tag_name)"
-            if [[ "${{ inputs.glpi-version }}" = "$LATEST_TAG" ]]; then
-              IS_LATEST="true"
-            fi
+          # Detect prerelease (contains -rc, -beta, -alpha, etc.)
+          PRERELEASE_FLAG="$( echo "$GLPI_VERSION" | grep -Po '(\-\w+)?$' )"
+          if [[ -n "$PRERELEASE_FLAG" ]]; then
+            echo "is_latest=false" >> $GITHUB_OUTPUT
+            echo "is_latest_major=false" >> $GITHUB_OUTPUT
+            exit 0
           fi
-          echo "is_latest=$IS_LATEST" >> $GITHUB_OUTPUT
+
+          # Check if this is the latest release overall
+          LATEST_TAG=$(curl -s "https://api.github.com/repos/glpi-project/glpi/releases/latest" | jq -r '.tag_name')
+          if [[ "$GLPI_VERSION" = "$LATEST_TAG" ]]; then
+            echo "is_latest=true" >> $GITHUB_OUTPUT
+          else
+            echo "is_latest=false" >> $GITHUB_OUTPUT
+          fi
+
+          # Fetch all releases from GitHub API (non-prerelease only) for major series check
+          RELEASES=$(curl -s "https://api.github.com/repos/glpi-project/glpi/releases?per_page=100" | \
+            jq -r '[.[] | select(.prerelease == false) | .tag_name]')
+
+          # Check if this is the latest in its major series (e.g., latest 11.x.x)
+          IMAGE_VERSION_MAJOR=$(echo "$GLPI_VERSION" | cut -d. -f1)
+          LATEST_IN_MAJOR=$(echo "$RELEASES" | jq -r --arg major "$IMAGE_VERSION_MAJOR" \
+            '[.[] | select(startswith($major + "."))] | .[0] // empty')
+          if [[ "$GLPI_VERSION" = "$LATEST_IN_MAJOR" ]]; then
+            echo "is_latest_major=true" >> $GITHUB_OUTPUT
+          else
+            echo "is_latest_major=false" >> $GITHUB_OUTPUT
+          fi
 
   build:
     name: "Build [${{ matrix.platform.suffix }}]"
@@ -122,7 +161,7 @@ jobs:
           platform="${{ matrix.platform.arch }}"
           echo "PLATFORM_PAIR=${platform//\//-}" >> $GITHUB_ENV
 
-      - name: "Docker meta"
+      - name: "Docker metadata"
         id: "meta"
         uses: "docker/metadata-action@v5"
         with:
@@ -219,7 +258,7 @@ jobs:
           registry: "ghcr.io"
           username: "${{ secrets.GHCR_USERNAME }}"
           password: "${{ secrets.GHCR_ACCESS_TOKEN }}"
-      - name: "Docker meta"
+      - name: "Docker metadata"
         id: "meta"
         uses: "docker/metadata-action@v5"
         with:
@@ -234,9 +273,10 @@ jobs:
             type=raw,value=${{ inputs.image-tag }},enable=${{ inputs.image-tag != '' }}
             # Base version tag (always, when no explicit image-tag)
             type=raw,value=${{ needs.prepare.outputs.image-version }},enable=${{ inputs.image-tag == '' }}
-            # only for releases
-            type=semver,pattern={{major}},value=${{ inputs.glpi-version }},enable=${{ inputs.image-tag == '' && needs.prepare.outputs.is-prerelease == 'false' }}
-            type=semver,pattern={{major}}.{{minor}},value=${{ inputs.glpi-version }},enable=${{ inputs.image-tag == '' && needs.prepare.outputs.is-prerelease == 'false' }}
+
+            # Only for releases
+            type=semver,pattern={{major}},value=${{ inputs.glpi-version }},enable=${{ needs.prepare.outputs.is-latest-major == 'true' }}
+            type=semver,pattern={{major}}.{{minor}},value=${{ inputs.glpi-version }},enable=${{ needs.prepare.outputs.is-latest-major == 'true' }}
 
             # Latest
             type=raw,value=latest,enable=${{ needs.prepare.outputs.is-latest == 'true' }}
