@@ -33,11 +33,6 @@ on:
         required: false
         type: string
         default: ""
-      image-suffix:
-        description: "Suffix to add to computed tag (ignored if image-tag is set)"
-        required: false
-        type: string
-        default: ""
     secrets:
       DOCKER_HUB_USERNAME:
         required: true
@@ -65,7 +60,6 @@ jobs:
         run: |
           GLPI_VERSION="${{ inputs.glpi-version }}"
           IMAGE_TAG="${{ inputs.image-tag }}"
-          IMAGE_SUFFIX="${{ inputs.image-suffix }}"
 
           # Determine if glpi-version is a semver tag (e.g., 10.0.18, 11.0.5-rc1)
           # vs a branch, commit hash, or URL
@@ -112,9 +106,6 @@ jobs:
             IMAGE_VERSION="$IMAGE_TAG"
           else
             IMAGE_VERSION="$(echo "$GLPI_VERSION" | sed -E 's|[/:]|-|g' | sed -E 's|https?--||')"
-            if [[ "$IMAGE_SUFFIX" != '' ]]; then
-              IMAGE_VERSION="$IMAGE_VERSION-$IMAGE_SUFFIX"
-            fi
           fi
           echo "image_version=$IMAGE_VERSION" >> $GITHUB_OUTPUT
 

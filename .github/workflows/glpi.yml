@@ -26,11 +26,6 @@ on:
         description: "GLPI version (tag: '11.0.5'), branch ('main', '11.0/bugfixes'), commit hash, or URL"
         required: true
         type: string
-      image-suffix:
-        description: "Suffix to add to the image name, i.e: 'nightly'"
-        required: false
-        type: string
-        default: ""
       image-tag:
         description: "Override image tag (glpi-version otherwise). i.e: '11.0.5-beta1'"
         required: false
@@ -50,7 +45,6 @@ jobs:
       push: ${{ inputs.push }}
       php-version: ${{ inputs.php-version }}
       glpi-version: ${{ inputs.glpi-version }}
-      image-suffix: ${{ inputs.image-suffix }}
       image-tag: ${{ inputs.image-tag }}
       # Combine manual patch-url input with automatic version-based patches
       # Format: Use startsWith() for ranges, exact match for single versions
