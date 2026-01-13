@@ -14,14 +14,10 @@ FROM alpine AS downloader
 # - A commit hash: e.g., "2186bc6bd410d8bcb048637b3c0fb86b7e320c0a"
 # - A direct URL: e.g., "https://github.com/glpi-project/glpi/archive/2186bc6.tar.gz"
 ARG GLPI_VERSION=latest
-# Optional patch URL to apply after download
-ARG GLPI_PATCH_URL=""
 # Cache-busting: SHA from GitHub API for _glpi-build.yaml workflows
 ARG GLPI_SHA_SOURCE_COMMIT=""
 
-RUN apk add --no-cache curl jq patch
-
-WORKDIR /download
+RUN apk add --no-cache curl jq
 
 # Resolve version and download source
 RUN set -ex; \
@@ -39,22 +35,15 @@ RUN set -ex; \
       URL="https://github.com/glpi-project/glpi/archive/${VERSION}.tar.gz"; \
     fi; \
     echo "Downloading GLPI from $URL"; \
-    curl -L "$URL" | tar xz --strip-components=1
-
-# Apply optional patches if GLPI_PATCH_URL is provided (space-separated URLs)
-ARG GLPI_PATCH_URL
-RUN set -ex; \
-    if [ -n "${GLPI_PATCH_URL}" ]; then \
-      for PATCH in ${GLPI_PATCH_URL}; do \
-        echo "Applying patch from ${PATCH}"; \
-        curl -L "${PATCH}" | patch -p1; \
-      done; \
-    fi
+    curl -L "$URL" -o /glpi.tar.gz
 
 #####
 # Builder image
 #####
 FROM $BUILDER_IMAGE AS builder
+
+# Optional patch URL to apply after download
+ARG GLPI_PATCH_URL=""
 
 # Copy composer binary from latest composer image.
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
@@ -76,8 +65,8 @@ RUN \
   # Install nodejs and npm.
   && apk add nodejs npm \
   \
-  # Install git and zip used by composer when fetching dependencies.
-  && apk add git unzip \
+  # Install git, zip, and curl used by composer.
+  && apk add git unzip curl \
   \
   # Install intl PHP extension required to execute the GLPI console.
   && apk add icu-dev \
@@ -90,12 +79,22 @@ RUN \
  # Update PHP configuration.
 RUN echo "memory_limit = 512M" >> /usr/local/etc/php/conf.d/docker-php-memory.ini
 
-# Copy GLPI source from downloader stage.
-COPY --from=downloader --chown=www-data:www-data /download /usr/src/glpi
+# Copy tarball from downloader and extract (preserves permissions from archive)
+COPY --from=downloader /glpi.tar.gz /tmp/glpi.tar.gz
+RUN mkdir -p /usr/src/glpi \
+    && tar xzf /tmp/glpi.tar.gz --strip-components=1 --directory=/usr/src/glpi \
+    && rm /tmp/glpi.tar.gz \
+    && chown -R www-data:www-data /usr/src/glpi
 
-# Ensure scripts are executable (artifact upload strips permissions)
-RUN find /usr/src/glpi/tools -name "*.sh" -exec chmod +x {} \; \
-    && chmod +x /usr/src/glpi/bin/console
+# Apply optional patches if GLPI_PATCH_URL is provided (space-separated URLs)
+RUN set -ex; \
+    if [ -n "${GLPI_PATCH_URL}" ]; then \
+      cd /usr/src/glpi && \
+      for PATCH in ${GLPI_PATCH_URL}; do \
+        echo "Applying patch from ${PATCH}"; \
+        curl -L "${PATCH}" | patch -p1; \
+      done; \
+    fi
 
 # Build GLPI app
 USER www-data
