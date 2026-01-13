@@ -22,7 +22,7 @@ until [ $attempts_left -eq 0 ]; do
         \$conn = @new mysqli('$GLPI_DB_HOST', '$GLPI_DB_USER', '$GLPI_DB_PASSWORD', '', (int) '$GLPI_DB_PORT');
         exit(\$conn->connect_error ? 1 : 0);
     " 2>/dev/null; then
-        echo "[$caller] The database is now ready and reachable"
+        echo "[$caller] The database is now ready and reachable."
         exit 0
     fi
 
