@@ -60,6 +60,15 @@ GLPI_Installed() {
     return 1
 }
 
+# Skipping auto stuff, database configuration is not fully provided
+if [ -z "${GLPI_DB_HOST:-}" ] || [ -z "${GLPI_DB_PORT:-}" ] || [ -z "${GLPI_DB_NAME:-}" ] || [ -z "${GLPI_DB_USER:-}" ] || [ -z "${GLPI_DB_PASSWORD:-}" ]; then
+    if ! $GLPI_SKIP_AUTOINSTALL || ! $GLPI_SKIP_AUTOUPDATE; then
+        echo "Database configuration incomplete, forcing GLPI_SKIP_AUTOINSTALL and GLPI_SKIP_AUTOUPDATE to true."
+    fi
+    GLPI_SKIP_AUTOINSTALL=true
+    GLPI_SKIP_AUTOUPDATE=true
+fi
+
 if ! GLPI_Installed; then
     if ! $GLPI_SKIP_AUTOINSTALL; then
         echo "GLPI is not installed. but auto-install is enabled. Starting installation."

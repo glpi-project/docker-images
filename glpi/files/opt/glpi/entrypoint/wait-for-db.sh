@@ -6,6 +6,13 @@ set -e -u -o pipefail
 # Usage: wait-for-db.sh [caller_name]
 
 caller="${1:-unknown}"
+
+# Skip if database configuration is not fully provided
+if [ -z "${GLPI_DB_HOST:-}" ] || [ -z "${GLPI_DB_PORT:-}" ] || [ -z "${GLPI_DB_NAME:-}" ] || [ -z "${GLPI_DB_USER:-}" ] || [ -z "${GLPI_DB_PASSWORD:-}" ]; then
+    echo "[$caller] Database ENV configuration incomplete, skipping database wait."
+    exit 0
+fi
+
 echo "[$caller] Waiting for database to be ready..."
 attempts_left=120
 
