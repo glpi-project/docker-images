@@ -82,7 +82,7 @@ on:
         required: true
         type: string
       image-tag:
-        description: "Override image tag (glpi-version otherwise). i.e: '11.0.5-beta1'"
+        description: "Override image tag (glpi-version otherwise). i.e: '12.0.0-prebuild-20260615-1'"
         required: false
         type: string
         default: ""
