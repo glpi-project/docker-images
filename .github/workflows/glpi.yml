@@ -136,8 +136,8 @@ jobs:
           # Fetch the commit SHA for this version/branch (for cache-busting)
           # Same commit = cache hit, new commit = fresh build
           if echo "$GLPI_VERSION" | grep --quiet --extended-regexp '^https://'; then
-            # For URLs, use empty (will always rebuild)
-            SOURCE_COMMIT=""
+            # For URLs, use a random value to force rebuild, as content behind a URL can change between builds.
+            SOURCE_COMMIT="$(head -200 /dev/urandom | sha1sum | cut --fields 1 --delimiter " ")"
           elif [[ "$GLPI_VERSION" = "latest" ]]; then
             # Resolve "latest" to actual tag first, then get commit SHA
             RESOLVED_TAG=$(curl -s "https://api.github.com/repos/glpi-project/glpi/releases/latest" | jq -r '.tag_name')
