@@ -129,13 +129,13 @@ jobs:
           # Determine if glpi-version is a semver tag (e.g., 10.0.18, 11.0.5-rc1)
           # vs a branch, commit hash, or URL
           IS_SEMVER=false
-          if echo "$GLPI_VERSION" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+'; then
+          if echo "$GLPI_VERSION" | grep --quiet --extended-regexp '^[0-9]+\.[0-9]+\.[0-9]+(\-\w+)?$'; then
             IS_SEMVER=true
           fi
 
           # Fetch the commit SHA for this version/branch (for cache-busting)
           # Same commit = cache hit, new commit = fresh build
-          if echo "$GLPI_VERSION" | grep -qE '^https://'; then
+          if echo "$GLPI_VERSION" | grep --quiet --extended-regexp '^https://'; then
             # For URLs, use empty (will always rebuild)
             SOURCE_COMMIT=""
           elif [[ "$GLPI_VERSION" = "latest" ]]; then
@@ -150,7 +150,7 @@ jobs:
           # Compute marketplace dir (only v10 uses old path)
           MARKETPLACE_DIR="/var/glpi/marketplace"
           if [[ "$IS_SEMVER" = "true" ]]; then
-            IMAGE_VERSION_MAJOR=$(echo "$GLPI_VERSION" | cut -d. -f1)
+            IMAGE_VERSION_MAJOR=$(echo "$GLPI_VERSION" | cut --delimiter=. --fields=1)
             if [[ "$IMAGE_VERSION_MAJOR" = "10" ]]; then
               MARKETPLACE_DIR="/var/www/glpi/marketplace"
             fi
@@ -162,7 +162,7 @@ jobs:
             ARTIFACT_PREFIX="$IMAGE_TAG"
           else
             # Replace slashes and colons with dashes for branches like 11.0/bugfixes
-            ARTIFACT_PREFIX="$(echo "$GLPI_VERSION" | sed -E 's|[/:]|-|g' | sed -E 's|https?--||')"
+            ARTIFACT_PREFIX="$(echo "$GLPI_VERSION" | sed --regexp-extended 's|[/:]|-|g' | sed --regexp-extended 's|https?--||')"
           fi
           echo "artifact_prefix=$ARTIFACT_PREFIX" >> $GITHUB_OUTPUT
 
@@ -170,7 +170,7 @@ jobs:
           if [[ "$IMAGE_TAG" != '' ]]; then
             IMAGE_VERSION="$IMAGE_TAG"
           else
-            IMAGE_VERSION="$(echo "$GLPI_VERSION" | sed -E 's|[/:]|-|g' | sed -E 's|https?--||')"
+            IMAGE_VERSION="$(echo "$GLPI_VERSION" | sed --regexp-extended 's|[/:]|-|g' | sed --regexp-extended 's|https?--||')"
           fi
           echo "image_version=$IMAGE_VERSION" >> $GITHUB_OUTPUT
 
@@ -184,7 +184,7 @@ jobs:
           fi
 
           # Detect prerelease (contains -rc, -beta, -alpha, etc.)
-          PRERELEASE_FLAG="$( echo "$GLPI_VERSION" | grep -Po '(\-\w+)?$' )"
+          PRERELEASE_FLAG="$( echo "$GLPI_VERSION" | grep --perl-regexp --only-matching '(\-\w+)?$' )"
           if [[ -n "$PRERELEASE_FLAG" ]]; then
             echo "is_latest=false" >> $GITHUB_OUTPUT
             echo "is_latest_major=false" >> $GITHUB_OUTPUT
@@ -204,7 +204,7 @@ jobs:
             jq -r '[.[] | select(.prerelease == false) | .tag_name]')
 
           # Check if this is the latest in its major series (e.g., latest 11.x.x)
-          IMAGE_VERSION_MAJOR=$(echo "$GLPI_VERSION" | cut -d. -f1)
+          IMAGE_VERSION_MAJOR=$(echo "$GLPI_VERSION" | cut --delimiter=. --fields=1)
           LATEST_IN_MAJOR=$(echo "$RELEASES" | jq -r --arg major "$IMAGE_VERSION_MAJOR" \
             '[.[] | select(startswith($major + "."))] | .[0] // empty')
           if [[ "$GLPI_VERSION" = "$LATEST_IN_MAJOR" ]]; then
@@ -313,7 +313,7 @@ jobs:
       - name: "Verify digests"
         run: |
           mkdir -p "${{ runner.temp }}/digests"
-          if [ -z "$(ls -A ${{ runner.temp }}/digests)" ]; then
+          if [ -z "$(ls --almost-all ${{ runner.temp }}/digests)" ]; then
             echo "::error::No digest files found! Build job may have failed or artifacts expired."
             exit 1
           fi
@@ -358,7 +358,7 @@ jobs:
           TAGS: ${{ steps.meta.outputs.tags }}
         run: |
           # Create manifest for DockerHub
-          DOCKERHUB_TAGS=$(echo "$TAGS" | grep "^${{ env.DOCKERHUB_IMAGE }}" | xargs -I {} echo "-t {}" | tr '\n' ' ')
+          DOCKERHUB_TAGS=$(echo "$TAGS" | grep "^${{ env.DOCKERHUB_IMAGE }}" | xargs --replace={} echo "-t {}" | tr '\n' ' ')
           if [[ -n "$DOCKERHUB_TAGS" ]]; then
             echo "Creating DockerHub manifest..."
             docker buildx imagetools create $DOCKERHUB_TAGS \
@@ -366,7 +366,7 @@ jobs:
           fi
 
           # Create manifest for GHCR
-          GHCR_TAGS=$(echo "$TAGS" | grep "^${{ env.GHCR_IMAGE }}" | xargs -I {} echo "-t {}" | tr '\n' ' ')
+          GHCR_TAGS=$(echo "$TAGS" | grep "^${{ env.GHCR_IMAGE }}" | xargs --replace={} echo "-t {}" | tr '\n' ' ')
           if [[ -n "$GHCR_TAGS" ]]; then
             echo "Creating GHCR manifest..."
             docker buildx imagetools create $GHCR_TAGS \

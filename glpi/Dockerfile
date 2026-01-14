@@ -23,19 +23,19 @@ RUN apk add --no-cache curl jq
 RUN set -ex; \
     INPUT="${GLPI_VERSION}"; \
     # If input starts with https://, use it as-is \
-    if echo "$INPUT" | grep -q '^https://'; then \
+    if echo "$INPUT" | grep --quiet '^https://'; then \
       URL="$INPUT"; \
     else \
       VERSION="$INPUT"; \
       # If "latest", resolve from GitHub API \
       if [ "$VERSION" = "latest" ]; then \
-        VERSION=$(curl -s https://api.github.com/repos/glpi-project/glpi/releases/latest | jq -r .tag_name); \
+        VERSION=$(curl --silent https://api.github.com/repos/glpi-project/glpi/releases/latest | jq --raw-output .tag_name); \
       fi; \
       # Use GitHub's generic archive format (works for branches, tags, and commits)
       URL="https://github.com/glpi-project/glpi/archive/${VERSION}.tar.gz"; \
     fi; \
     echo "Downloading GLPI from $URL"; \
-    curl -L "$URL" -o /glpi.tar.gz
+    curl --location "$URL" --output /glpi.tar.gz
 
 #####
 # Builder image
@@ -81,10 +81,10 @@ RUN echo "memory_limit = 512M" >> /usr/local/etc/php/conf.d/docker-php-memory.in
 
 # Copy tarball from downloader and extract (preserves permissions from archive)
 COPY --from=downloader /glpi.tar.gz /tmp/glpi.tar.gz
-RUN mkdir -p /usr/src/glpi \
-    && tar xzf /tmp/glpi.tar.gz --strip-components=1 --directory=/usr/src/glpi \
+RUN mkdir --parents /usr/src/glpi \
+    && tar --extract --gzip --file=/tmp/glpi.tar.gz --strip-components=1 --directory=/usr/src/glpi \
     && rm /tmp/glpi.tar.gz \
-    && chown -R www-data:www-data /usr/src/glpi
+    && chown --recursive www-data:www-data /usr/src/glpi
 
 # Apply optional patches if GLPI_PATCH_URL is provided (space-separated URLs)
 RUN set -ex; \
@@ -92,7 +92,7 @@ RUN set -ex; \
       cd /usr/src/glpi && \
       for PATCH in ${GLPI_PATCH_URL}; do \
         echo "Applying patch from ${PATCH}"; \
-        curl -L "${PATCH}" | patch -p1; \
+        curl --location "${PATCH}" | patch --strip=1; \
       done; \
     fi
 
@@ -116,8 +116,8 @@ It can be used to test latest features and bug fixes." \
   org.opencontainers.image.source="git@github.com:glpi-project/docker-images"
 
 RUN apt-get update \
-  && PHP_MAJOR_VERSION="$(echo $PHP_VERSION | cut -d '.' -f 1)" \
-  && PHP_MINOR_VERSION="$(echo $PHP_VERSION | cut -d '.' -f 2)" \
+  && PHP_MAJOR_VERSION="$(echo $PHP_VERSION | cut --delimiter='.' --fields=1)" \
+  && PHP_MINOR_VERSION="$(echo $PHP_VERSION | cut --delimiter='.' --fields=2)" \
   \
   # Install APCU PHP extension.
   && pecl install apcu \
@@ -190,7 +190,7 @@ RUN apt-get update \
 
 # Use the default production configuration
 # ref: https://github.com/docker-library/docs/tree/master/php#configuration
-RUN ln -s $PHP_INI_DIR/php.ini-production $PHP_INI_DIR/php.ini
+RUN ln --symbolic $PHP_INI_DIR/php.ini-production $PHP_INI_DIR/php.ini
 
 # Allow apache process to bind to port 80 as non-root user
 RUN setcap cap_net_bind_service=+ep /usr/sbin/apache2
