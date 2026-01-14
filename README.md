@@ -30,8 +30,7 @@ services:
       - "./storage/glpi:/var/glpi:rw"
     env_file: .env # Pass environment variables from .env file to the container
     depends_on:
-      db:
-        condition: service_healthy
+      - db
     ports:
       - "80:80"
 
@@ -45,12 +44,6 @@ services:
       MYSQL_DATABASE: ${GLPI_DB_NAME}
       MYSQL_USER: ${GLPI_DB_USER}
       MYSQL_PASSWORD: ${GLPI_DB_PASSWORD}
-    healthcheck:
-      test: mysqladmin ping -h 127.0.0.1 -u $$MYSQL_USER --password=$$MYSQL_PASSWORD
-      start_period: 5s
-      interval: 5s
-      timeout: 5s
-      retries: 10
     expose:
       - "3306"
 ```
