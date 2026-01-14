@@ -13,6 +13,10 @@ on:
   # Reusable by other repos (e.g., glpi-project/glpi)
   workflow_call:
     inputs:
+      glpi-version:
+        description: "GLPI version or branch to build"
+        required: true
+        type: string
       push:
         description: "Whether to push images to registries"
         required: false
@@ -27,10 +31,6 @@ on:
         required: false
         type: string
         default: "8.5"
-      glpi-version:
-        description: "GLPI version or branch to build"
-        required: true
-        type: string
       image-tag:
         description: "Override image tag. If not set, computed from version."
         required: false
