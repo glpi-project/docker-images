@@ -2,7 +2,7 @@
 set -e -u -o pipefail
 
 if [ -z "${GLPI_MARKETPLACE_DIR:-}" ]; then
-    GLPI_MAJOR=$(ls /var/www/glpi/version/ | sort --version-sort | tail --lines=1| cut --delimiter='.' --fields=1)
+    GLPI_MAJOR=$(ls /var/www/glpi/version/ | sort --version-sort | tail --lines=1 | cut --delimiter='.' --fields=1)
     if [ "$GLPI_MAJOR" = "10" ]; then
       export GLPI_MARKETPLACE_DIR="/var/www/glpi/marketplace"
     else
