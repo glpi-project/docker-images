@@ -21,8 +21,7 @@ services:
     ports:
       - "8080:80"
     depends_on:
-      db:
-        condition: service_healthy
+      - db
 
   db:
     image: mariadb:latest
@@ -34,12 +33,6 @@ services:
       MYSQL_PASSWORD: glpi
     volumes:
       - db_data:/var/lib/mysql
-    healthcheck:
-      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
-      start_period: 10s
-      interval: 10s
-      timeout: 5s
-      retries: 3
 
 volumes:
   glpi_data:
