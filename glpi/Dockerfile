@@ -14,8 +14,8 @@ FROM alpine AS downloader
 # - A commit hash: e.g., "2186bc6bd410d8bcb048637b3c0fb86b7e320c0a"
 # - A direct URL: e.g., "https://github.com/glpi-project/glpi/archive/2186bc6.tar.gz"
 ARG GLPI_VERSION=latest
-# Cache-busting: SHA from GitHub API for _glpi-build.yaml workflows
-ARG GLPI_SHA_SOURCE_COMMIT=""
+# Cache-busting key for glpi workflows
+ARG GLPI_CACHE_KEY=""
 
 RUN apk add --no-cache curl jq
 

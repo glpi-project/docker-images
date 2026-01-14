@@ -101,7 +101,7 @@ jobs:
       artifact-prefix: ${{ steps.set-vars.outputs.artifact_prefix }}
       is-latest: ${{ steps.set-vars.outputs.is_latest }}
       is-latest-major: ${{ steps.set-vars.outputs.is_latest_major }}
-      sha-source-commit: ${{ steps.set-vars.outputs.sha_source_commit }}
+      cache-key: ${{ steps.set-vars.outputs.cache_key }}
       image-version: ${{ steps.set-vars.outputs.image_version }}
       # Unified inputs for all trigger types
       glpi-version: ${{ steps.set-vars.outputs.glpi_version }}
@@ -137,15 +137,15 @@ jobs:
           # Same commit = cache hit, new commit = fresh build
           if echo "$GLPI_VERSION" | grep --quiet --extended-regexp '^https://'; then
             # For URLs, use a random value to force rebuild, as content behind a URL can change between builds.
-            SOURCE_COMMIT="$(head -200 /dev/urandom | sha1sum | cut --fields 1 --delimiter " ")"
+            CACHE_KEY="$(head -200 /dev/urandom | sha1sum | cut --fields 1 --delimiter " ")"
           elif [[ "$GLPI_VERSION" = "latest" ]]; then
             # Resolve "latest" to actual tag first, then get commit SHA
             RESOLVED_TAG=$(curl -s "https://api.github.com/repos/glpi-project/glpi/releases/latest" | jq -r '.tag_name')
-            SOURCE_COMMIT=$(curl -s "https://api.github.com/repos/glpi-project/glpi/commits/$RESOLVED_TAG" | jq -r '.sha // empty')
+            CACHE_KEY=$(curl -s "https://api.github.com/repos/glpi-project/glpi/commits/$RESOLVED_TAG" | jq -r '.sha // empty')
           else
-            SOURCE_COMMIT=$(curl -s "https://api.github.com/repos/glpi-project/glpi/commits/$GLPI_VERSION" | jq -r '.sha // empty')
+            CACHE_KEY=$(curl -s "https://api.github.com/repos/glpi-project/glpi/commits/$GLPI_VERSION" | jq -r '.sha // empty')
           fi
-          echo "sha_source_commit=$SOURCE_COMMIT" >> $GITHUB_OUTPUT
+          echo "cache_key=$CACHE_KEY" >> $GITHUB_OUTPUT
 
           # Compute marketplace dir (only v10 uses old path)
           MARKETPLACE_DIR="/var/glpi/marketplace"
@@ -266,14 +266,14 @@ jobs:
           build-args: |
             GLPI_VERSION=${{ needs.prepare.outputs.glpi-version }}
             GLPI_PATCH_URL=${{ needs.prepare.outputs.patch-url }}
-            GLPI_SHA_SOURCE_COMMIT=${{ needs.prepare.outputs.sha-source-commit }}
+            GLPI_CACHE_KEY=${{ needs.prepare.outputs.cache-key }}
             BUILDER_IMAGE=php:${{ needs.prepare.outputs.php-version }}-cli-alpine
             APP_IMAGE=php:${{ needs.prepare.outputs.php-version }}-apache
             GLPI_MARKETPLACE_DIR=${{ needs.prepare.outputs.marketplace-dir }}
           cache-from: |
-            type=gha,scope=${{ needs.prepare.outputs.sha-source-commit }}-${{ matrix.platform.suffix }}
+            type=gha,scope=${{ needs.prepare.outputs.cache-key }}-${{ matrix.platform.suffix }}
             type=gha,scope=main-${{ matrix.platform.suffix }}
-          cache-to: "type=gha,mode=max,scope=${{ needs.prepare.outputs.sha-source-commit }}-${{ matrix.platform.suffix }}"
+          cache-to: "type=gha,mode=max,scope=${{ needs.prepare.outputs.cache-key }}-${{ matrix.platform.suffix }}"
           context: "glpi"
           labels: "${{ steps.meta.outputs.labels }}"
           platforms: "${{ matrix.platform.arch }}"
