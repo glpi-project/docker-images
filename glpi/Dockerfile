@@ -106,7 +106,6 @@ RUN /usr/src/glpi/tools/build_glpi.sh
 #####
 FROM $APP_IMAGE
 
-ARG GLPI_MARKETPLACE_DIR=/var/glpi/marketplace
 
 LABEL \
   org.opencontainers.image.title="GLPI nightly build" \
@@ -209,15 +208,27 @@ RUN a2enconf zzz-glpi.conf
 # Copy GLPI application.
 COPY --from=builder --chown=www-data:www-data /usr/src/glpi /var/www/glpi
 
+# Detect GLPI major version from version/ folder and set marketplace directory
+# v10.x uses /var/www/glpi/marketplace, v11+ uses /var/glpi/marketplace
+RUN GLPI_VERSION_FILE=$(ls /var/www/glpi/version/ | sort --version-sort | tail --lines=1); \
+    GLPI_MAJOR=$(echo "$GLPI_VERSION_FILE" | cut --delimiter='.' --fields=1); \
+    if [ "$GLPI_MAJOR" = "10" ]; then \
+      MARKETPLACE_DIR="/var/www/glpi/marketplace"; \
+    else \
+      MARKETPLACE_DIR="/var/glpi/marketplace"; \
+    fi; \
+    echo "GLPI_MARKETPLACE_DIR=$MARKETPLACE_DIR" >> /etc/glpi_env
+
 # Declare a volume for "config", "marketplace" and "files" directory
 RUN mkdir /var/glpi && chown www-data:www-data /var/glpi
 VOLUME /var/glpi
 
 # Define GLPI environment variables
+# Note: GLPI_MARKETPLACE_DIR is sourced from /etc/glpi_env at container startup
+# We cannot dynamically set an ENV value based on the output of a RUN command
 ENV \
   GLPI_INSTALL_MODE=DOCKER \
   GLPI_CONFIG_DIR=/var/glpi/config \
-  GLPI_MARKETPLACE_DIR=${GLPI_MARKETPLACE_DIR} \
   GLPI_VAR_DIR=/var/glpi/files \
   GLPI_LOG_DIR=/var/glpi/logs \
   GLPI_SKIP_AUTOINSTALL=false \

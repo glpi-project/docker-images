@@ -97,7 +97,6 @@ jobs:
     name: "Prepare"
     runs-on: "ubuntu-latest"
     outputs:
-      marketplace-dir: ${{ steps.set-vars.outputs.marketplace_dir }}
       artifact-prefix: ${{ steps.set-vars.outputs.artifact_prefix }}
       is-latest: ${{ steps.set-vars.outputs.is_latest }}
       is-latest-major: ${{ steps.set-vars.outputs.is_latest_major }}
@@ -147,15 +146,6 @@ jobs:
           fi
           echo "cache_key=$CACHE_KEY" >> $GITHUB_OUTPUT
 
-          # Compute marketplace dir (only v10 uses old path)
-          MARKETPLACE_DIR="/var/glpi/marketplace"
-          if [[ "$IS_SEMVER" = "true" ]]; then
-            IMAGE_VERSION_MAJOR=$(echo "$GLPI_VERSION" | cut --delimiter=. --fields=1)
-            if [[ "$IMAGE_VERSION_MAJOR" = "10" ]]; then
-              MARKETPLACE_DIR="/var/www/glpi/marketplace"
-            fi
-          fi
-          echo "marketplace_dir=$MARKETPLACE_DIR" >> $GITHUB_OUTPUT
 
           # Compute artifact prefix (unique per workflow call)
           if [[ "$IMAGE_TAG" != '' ]]; then
@@ -269,7 +259,6 @@ jobs:
             GLPI_CACHE_KEY=${{ needs.prepare.outputs.cache-key }}
             BUILDER_IMAGE=php:${{ needs.prepare.outputs.php-version }}-cli-alpine
             APP_IMAGE=php:${{ needs.prepare.outputs.php-version }}-apache
-            GLPI_MARKETPLACE_DIR=${{ needs.prepare.outputs.marketplace-dir }}
           cache-from: |
             type=gha,scope=${{ needs.prepare.outputs.cache-key }}-${{ matrix.platform.suffix }}
             type=gha,scope=main-${{ matrix.platform.suffix }}
