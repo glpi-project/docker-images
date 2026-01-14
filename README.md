@@ -1,7 +1,6 @@
 # GLPI Docker Images
 
 [![Release Build](https://github.com/glpi-project/docker-images/actions/workflows/glpi.yml/badge.svg)](https://github.com/glpi-project/docker-images/actions/workflows/glpi.yml)
-[![Nightly Build](https://github.com/glpi-project/docker-images/actions/workflows/glpi-nightly.yml/badge.svg)](https://github.com/glpi-project/docker-images/actions/workflows/glpi-nightly.yml)
 
 ![GLPI on docker illustration](https://raw.githubusercontent.com/glpi-project/docker-images/refs/heads/main/docs/illustration.png)
 
