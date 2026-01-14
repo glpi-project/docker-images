@@ -271,9 +271,9 @@ jobs:
             APP_IMAGE=php:${{ needs.prepare.outputs.php-version }}-apache
             GLPI_MARKETPLACE_DIR=${{ needs.prepare.outputs.marketplace-dir }}
           cache-from: |
-            type=gha,scope=${{ github.ref_name }}-${{ matrix.platform.suffix }}
+            type=gha,scope=${{ needs.prepare.outputs.sha-source-commit }}-${{ matrix.platform.suffix }}
             type=gha,scope=main-${{ matrix.platform.suffix }}
-          cache-to: "type=gha,mode=max,scope=${{ github.ref_name }}-${{ matrix.platform.suffix }}"
+          cache-to: "type=gha,mode=max,scope=${{ needs.prepare.outputs.sha-source-commit }}-${{ matrix.platform.suffix }}"
           context: "glpi"
           labels: "${{ steps.meta.outputs.labels }}"
           platforms: "${{ matrix.platform.arch }}"
