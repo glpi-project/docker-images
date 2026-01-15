@@ -1,4 +1,5 @@
 name: "GLPI Docker Images"
+run-name: "GLPI Docker Images (${{ inputs.glpi-version || 'main' }})"
 
 # Unified workflow for building GLPI Docker images
 # - workflow_call: Called by GLPI repo for releases and nightly builds
