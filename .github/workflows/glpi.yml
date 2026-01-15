@@ -129,7 +129,7 @@ jobs:
           PHP_VERSION="${{ inputs.php-version || '8.5' }}"
           PUSH="${{ inputs.push || 'false' }}"
           PATCH_URL="${{ inputs.patch-url || '' }}"
-          IMAGE_TAG="${{ inputs.image-tag || 'docker-image' }}"
+          IMAGE_TAG="${{ inputs.image-tag || '' }}"
 
           echo "glpi_version=$GLPI_VERSION" >> $GITHUB_OUTPUT
           echo "php_version=$PHP_VERSION" >> $GITHUB_OUTPUT
