@@ -134,3 +134,13 @@ The following example sets the memory limit to 256M
    ```
 
    Or by browsing the GLPI website under `Setup > General > System > Server`.
+
+### Managing Cron tasks
+
+By default, the image includes a background worker that executes GLPI cron tasks every minute. This behavior is controlled by the `GLPI_CRONTAB_ENABLED` environment variable.
+
+This is especially useful for horizontal scaling or Kubernetes deployments, where you might want a dedicated container for cron tasks while disabling it on Web or API nodes to avoid automatic tasks duplication.
+
+| Variable | Default | Description |
+| :--- | :--- | :--- |
+| `GLPI_CRONTAB_ENABLED` | `1` | Set to `1` to run the cron worker. Set to `0` to disable it. |
