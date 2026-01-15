@@ -1,3 +1,13 @@
+# GLPI Docker Image
+#
+# Build Arguments:
+#   BUILDER_IMAGE          - PHP CLI image for building (default: php:cli-alpine)
+#   APP_IMAGE              - PHP Apache image for runtime (default: php:apache)
+#   GLPI_VERSION           - Version to build: "latest" (default), tag (10.0.18), branch (main), commit, or URL
+#   GLPI_CACHE_KEY         - Cache-busting key for CI workflows (internal use)
+#   GLPI_PATCH_URL         - Space-separated URLs to .diff/.patch files to apply
+#   GLPI_MARKETPLACE_DIR   - Marketplace directory path (default: /var/glpi/marketplace)
+#                            Use /var/www/glpi/marketplace for v10.x builds
 
 ARG BUILDER_IMAGE=php:cli-alpine
 ARG APP_IMAGE=php:apache
