@@ -1,5 +1,5 @@
 name: "GLPI Docker Images"
-run-name: "GLPI Docker Images (${{ inputs.glpi-version || github.event.pull_request.title || github.event.head_commit.message || github.sha }})"
+run-name: "GLPI Docker Images (${{ inputs.glpi-version || (github.event.pull_request.number && format('#{0}: {1}', github.event.pull_request.number, github.event.pull_request.title)) || github.event.head_commit.message || github.sha }})"
 
 # Unified workflow for building GLPI Docker images
 # - workflow_call: Called by GLPI repo for releases and nightly builds
