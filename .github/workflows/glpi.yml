@@ -51,7 +51,7 @@ on:
       GHCR_ACCESS_TOKEN:
         required: true
 
-  # CI: Test build on workflow changes (no push)
+  # CI: Test build on workflow changes (images are not pushed to docker registries)
   push:
     branches:
       - "main"
