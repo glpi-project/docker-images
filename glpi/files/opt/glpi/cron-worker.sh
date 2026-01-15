@@ -14,7 +14,6 @@ if [ "${GLPI_CRONTAB_ENABLED:-1}" = "1" ]; then
     done
 
 else
-    # Infinite loop to run GLPI cron tasks every minute
     echo "[INFO] GLPI cron is disabled (GLPI_CRONTAB_ENABLED=0)."
     # Sleeping forever to keep supervisord happy    
     tail -f /dev/null
