@@ -36,6 +36,11 @@ on:
         required: false
         type: string
         default: ""
+      use-legacy-marketplace-path:
+        description: "Use legacy marketplace path (/var/www/glpi/marketplace) for v10.x builds"
+        required: false
+        type: boolean
+        default: false
     secrets:
       DOCKER_HUB_USERNAME:
         required: true
@@ -91,6 +96,11 @@ on:
         required: false
         type: string
         default: ""
+      use-legacy-marketplace-path:
+        description: "Use legacy marketplace path (/var/www/glpi/marketplace) for v10.x builds"
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   prepare:
@@ -108,6 +118,7 @@ jobs:
       patch-url: ${{ steps.set-vars.outputs.patch_url }}
       image-tag: ${{ steps.set-vars.outputs.image_tag }}
       push: ${{ steps.set-vars.outputs.push }}
+      marketplace-dir: ${{ steps.set-vars.outputs.marketplace_dir }}
     steps:
       - name: "Set variables"
         id: "set-vars"
@@ -124,6 +135,14 @@ jobs:
           echo "push=$PUSH" >> $GITHUB_OUTPUT
           echo "patch_url=$PATCH_URL" >> $GITHUB_OUTPUT
           echo "image_tag=$IMAGE_TAG" >> $GITHUB_OUTPUT
+
+          # Compute marketplace directory based on boolean use-legacy-marketplace-path input
+          USE_LEGACY_MP_PATH="${{ inputs.use-legacy-marketplace-path || 'false' }}"
+          if [[ "$USE_LEGACY_MP_PATH" = "true" ]]; then
+            echo "marketplace_dir=/var/www/glpi/marketplace" >> $GITHUB_OUTPUT
+          else
+            echo "marketplace_dir=/var/glpi/marketplace" >> $GITHUB_OUTPUT
+          fi
 
           # Determine if glpi-version is a semver tag (e.g., 10.0.18, 11.0.5-rc1)
           # vs a branch, commit hash, or URL
@@ -257,6 +276,7 @@ jobs:
             GLPI_VERSION=${{ needs.prepare.outputs.glpi-version }}
             GLPI_PATCH_URL=${{ needs.prepare.outputs.patch-url }}
             GLPI_CACHE_KEY=${{ needs.prepare.outputs.cache-key }}
+            GLPI_MARKETPLACE_DIR=${{ needs.prepare.outputs.marketplace-dir }}
             BUILDER_IMAGE=php:${{ needs.prepare.outputs.php-version }}-cli-alpine
             APP_IMAGE=php:${{ needs.prepare.outputs.php-version }}-apache
           cache-from: |

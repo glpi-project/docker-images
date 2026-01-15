@@ -42,9 +42,6 @@ RUN set -ex; \
 #####
 FROM $BUILDER_IMAGE AS builder
 
-# Optional patch URL to apply after download
-ARG GLPI_PATCH_URL=""
-
 # Copy composer binary from latest composer image.
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
@@ -86,6 +83,8 @@ RUN mkdir --parents /usr/src/glpi \
     && rm /tmp/glpi.tar.gz \
     && chown --recursive www-data:www-data /usr/src/glpi
 
+# Optional patch URL to apply after download
+ARG GLPI_PATCH_URL=""
 # Apply optional patches if GLPI_PATCH_URL is provided (space-separated URLs)
 RUN set -ex; \
     if [ -n "${GLPI_PATCH_URL}" ]; then \
@@ -106,11 +105,9 @@ RUN /usr/src/glpi/tools/build_glpi.sh
 #####
 FROM $APP_IMAGE
 
-
 LABEL \
-  org.opencontainers.image.title="GLPI nightly build" \
-  org.opencontainers.image.description="This container contains Apache/PHP and a nightly build of GLPI. \
-It can be used to test latest features and bug fixes." \
+  org.opencontainers.image.title="GLPI build" \
+  org.opencontainers.image.description="This container contains Apache/PHP and a build of GLPI." \
   org.opencontainers.image.url="https://github.com/glpi-project/docker-images" \
   org.opencontainers.image.source="git@github.com:glpi-project/docker-images"
 
@@ -212,12 +209,15 @@ COPY --from=builder --chown=www-data:www-data /usr/src/glpi /var/www/glpi
 RUN mkdir /var/glpi && chown www-data:www-data /var/glpi
 VOLUME /var/glpi
 
+# Marketplace directory configuration
+# v10.x uses /var/www/glpi/marketplace (legacy), v11+ uses /var/glpi/marketplace
+ARG GLPI_MARKETPLACE_DIR=/var/glpi/marketplace
+
 # Define GLPI environment variables
-# Note: GLPI_MARKETPLACE_DIR is sourced from /etc/glpi_env at container startup
-# We cannot dynamically set an ENV value based on the output of a RUN command
 ENV \
   GLPI_INSTALL_MODE=DOCKER \
   GLPI_CONFIG_DIR=/var/glpi/config \
+  GLPI_MARKETPLACE_DIR=${GLPI_MARKETPLACE_DIR} \
   GLPI_VAR_DIR=/var/glpi/files \
   GLPI_LOG_DIR=/var/glpi/logs \
   GLPI_SKIP_AUTOINSTALL=false \
