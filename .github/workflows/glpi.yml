@@ -7,8 +7,9 @@ run-name: "GLPI Docker Images (${{ inputs.glpi-version || (github.event.pull_req
 # - push/pull_request: CI test builds when workflow changes (no push)
 
 env:
-  DOCKERHUB_IMAGE: glpi/glpi
-  GHCR_IMAGE: ghcr.io/glpi-project/glpi
+  # These will check Repository Variables first (perfect for fork), then use the default
+  DOCKERHUB_IMAGE: ${{ vars.DOCKERHUB_IMAGE || 'glpi/glpi' }}
+  GHCR_IMAGE: ${{ vars.GHCR_IMAGE || 'ghcr.io/glpi-project/glpi' }}
 
 on:
   # Reusable by other repos (e.g., glpi-project/glpi)
