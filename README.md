@@ -27,6 +27,8 @@ services:
     restart: "unless-stopped"
     volumes:
       - "./storage/glpi:/var/glpi:rw"
+      # For GLPI 10.x, uncomment the following line to create a volume for plugins fetched from the marketplace.
+      # - "./storage/glpi_marketplace:/var/www/glpi/marketplace/:rw"
     env_file: .env # Pass environment variables from .env file to the container
     depends_on:
       - db
