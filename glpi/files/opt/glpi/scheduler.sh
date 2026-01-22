@@ -82,7 +82,7 @@ fi
 
 
 # Wait for database if requested
-if [[ "$WAIT_FOR_DB" == "1" ]] && [[ -x /opt/glpi/entrypoint/wait-for-db.sh ]]; then
+if [[ "$WAIT_FOR_DB" == "1" ]]; then
     /opt/glpi/entrypoint/wait-for-db.sh scheduler
 fi
 
