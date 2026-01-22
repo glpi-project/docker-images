@@ -42,28 +42,31 @@ while [[ $# -gt 0 ]]; do
         --name)           TASK_NAME="$2"; shift 2 ;;
         --no-wait-for-db) WAIT_FOR_DB=0; shift ;;
         --)               shift; COMMAND=("$@"); break ;;
-        *)                echo "[ERROR] Unknown option: $1" >&2; exit 1 ;;
+        *)                log_error "Unknown option: $1"; exit 1 ;;
     esac
 done
 
 # Validate arguments
 if [[ -z "$MODE" ]]; then
-    echo "[ERROR] Specify --interval or --daily" >&2
+    log_error "Specify --interval or --daily"
     exit 1
 fi
 
 if [[ ${#COMMAND[@]} -eq 0 ]]; then
-    echo "[ERROR] No command specified after --" >&2
+    log_error "No command specified after --"
     exit 1
 fi
 
-# Log helper
+# Log helpers
 log() {
     if [[ -n "$TASK_NAME" ]]; then
         echo "[$TASK_NAME] $*"
     else
         echo "$*"
     fi
+}
+log_error() {
+  log "[ERROR] $*" >&2;
 }
 
 # Calculate sleep duration for daily mode
@@ -98,5 +101,5 @@ while true; do
     fi
     first_run=false
 
-    "${COMMAND[@]}" || log "[ERROR] Exit code: $?"
+    "${COMMAND[@]}" || log_error "Exit code: $?"
 done
