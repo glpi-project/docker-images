@@ -143,6 +143,12 @@ By default, the image includes a background worker that executes GLPI cron tasks
 
 This is especially useful for horizontal scaling or Kubernetes deployments, where you might want a dedicated container for cron tasks while disabling it on Web or API nodes to avoid automatic tasks duplication.
 
-| Variable | Default | Description |
-| :--- | :--- | :--- |
-| `GLPI_CRONTAB_ENABLED` | `1` | Set to `1` to run the cron worker. Set to `0` to disable it. |
+| Variable               | Default | Description                                                  |
+|:-----------------------|:--------|:-------------------------------------------------------------|
+| `GLPI_CRONTAB_ENABLED` | `1`     | Set to `1` to run the cron worker. Set to `0` to disable it. |
+
+### Adding custom Cron tasks
+
+This image support custom scheduled jobs through supervisord they should be declared under `/etc/supervisor/conf.d/custom/*.conf`
+
+You can read a more [detailed documentation here](docs/custom-cron-tasks.md)
