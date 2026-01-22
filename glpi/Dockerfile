@@ -238,7 +238,7 @@ USER www-data
 
 # Define entrypoint and default command.
 ENTRYPOINT ["/opt/glpi/entrypoint.sh"]
-CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/supervisord.conf"]
 
 # Define application path as base working dir.
 WORKDIR /var/www/glpi

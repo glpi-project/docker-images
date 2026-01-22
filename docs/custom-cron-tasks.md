@@ -1,12 +1,12 @@
 # Custom Cron task / Scheduled Jobs
 
 Since the container runs as a non-root user (`www-data`), traditional cron is not available.  
-Instead, you can add custom supervisor-managed jobs by mounting configuration files into `/etc/supervisor/conf.d/custom/`.
+Instead, you can add custom supervisor-managed jobs by mounting configuration files into `/etc/supervisor/conf.d/`.
 
 ## Quick Start
 
 1. Create a supervisor config file for your job
-2. Mount it into the container at `/etc/supervisor/conf.d/custom/your-job.conf`
+2. Mount it into the container at `/etc/supervisor/conf.d/your-job.conf`
 
 ## Using the Built-in Scheduler
 
@@ -30,12 +30,12 @@ Waits until the specified time, then repeats daily:
 
 ### Options
 
-| Option                 | Description                         |
-|------------------------|-------------------------------------|
+| Option                 | Description                           |
+|------------------------|---------------------------------------|
 | `--interval <seconds>` | Run immediately, then every N seconds |
-| `--daily <HH:MM>`      | Wait until time, then repeat daily  |
-| `--name <name>`        | Name to display in logs (optional)  |
-| `--no-wait-for-db`     | Skip database availability check    |
+| `--daily <HH:MM>`      | Wait until time, then repeat daily    |
+| `--name <name>`        | Name to display in logs (optional)    |
+| `--no-wait-for-db`     | Skip database availability check      |
 
 ## Example: LDAP Sync Every 6 Hours
 
@@ -58,7 +58,7 @@ services:
   glpi:
     image: glpi/glpi
     volumes:
-      - ./ldap-sync.conf:/etc/supervisor/conf.d/custom/ldap-sync.conf:ro
+      - ./ldap-sync.conf:/etc/supervisor/conf.d/ldap-sync.conf:ro
 ```
 
 ## Example: Daily Backup at 2 AM
