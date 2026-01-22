@@ -149,6 +149,6 @@ This is especially useful for horizontal scaling or Kubernetes deployments, wher
 
 ### Adding custom Cron tasks
 
-This image support custom scheduled jobs through supervisord they should be declared under `/etc/supervisor/conf.d/custom/*.conf`
+Since the container runs as the non-root `www-data` user, traditional cron is not available. Instead, this image provides a built-in scheduler script that supports interval-based and daily scheduled tasks through supervisord.
 
-You can read a more [detailed documentation here](docs/custom-cron-tasks.md)
+See the [custom scheduled jobs documentation](docs/custom-cron-tasks.md) for usage examples.
