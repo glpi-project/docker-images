@@ -37,33 +37,12 @@ COMMAND=()
 # Parse arguments
 while [[ $# -gt 0 ]]; do
     case "$1" in
-        --interval)
-            MODE="interval"
-            INTERVAL="$2"
-            shift 2
-            ;;
-        --daily)
-            MODE="daily"
-            DAILY_TIME="$2"
-            shift 2
-            ;;
-        --name)
-            TASK_NAME="$2"
-            shift 2
-            ;;
-        --no-wait-for-db)
-            WAIT_FOR_DB=0
-            shift
-            ;;
-        --)
-            shift
-            COMMAND=("$@")
-            break
-            ;;
-        *)
-            echo "[ERROR] Unknown option: $1" >&2
-            exit 1
-            ;;
+        --interval)       MODE="interval"; INTERVAL="$2"; shift 2 ;;
+        --daily)          MODE="daily"; DAILY_TIME="$2"; shift 2 ;;
+        --name)           TASK_NAME="$2"; shift 2 ;;
+        --no-wait-for-db) WAIT_FOR_DB=0; shift ;;
+        --)               shift; COMMAND=("$@"); break ;;
+        *)                echo "[ERROR] Unknown option: $1" >&2; exit 1 ;;
     esac
 done
 
