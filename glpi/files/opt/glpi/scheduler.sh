@@ -10,15 +10,18 @@
 #
 # Optional arguments:
 #   --name <name>             - Name to display in logs
-#   --run-on-start            - Run the command immediately on startup
 #   --no-wait-for-db          - Do not wait for database before starting
 #
+# Behavior:
+#   --interval: Runs immediately on start, then repeats every N seconds
+#   --daily:    Waits until the specified time, then repeats daily
+#
 # Examples:
-#   # Run LDAP sync every 6 hours
+#   # Run LDAP sync every 6 hours (runs immediately, then every 6h)
 #   scheduler.sh --interval 21600 --name "LDAP Sync" -- php bin/console ldap:synchronize_users
 #
-#   # Run LDAP sync daily at 03:00
-#   scheduler.sh --daily 03:00 -- php bin/console ldap:synchronize_users
+#   # Run backup daily at 03:00 (waits until 03:00, then repeats daily)
+#   scheduler.sh --daily 03:00 -- sh /opt/glpi/custom-backup.sh
 #
 
 set -e -u -o pipefail
@@ -27,7 +30,6 @@ set -e -u -o pipefail
 MODE=""
 INTERVAL=""
 DAILY_TIME=""
-RUN_ON_START=0
 WAIT_FOR_DB=1
 TASK_NAME=""
 COMMAND=()
@@ -48,10 +50,6 @@ while [[ $# -gt 0 ]]; do
         --name)
             TASK_NAME="$2"
             shift 2
-            ;;
-        --run-on-start)
-            RUN_ON_START=1
-            shift
             ;;
         --no-wait-for-db)
             WAIT_FOR_DB=0
@@ -89,18 +87,14 @@ log() {
     fi
 }
 
-# Calculate sleep duration
-get_sleep_seconds() {
-    if [[ "$MODE" == "interval" ]]; then
-        echo "$INTERVAL"
-    else
-        local now=$(date +%s)
-        local target=$(date -d "today $DAILY_TIME" +%s)
-        if [[ $target -le $now ]]; then
-            target=$(date -d "tomorrow $DAILY_TIME" +%s)
-        fi
-        echo $((target - now))
+# Calculate sleep duration for daily mode
+get_daily_sleep_seconds() {
+    local now=$(date +%s)
+    local target=$(date -d "today $DAILY_TIME" +%s)
+    if [[ $target -le $now ]]; then
+        target=$(date -d "tomorrow $DAILY_TIME" +%s)
     fi
+    echo $((target - now))
 }
 
 # Wait for database if requested
@@ -110,16 +104,20 @@ fi
 
 log "[INFO] Scheduler started (mode=$MODE, command=${COMMAND[*]})"
 
-# Run on start if requested
-if [[ "$RUN_ON_START" == "1" ]]; then
-    log "[INFO] Running on startup..."
-    "${COMMAND[@]}" || true
-fi
-
 # Main loop
+first_run=true
 while true; do
-    sleep_seconds=$(get_sleep_seconds)
-    log "[INFO] Next run in ${sleep_seconds}s ($(date -d "+$sleep_seconds seconds" '+%Y-%m-%d %H:%M:%S'))"
-    sleep "$sleep_seconds"
+    # Interval mode runs immediately on first iteration
+    if [[ "$MODE" == "daily" ]] || [[ "$first_run" == "false" ]]; then
+        if [[ "$MODE" == "interval" ]]; then
+            sleep_seconds="$INTERVAL"
+        else
+            sleep_seconds=$(get_daily_sleep_seconds)
+        fi
+        log "[INFO] Next run in ${sleep_seconds}s ($(date -d "+$sleep_seconds seconds" '+%Y-%m-%d %H:%M:%S'))"
+        sleep "$sleep_seconds"
+    fi
+    first_run=false
+
     "${COMMAND[@]}" || log "[ERROR] Exit code: $?"
 done

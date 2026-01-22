@@ -14,7 +14,7 @@ The image includes a flexible scheduler script at `/opt/glpi/scheduler.sh` that 
 
 ### Interval Mode
 
-Run a command at fixed intervals:
+Runs the command immediately on start, then repeats every N seconds:
 
 ```bash
 /opt/glpi/scheduler.sh --interval 21600 -- php bin/console ldap:synchronize_users
@@ -22,7 +22,7 @@ Run a command at fixed intervals:
 
 ### Daily Mode
 
-Run a command at a specific time each day:
+Waits until the specified time, then repeats daily:
 
 ```bash
 /opt/glpi/scheduler.sh --daily 03:00 -- php bin/console ldap:synchronize_users
@@ -30,13 +30,12 @@ Run a command at a specific time each day:
 
 ### Options
 
-| Option                 | Description                        |
-|------------------------|------------------------------------|
-| `--interval <seconds>` | Run every N seconds                |
-| `--daily <HH:MM>`      | Run daily at specified time        |
-| `--name <name>`        | Name to display in logs (optional) |
-| `--run-on-start`       | Execute immediately on startup     |
-| `--no-wait-for-db`     | Skip database availability check   |
+| Option                 | Description                         |
+|------------------------|-------------------------------------|
+| `--interval <seconds>` | Run immediately, then every N seconds |
+| `--daily <HH:MM>`      | Wait until time, then repeat daily  |
+| `--name <name>`        | Name to display in logs (optional)  |
+| `--no-wait-for-db`     | Skip database availability check    |
 
 ## Example: LDAP Sync Every 6 Hours
 
@@ -44,7 +43,7 @@ Create `ldap-sync.conf`:
 
 ```ini
 [program:ldap-sync]
-command = /opt/glpi/scheduler.sh --interval 21600 --name "LDAP Sync" --run-on-start -- php /var/www/glpi/bin/console ldap:synchronize_users
+command = /opt/glpi/scheduler.sh --interval 21600 --name "LDAP Sync" -- php /var/www/glpi/bin/console ldap:synchronize_users
 autorestart = true
 stdout_logfile = /dev/stdout
 stdout_logfile_maxbytes = 0
