@@ -34,6 +34,28 @@ WAIT_FOR_DB=1
 TASK_NAME=""
 COMMAND=()
 
+# Functions
+log() {
+    if [[ -n "$TASK_NAME" ]]; then
+        echo "[$TASK_NAME] $*"
+    else
+        echo "$*"
+    fi
+}
+
+log_error() {
+    log "[ERROR] $*" >&2
+}
+
+get_daily_sleep_seconds() {
+    local now=$(date +%s)
+    local target=$(date -d "today $DAILY_TIME" +%s)
+    if [[ $target -le $now ]]; then
+        target=$(date -d "tomorrow $DAILY_TIME" +%s)
+    fi
+    echo $((target - now))
+}
+
 # Parse arguments
 while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -57,27 +79,7 @@ if [[ ${#COMMAND[@]} -eq 0 ]]; then
     exit 1
 fi
 
-# Log helpers
-log() {
-    if [[ -n "$TASK_NAME" ]]; then
-        echo "[$TASK_NAME] $*"
-    else
-        echo "$*"
-    fi
-}
-log_error() {
-  log "[ERROR] $*" >&2;
-}
 
-# Calculate sleep duration for daily mode
-get_daily_sleep_seconds() {
-    local now=$(date +%s)
-    local target=$(date -d "today $DAILY_TIME" +%s)
-    if [[ $target -le $now ]]; then
-        target=$(date -d "tomorrow $DAILY_TIME" +%s)
-    fi
-    echo $((target - now))
-}
 
 # Wait for database if requested
 if [[ "$WAIT_FOR_DB" == "1" ]] && [[ -x /opt/glpi/entrypoint/wait-for-db.sh ]]; then
