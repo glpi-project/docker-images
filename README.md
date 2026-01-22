@@ -15,6 +15,15 @@ A few links:
 
 This repository contains build files for docker images available in [Github Container Registry](https://github.com/orgs/glpi-project/packages?ecosystem=container) and [Docker hub](https://hub.docker.com/r/glpi/glpi).
 
+## Summary
+
+- [How to use this image](#how-to-use-this-image)
+- [Timezones support](#timezones-support)
+- [Volumes](#volumes)
+- [Custom PHP configuration](#custom-php-configuration)
+- [Managing Cron tasks](#managing-cron-tasks)
+- [Adding custom Cron tasks](#adding-custom-cron-tasks)
+
 ## How to use this image
 
 ### via [docker compose](https://github.com/docker/compose)
@@ -45,8 +54,6 @@ services:
       MYSQL_DATABASE: ${GLPI_DB_NAME}
       MYSQL_USER: ${GLPI_DB_USER}
       MYSQL_PASSWORD: ${GLPI_DB_PASSWORD}
-    expose:
-      - "3306"
 ```
 
 And an .env file:
