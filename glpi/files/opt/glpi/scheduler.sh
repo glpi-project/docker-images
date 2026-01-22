@@ -103,5 +103,5 @@ while true; do
     fi
     first_run=false
 
-    "${COMMAND[@]}" || log_error "Exit code: $?"
+    "${COMMAND[@]}" 2>&1 | while IFS= read -r line; do log "$line"; done || log_error "Exit code: $?"
 done
