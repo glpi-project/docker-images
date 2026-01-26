@@ -33,7 +33,7 @@ jobs:
           - {glpi-branch: "11.0/bugfixes", glpi-version: "11.0.x", php-version: "8.2"}
           - {glpi-branch: "11.0/bugfixes", glpi-version: "11.0.x", php-version: "8.3"}
           - {glpi-branch: "11.0/bugfixes", glpi-version: "11.0.x", php-version: "8.4"}
-          - {glpi-branch: "11.0/bugfixes", glpi-version: "11.0.x", php-version: "8.5"}
+          - {glpi-branch: "11.0/bugfixes", glpi-version: "11.0.x", php-version: "8.5", latest: true}
     steps:
       - name: "Set variables"
         run: |
@@ -57,6 +57,14 @@ jobs:
           registry: "ghcr.io"
           username: "${{ secrets.GHCR_USERNAME }}"
           password: "${{ secrets.GHCR_ACCESS_TOKEN }}"
+      - name: "Generate tags"
+        id: tags
+        run: |
+          TAGS="ghcr.io/glpi-project/githubactions-glpi-apache:php-${{ matrix.php-version }}-glpi-${{ matrix.glpi-version }}"
+          if [[ "${{ matrix.latest }}" == "true" ]]; then
+            TAGS="${TAGS},ghcr.io/glpi-project/githubactions-glpi-apache:latest"
+          fi
+          echo "tags=${TAGS}" >> $GITHUB_OUTPUT
       - name: "Build and push"
         uses: "docker/build-push-action@v6"
         with:
@@ -67,4 +75,4 @@ jobs:
           context: "githubactions-glpi-apache"
           outputs: "${{ env.OUTPUTS }}"
           pull: true
-          tags: "ghcr.io/glpi-project/githubactions-glpi-apache:php-${{ matrix.php-version }}-glpi-${{ matrix.glpi-version }}"
+          tags: "${{ steps.tags.outputs.tags }}"
