@@ -18,4 +18,4 @@ jobs:
         with:
           username: "${{ secrets.DOCKER_HUB_USERNAME }}"
           password: "${{ secrets.DOCKER_HUB_TOKEN }}"
-          repository: "glpi/glpi"
+          repository: ${{ vars.DOCKERHUB_IMAGE || 'glpi/glpi' }}
