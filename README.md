@@ -30,12 +30,15 @@ This repository contains build files for docker images available in [Github Cont
 
 **docker-compose.yml**
 ```yaml
+name: glpi
+
 services:
   glpi:
     image: "glpi/glpi:latest"
     restart: "unless-stopped"
     volumes:
-      - "./storage/glpi:/var/glpi:rw"
+       # Using a named volume avoids permission issues on host (automatically managed by Docker)
+       - glpi_data:/var/glpi
       # For GLPI 10.x, uncomment the following line to create a volume for plugins fetched from the marketplace.
       # - "./storage/glpi_marketplace:/var/www/glpi/marketplace/:rw"
     env_file: .env # Pass environment variables from .env file to the container
@@ -48,12 +51,16 @@ services:
     image: "mysql"
     restart: "unless-stopped"
     volumes:
-       - "./storage/mysql:/var/lib/mysql"
+       - db_data:/var/lib/mysql
     environment:
       MYSQL_RANDOM_ROOT_PASSWORD: "yes"
       MYSQL_DATABASE: ${GLPI_DB_NAME}
       MYSQL_USER: ${GLPI_DB_USER}
       MYSQL_PASSWORD: ${GLPI_DB_PASSWORD}
+
+volumes:
+   glpi_data:
+   db_data:
 ```
 
 And an .env file:
