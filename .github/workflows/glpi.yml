@@ -307,7 +307,7 @@ jobs:
 
       - name: "Upload digest"
         if: ${{ needs.prepare.outputs.push == 'true' }}
-        uses: "actions/upload-artifact@v4"
+        uses: "actions/upload-artifact@v6"
         with:
           name: "digests-${{ needs.prepare.outputs.artifact-prefix }}-${{ env.PLATFORM_PAIR }}"
           path: "${{ runner.temp }}/digests/*"
