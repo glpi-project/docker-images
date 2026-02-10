@@ -6,7 +6,7 @@ services:
       context: ./glpi
       args:
         GLPI_VERSION: latest
-        GLPI_PATCH_URL: https://patch-diff.githubusercontent.com/raw/glpi-project/glpi/pull/22381.diff
+        GLPI_PATCH_URL: ''
     restart: "no"
     volumes:
       # Using a named volume avoids permission issues on host (automatically managed by Docker)
