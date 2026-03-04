@@ -23,6 +23,7 @@ This repository contains build files for docker images available in [Github Cont
 - [Custom PHP configuration](#custom-php-configuration)
 - [Managing Cron tasks](#managing-cron-tasks)
 - [Adding custom Cron tasks](#adding-custom-cron-tasks)
+- [Image Maintenance Policy](#image-maintenance-policy)
 
 ## How to use this image
 
@@ -166,3 +167,22 @@ This is especially useful for horizontal scaling or Kubernetes deployments, wher
 Since the container runs as the non-root `www-data` user, traditional cron is not available. Instead, this image provides a built-in scheduler script that supports interval-based and daily scheduled tasks through supervisord.
 
 See the [custom scheduled jobs documentation](docs/custom-cron-tasks.md) for usage examples.
+
+## Image Maintenance Policy
+Image maintenance policy is run hosted and run on the GLPI project under the GitHub workflow [docker_rebuild.yml](https://github.com/glpi-project/glpi/blob/11.0/bugfixes/.github/workflows/docker_rebuild.yml)
+
+### Weekly Security Rebuilds
+
+The `latest`, current major (e.g. `11`, `10`), current minor (e.g. `11.0`, `10.0`), and current patch (e.g. `11.0.5`, `10.0.23`) tags are **automatically rebuilt every Sunday at 03:00 UTC** to incorporate the latest security patches from the underlying Debian and PHP base images.
+
+**The GLPI application code is never changed during these rebuilds**, only the OS and PHP runtime layers are refreshed.
+
+### Living vs. Archived Tags
+
+| Category                                     | Examples                                                  | Rebuilt weekly? |
+|:---------------------------------------------|:----------------------------------------------------------|:----------------|
+| **Living** - current stable release          | `latest`, `11`, `11.0`, `11.0.5`, `10`, `10.0`, `10.0.23` | Yes             |
+| **Archived** - previous patch/minor releases | `11.0.4`, `10.0.18`, `10.0.17`                            | No              |
+
+- **Living tags** always track the latest stable GLPI release and receive weekly base-image updates.
+- **Archived tags** are frozen and are never modified, preserving historical reproducibility.

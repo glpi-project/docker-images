@@ -44,6 +44,11 @@ on:
         required: false
         type: boolean
         default: false
+      no-cache:
+        description: "Skip build cache to force fresh base-image layers (used by security rebuilds)"
+        required: false
+        type: boolean
+        default: false
     secrets:
       DOCKER_HUB_USERNAME:
         required: true
@@ -101,6 +106,11 @@ on:
         default: ""
       use-legacy-marketplace-path:
         description: "Use legacy marketplace path (/var/www/glpi/marketplace) for v10.x builds"
+        required: false
+        type: boolean
+        default: false
+      no-cache:
+        description: "Skip build cache to force fresh base-image layers (used by security rebuilds)"
         required: false
         type: boolean
         default: false
@@ -286,10 +296,9 @@ jobs:
             GLPI_MARKETPLACE_DIR=${{ needs.prepare.outputs.marketplace-dir }}
             BUILDER_IMAGE=php:${{ needs.prepare.outputs.php-version }}-cli-alpine
             APP_IMAGE=php:${{ needs.prepare.outputs.php-version }}-apache
-          cache-from: |
-            type=gha,scope=${{ needs.prepare.outputs.cache-key }}-${{ matrix.platform.suffix }}
-            type=gha,scope=main-${{ matrix.platform.suffix }}
-          cache-to: "type=gha,mode=max,scope=${{ needs.prepare.outputs.cache-key }}-${{ matrix.platform.suffix }}"
+          no-cache: ${{ inputs.no-cache || false }}
+          cache-from: ${{ (!inputs.no-cache && format('type=gha,scope={0}-{1}\ntype=gha,scope=main-{1}', needs.prepare.outputs.cache-key, matrix.platform.suffix)) || '' }}
+          cache-to: ${{ (!inputs.no-cache && format('type=gha,mode=max,scope={0}-{1}', needs.prepare.outputs.cache-key, matrix.platform.suffix)) || '' }}
           context: "glpi"
           labels: "${{ steps.meta.outputs.labels }}"
           platforms: "${{ matrix.platform.arch }}"
