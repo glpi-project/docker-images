@@ -186,3 +186,25 @@ The `latest`, current major (e.g. `11`, `10`), current minor (e.g. `11.0`, `10.0
 
 - **Living tags** always track the latest stable GLPI release and receive weekly base-image updates.
 - **Archived tags** are frozen and are never modified, preserving historical reproducibility.
+
+### Pinning to a Specific Image Digest
+
+Every Docker image has a unique SHA256 digest (e.g., `sha256:abc123...`). Unlike tags, digests are **immutable** — they always point to the exact same image, even when a tag is updated.
+
+This is useful if you need to **rollback** to a known-good image after a new release introduces issues, or to **pin** a production deployment to an exact build.
+
+**Finding the digest:**
+- In the [GitHub Actions workflow summary](https://github.com/glpi-project/docker-images/actions/workflows/glpi.yml) for the build — each run displays the digests and tags
+- Or using `docker inspect`: `docker inspect --format='{{index .RepoDigests 0}}' glpi/glpi:latest`
+
+**Using a digest in `docker compose`:**
+```yaml
+services:
+  glpi:
+    image: "glpi/glpi@sha256:abc123def456..."
+```
+
+**Pulling by digest:**
+```bash
+docker pull glpi/glpi@sha256:abc123def456...
+```

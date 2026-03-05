@@ -397,7 +397,52 @@ jobs:
             docker buildx imagetools create $GHCR_TAGS \
               $(printf '${{ env.GHCR_IMAGE }}@sha256:%s ' *)
           fi
-      - name: "Inspect image"
-        run: |
-          # Get first tag for inspection
-          docker buildx imagetools inspect ${{ fromJSON(steps.meta.outputs.json).tags[0] }}
+      - name: "Job summary"
+        uses: "actions/github-script@v7"
+        env:
+          DIGESTS_PATH: ${{ runner.temp }}/digests
+          META_TAGS: ${{ steps.meta.outputs.tags }}
+          DOCKERHUB_IMAGE: ${{ env.DOCKERHUB_IMAGE }}
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+
+            const digestsDir = process.env.DIGESTS_PATH;
+            const tags = process.env.META_TAGS.split('\n').filter(Boolean);
+            const dockerhubImage = process.env.DOCKERHUB_IMAGE;
+
+            // Read per-platform digests from artifact files
+            const digestFiles = fs.readdirSync(digestsDir);
+            const digests = digestFiles.map(f => `sha256:${f}`);
+
+            // Build summary
+            let summary = '## 🐳 Docker Image Published\n\n';
+
+            // Tags table
+            summary += '### Tags\n\n';
+            summary += '| Registry | Tag |\n';
+            summary += '|:---------|:----|\n';
+            for (const tag of tags) {
+              const registry = tag.startsWith('ghcr.io') ? 'GHCR' : 'Docker Hub';
+              summary += `| ${registry} | \`${tag}\` |\n`;
+            }
+
+            // Digests table
+            summary += '\n### Image Digests\n\n';
+            summary += '> Use these digests to pin a specific build and rollback if a future release causes issues.\n\n';
+            summary += '| Digest |\n';
+            summary += '|:-------|\n';
+            for (const digest of digests) {
+              summary += `| \`${digest}\` |\n`;
+            }
+
+            // Pull by digest examples
+            summary += '\n### Pull by Digest\n\n';
+            summary += '```bash\n';
+            for (const digest of digests) {
+              summary += `docker pull ${dockerhubImage}@${digest}\n`;
+            }
+            summary += '```\n';
+
+            await core.summary.addRaw(summary).write();
