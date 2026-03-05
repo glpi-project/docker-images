@@ -169,23 +169,13 @@ Since the container runs as the non-root `www-data` user, traditional cron is no
 See the [custom scheduled jobs documentation](docs/custom-cron-tasks.md) for usage examples.
 
 ## Image Maintenance Policy
-Image maintenance is run and hosted on the GLPI project under the GitHub workflow [docker_rebuild.yml](https://github.com/glpi-project/glpi/blob/11.0/bugfixes/.github/workflows/docker_rebuild.yml)
+Image maintenance is run and hosted on the GLPI project under a scheduled GitHub workflow.
 
 ### Weekly Security Rebuilds
 
-The `latest`, current major (e.g. `11`, `10`), current minor (e.g. `11.0`, `10.0`), and current patch (e.g. `11.0.5`, `10.0.23`) tags are **automatically rebuilt every Sunday at 03:00 UTC** to incorporate the latest security patches from the underlying Debian and PHP base images.
+The images corresponding to the latest release of each supported version of GLPI  are **automatically rebuilt periodically** to incorporate the latest security patches from the underlying Debian and PHP base images.
 
-**The GLPI application code is never changed during these rebuilds**, only the OS and PHP runtime layers are refreshed.
-
-### Living vs. Archived Tags
-
-| Category                                     | Examples                                                  | Rebuilt weekly? |
-|:---------------------------------------------|:----------------------------------------------------------|:----------------|
-| **Living** - current stable release          | `latest`, `11`, `11.0`, `11.0.5`, `10`, `10.0`, `10.0.23` | Yes             |
-| **Archived** - previous patch/minor releases | `11.0.4`, `10.0.18`, `10.0.17`                            | No              |
-
-- **Living tags** always track the latest stable GLPI release and receive weekly base-image updates.
-- **Archived tags** are frozen and are never modified, preserving historical reproducibility.
+**The GLPI application code is never changed during these rebuilds**, only the OS, the PHP runtime, and the system libraries are updated.
 
 ### Pinning to a Specific Image Digest
 
