@@ -44,6 +44,11 @@ on:
         required: false
         type: boolean
         default: false
+      no-cache:
+        description: "Skip build cache to force fresh base-image layers (used by security rebuilds)"
+        required: false
+        type: boolean
+        default: false
     secrets:
       DOCKER_HUB_USERNAME:
         required: true
@@ -101,6 +106,11 @@ on:
         default: ""
       use-legacy-marketplace-path:
         description: "Use legacy marketplace path (/var/www/glpi/marketplace) for v10.x builds"
+        required: false
+        type: boolean
+        default: false
+      no-cache:
+        description: "Skip build cache to force fresh base-image layers (used by security rebuilds)"
         required: false
         type: boolean
         default: false
@@ -278,6 +288,8 @@ jobs:
       - name: "Build and push by digest"
         id: "build"
         uses: "docker/build-push-action@v6"
+        env:
+          DOCKER_BUILD_SUMMARY: ${{ runner.debug == '1' }}
         with:
           build-args: |
             GLPI_VERSION=${{ needs.prepare.outputs.glpi-version }}
@@ -286,10 +298,9 @@ jobs:
             GLPI_MARKETPLACE_DIR=${{ needs.prepare.outputs.marketplace-dir }}
             BUILDER_IMAGE=php:${{ needs.prepare.outputs.php-version }}-cli-alpine
             APP_IMAGE=php:${{ needs.prepare.outputs.php-version }}-apache
-          cache-from: |
-            type=gha,scope=${{ needs.prepare.outputs.cache-key }}-${{ matrix.platform.suffix }}
-            type=gha,scope=main-${{ matrix.platform.suffix }}
-          cache-to: "type=gha,mode=max,scope=${{ needs.prepare.outputs.cache-key }}-${{ matrix.platform.suffix }}"
+          no-cache: ${{ inputs.no-cache || false }}
+          cache-from: ${{ (!inputs.no-cache && format('type=gha,scope={0}-{1}\ntype=gha,scope=main-{1}', needs.prepare.outputs.cache-key, matrix.platform.suffix)) || '' }}
+          cache-to: ${{ (!inputs.no-cache && format('type=gha,mode=max,scope={0}-{1}', needs.prepare.outputs.cache-key, matrix.platform.suffix)) || '' }}
           context: "glpi"
           labels: "${{ steps.meta.outputs.labels }}"
           platforms: "${{ matrix.platform.arch }}"
@@ -303,7 +314,7 @@ jobs:
         run: |
           mkdir -p ${{ runner.temp }}/digests
           digest="${{ steps.build.outputs.digest }}"
-          touch "${{ runner.temp }}/digests/${digest#sha256:}"
+          touch "${{ runner.temp }}/digests/${digest#sha256:}-${{ matrix.platform.suffix }}"
 
       - name: "Upload digest"
         if: ${{ needs.prepare.outputs.push == 'true' }}
@@ -373,22 +384,82 @@ jobs:
         env:
           TAGS: ${{ steps.meta.outputs.tags }}
         run: |
+          # Read digest files (named like <hash>-<arch>) and prepare source arrays
+          DOCKERHUB_SOURCES=""
+          GHCR_SOURCES=""
+          for file_path in "$PWD"/*; do
+            file_name="${file_path##*/}"
+            hash="${file_name%%-*}"
+            DOCKERHUB_SOURCES="$DOCKERHUB_SOURCES ${{ env.DOCKERHUB_IMAGE }}@sha256:$hash"
+            GHCR_SOURCES="$GHCR_SOURCES ${{ env.GHCR_IMAGE }}@sha256:$hash"
+          done
+
           # Create manifest for DockerHub
           DOCKERHUB_TAGS=$(echo "$TAGS" | grep "^${{ env.DOCKERHUB_IMAGE }}" | xargs --replace={} echo "-t {}" | tr '\n' ' ')
           if [[ -n "$DOCKERHUB_TAGS" ]]; then
             echo "Creating DockerHub manifest..."
-            docker buildx imagetools create $DOCKERHUB_TAGS \
-              $(printf '${{ env.DOCKERHUB_IMAGE }}@sha256:%s ' *)
+            docker buildx imagetools create $DOCKERHUB_TAGS $DOCKERHUB_SOURCES
           fi
 
           # Create manifest for GHCR
           GHCR_TAGS=$(echo "$TAGS" | grep "^${{ env.GHCR_IMAGE }}" | xargs --replace={} echo "-t {}" | tr '\n' ' ')
           if [[ -n "$GHCR_TAGS" ]]; then
             echo "Creating GHCR manifest..."
-            docker buildx imagetools create $GHCR_TAGS \
-              $(printf '${{ env.GHCR_IMAGE }}@sha256:%s ' *)
+            docker buildx imagetools create $GHCR_TAGS $GHCR_SOURCES
           fi
-      - name: "Inspect image"
-        run: |
-          # Get first tag for inspection
-          docker buildx imagetools inspect ${{ fromJSON(steps.meta.outputs.json).tags[0] }}
+      - name: "Job summary"
+        uses: "actions/github-script@v8"
+        env:
+          DIGESTS_PATH: ${{ runner.temp }}/digests
+          META_TAGS: ${{ steps.meta.outputs.tags }}
+          DOCKERHUB_IMAGE: ${{ env.DOCKERHUB_IMAGE }}
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+
+            const digestsDir = process.env.DIGESTS_PATH;
+            const tags = process.env.META_TAGS.split('\n').filter(Boolean);
+            const dockerhubImage = process.env.DOCKERHUB_IMAGE;
+
+            // Read per-platform digests from artifact files
+            const digestFiles = fs.readdirSync(digestsDir);
+            const digests = digestFiles.map(f => {
+              const parts = f.split('-');
+              return {
+                hash: `sha256:${parts[0]}`,
+                arch: parts.length > 1 ? parts.slice(1).join('-') : 'unknown'
+              };
+            });
+
+            // Build summary
+            let summary = '## 🐳 Docker Image Published\n\n';
+
+            // Tags table
+            summary += '### Tags\n\n';
+            summary += '| Registry | Tag |\n';
+            summary += '|:---------|:----|\n';
+            for (const tag of tags) {
+              const registry = tag.startsWith('ghcr.io') ? 'GHCR' : 'Docker Hub';
+              summary += `| ${registry} | \`${tag}\` |\n`;
+            }
+
+            // Digests table
+            summary += '\n### Image Digests\n\n';
+            summary += '> Use these digests to pin a specific build and rollback if a future release causes issues.\n\n';
+            summary += '| Architecture | Digest |\n';
+            summary += '|:-------------|:-------|\n';
+            for (const digest of digests) {
+              summary += `| \`${digest.arch}\` | \`${digest.hash}\` |\n`;
+            }
+
+            // Pull by digest examples
+            summary += '\n### Pull by Digest\n\n';
+            summary += '```bash\n';
+            for (const digest of digests) {
+              summary += `# Pull ${digest.arch} image\n`;
+              summary += `docker pull ${dockerhubImage}@${digest.hash}\n`;
+            }
+            summary += '```\n';
+
+            await core.summary.addRaw(summary).write();

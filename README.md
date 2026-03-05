@@ -23,6 +23,7 @@ This repository contains build files for docker images available in [Github Cont
 - [Custom PHP configuration](#custom-php-configuration)
 - [Managing Cron tasks](#managing-cron-tasks)
 - [Adding custom Cron tasks](#adding-custom-cron-tasks)
+- [Image Maintenance Policy](#image-maintenance-policy)
 
 ## How to use this image
 
@@ -166,3 +167,34 @@ This is especially useful for horizontal scaling or Kubernetes deployments, wher
 Since the container runs as the non-root `www-data` user, traditional cron is not available. Instead, this image provides a built-in scheduler script that supports interval-based and daily scheduled tasks through supervisord.
 
 See the [custom scheduled jobs documentation](docs/custom-cron-tasks.md) for usage examples.
+
+## Image Maintenance Policy
+Image maintenance is run and hosted on the GLPI project under a scheduled GitHub workflow.
+
+### Weekly Security Rebuilds
+
+The images corresponding to the latest release of each supported version of GLPI  are **automatically rebuilt periodically** to incorporate the latest security patches from the underlying Debian and PHP base images.
+
+**The GLPI application code is never changed during these rebuilds**, only the OS, the PHP runtime, and the system libraries are updated.
+
+### Pinning to a Specific Image Digest
+
+Every Docker image has a unique SHA256 digest (e.g., `sha256:abc123...`). Unlike tags, digests are **immutable** — they always point to the exact same image, even when a tag is updated.
+
+This is useful if you need to **rollback** to a known-good image after a new release introduces issues, or to **pin** a production deployment to an exact build.
+
+**Finding the digest:**
+- In the [GitHub Actions workflow summary](https://github.com/glpi-project/docker-images/actions/workflows/glpi.yml) for the build — each run displays the digests and tags
+- Or using `docker inspect`: `docker inspect --format='{{index .RepoDigests 0}}' glpi/glpi:latest`
+
+**Using a digest in `docker compose`:**
+```yaml
+services:
+  glpi:
+    image: "glpi/glpi@sha256:abc123def456..."
+```
+
+**Pulling by digest:**
+```bash
+docker pull glpi/glpi@sha256:abc123def456...
+```
