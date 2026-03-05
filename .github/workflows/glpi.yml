@@ -306,13 +306,14 @@ jobs:
           sbom: ${{ needs.prepare.outputs.push == 'true' }}
           provenance: ${{ needs.prepare.outputs.push == 'true' && 'mode=max' || 'false' }}
           outputs: "type=image,\"name=${{ env.DOCKERHUB_IMAGE }},${{ env.GHCR_IMAGE }}\",push-by-digest=true,name-canonical=true,push=${{ needs.prepare.outputs.push }}"
+          build-summary: ${{ runner.debug == '1' }}
 
       - name: "Export digest"
         if: ${{ needs.prepare.outputs.push == 'true' }}
         run: |
           mkdir -p ${{ runner.temp }}/digests
           digest="${{ steps.build.outputs.digest }}"
-          touch "${{ runner.temp }}/digests/${digest#sha256:}"
+          touch "${{ runner.temp }}/digests/${digest#sha256:}-${{ matrix.platform.suffix }}"
 
       - name: "Upload digest"
         if: ${{ needs.prepare.outputs.push == 'true' }}
@@ -414,7 +415,13 @@ jobs:
 
             // Read per-platform digests from artifact files
             const digestFiles = fs.readdirSync(digestsDir);
-            const digests = digestFiles.map(f => `sha256:${f}`);
+            const digests = digestFiles.map(f => {
+              const parts = f.split('-');
+              return {
+                hash: `sha256:${parts[0]}`,
+                arch: parts.length > 1 ? parts.slice(1).join('-') : 'unknown'
+              };
+            });
 
             // Build summary
             let summary = '## 🐳 Docker Image Published\n\n';
@@ -431,17 +438,18 @@ jobs:
             // Digests table
             summary += '\n### Image Digests\n\n';
             summary += '> Use these digests to pin a specific build and rollback if a future release causes issues.\n\n';
-            summary += '| Digest |\n';
-            summary += '|:-------|\n';
+            summary += '| Architecture | Digest |\n';
+            summary += '|:-------------|:-------|\n';
             for (const digest of digests) {
-              summary += `| \`${digest}\` |\n`;
+              summary += `| \`${digest.arch}\` | \`${digest.hash}\` |\n`;
             }
 
             // Pull by digest examples
             summary += '\n### Pull by Digest\n\n';
             summary += '```bash\n';
             for (const digest of digests) {
-              summary += `docker pull ${dockerhubImage}@${digest}\n`;
+              summary += `# Pull ${digest.arch} image\n`;
+              summary += `docker pull ${dockerhubImage}@${digest.hash}\n`;
             }
             summary += '```\n';
 

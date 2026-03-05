@@ -169,7 +169,7 @@ Since the container runs as the non-root `www-data` user, traditional cron is no
 See the [custom scheduled jobs documentation](docs/custom-cron-tasks.md) for usage examples.
 
 ## Image Maintenance Policy
-Image maintenance policy is run hosted and run on the GLPI project under the GitHub workflow [docker_rebuild.yml](https://github.com/glpi-project/glpi/blob/11.0/bugfixes/.github/workflows/docker_rebuild.yml)
+Image maintenance is run and hosted on the GLPI project under the GitHub workflow [docker_rebuild.yml](https://github.com/glpi-project/glpi/blob/11.0/bugfixes/.github/workflows/docker_rebuild.yml)
 
 ### Weekly Security Rebuilds
 
