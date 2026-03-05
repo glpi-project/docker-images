@@ -288,6 +288,8 @@ jobs:
       - name: "Build and push by digest"
         id: "build"
         uses: "docker/build-push-action@v6"
+        env:
+          DOCKER_BUILD_SUMMARY: ${{ runner.debug == '1' }}
         with:
           build-args: |
             GLPI_VERSION=${{ needs.prepare.outputs.glpi-version }}
@@ -306,7 +308,6 @@ jobs:
           sbom: ${{ needs.prepare.outputs.push == 'true' }}
           provenance: ${{ needs.prepare.outputs.push == 'true' && 'mode=max' || 'false' }}
           outputs: "type=image,\"name=${{ env.DOCKERHUB_IMAGE }},${{ env.GHCR_IMAGE }}\",push-by-digest=true,name-canonical=true,push=${{ needs.prepare.outputs.push }}"
-          build-summary: ${{ runner.debug == '1' }}
 
       - name: "Export digest"
         if: ${{ needs.prepare.outputs.push == 'true' }}
@@ -383,20 +384,28 @@ jobs:
         env:
           TAGS: ${{ steps.meta.outputs.tags }}
         run: |
+          # Read digest files (named like <hash>-<arch>) and prepare source arrays
+          DOCKERHUB_SOURCES=""
+          GHCR_SOURCES=""
+          for file_path in "$PWD"/*; do
+            file_name="${file_path##*/}"
+            hash="${file_name%%-*}"
+            DOCKERHUB_SOURCES="$DOCKERHUB_SOURCES ${{ env.DOCKERHUB_IMAGE }}@sha256:$hash"
+            GHCR_SOURCES="$GHCR_SOURCES ${{ env.GHCR_IMAGE }}@sha256:$hash"
+          done
+
           # Create manifest for DockerHub
           DOCKERHUB_TAGS=$(echo "$TAGS" | grep "^${{ env.DOCKERHUB_IMAGE }}" | xargs --replace={} echo "-t {}" | tr '\n' ' ')
           if [[ -n "$DOCKERHUB_TAGS" ]]; then
             echo "Creating DockerHub manifest..."
-            docker buildx imagetools create $DOCKERHUB_TAGS \
-              $(printf '${{ env.DOCKERHUB_IMAGE }}@sha256:%s ' *)
+            docker buildx imagetools create $DOCKERHUB_TAGS $DOCKERHUB_SOURCES
           fi
 
           # Create manifest for GHCR
           GHCR_TAGS=$(echo "$TAGS" | grep "^${{ env.GHCR_IMAGE }}" | xargs --replace={} echo "-t {}" | tr '\n' ' ')
           if [[ -n "$GHCR_TAGS" ]]; then
             echo "Creating GHCR manifest..."
-            docker buildx imagetools create $GHCR_TAGS \
-              $(printf '${{ env.GHCR_IMAGE }}@sha256:%s ' *)
+            docker buildx imagetools create $GHCR_TAGS $GHCR_SOURCES
           fi
       - name: "Job summary"
         uses: "actions/github-script@v7"
