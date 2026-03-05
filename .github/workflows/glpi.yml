@@ -408,7 +408,7 @@ jobs:
             docker buildx imagetools create $GHCR_TAGS $GHCR_SOURCES
           fi
       - name: "Job summary"
-        uses: "actions/github-script@v7"
+        uses: "actions/github-script@v8"
         env:
           DIGESTS_PATH: ${{ runner.temp }}/digests
           META_TAGS: ${{ steps.meta.outputs.tags }}
