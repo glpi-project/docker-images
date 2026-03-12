@@ -18,6 +18,7 @@ This repository contains build files for docker images available in [Github Cont
 ## Summary
 
 - [How to use this image](#how-to-use-this-image)
+- [Docker Secrets](#docker-secrets)
 - [Timezones support](#timezones-support)
 - [Volumes](#volumes)
 - [Custom PHP configuration](#custom-php-configuration)
@@ -98,6 +99,77 @@ If so, when accessing the web interface, installation wizard will ask you to pro
 - Database: `glpi`
 - User: `glpi`
 - Password: `glpi`
+
+### Docker Secrets
+
+For improved security, sensitive environment variables can be loaded from files instead of being passed directly. This follows the `_FILE` convention used by official Docker images (MySQL, MariaDB, PostgreSQL).
+
+The following variables support the `_FILE` suffix:
+
+| Variable | `_FILE` variant | Description |
+|:---------|:----------------|:------------|
+| `GLPI_DB_HOST` | `GLPI_DB_HOST_FILE` | Database hostname |
+| `GLPI_DB_PORT` | `GLPI_DB_PORT_FILE` | Database port |
+| `GLPI_DB_NAME` | `GLPI_DB_NAME_FILE` | Database name |
+| `GLPI_DB_USER` | `GLPI_DB_USER_FILE` | Database user |
+| `GLPI_DB_PASSWORD` | `GLPI_DB_PASSWORD_FILE` | Database password |
+
+The resolution order is:
+1. `VAR_FILE` — reads the content of the file pointed to by the variable
+2. `/run/secrets/VAR` — automatic detection of Docker Swarm / Kubernetes / Podman secrets
+3. `VAR` — standard environment variable (default behavior)
+
+> **Note:** Setting both `VAR` and `VAR_FILE` at the same time will result in an error.
+
+#### Example with Docker Compose
+
+1. Create a file containing your database password:
+
+   ```bash
+   echo "my_secure_password" > ./db_password.txt
+   ```
+
+2. Reference it in your `docker-compose.yml`:
+
+   ```yaml
+   services:
+     glpi:
+       image: "glpi/glpi:latest"
+       environment:
+         GLPI_DB_HOST: db
+         GLPI_DB_PORT: 3306
+         GLPI_DB_NAME: glpi
+         GLPI_DB_USER: glpi
+         GLPI_DB_PASSWORD_FILE: /run/secrets/db_password
+       volumes:
+         - glpi_data:/var/glpi
+         - ./db_password.txt:/run/secrets/db_password:ro
+       depends_on:
+         - db
+       ports:
+         - "80:80"
+   ```
+
+#### Example with Docker Swarm
+
+```yaml
+services:
+  glpi:
+    image: "glpi/glpi:latest"
+    secrets:
+      - db_password
+    environment:
+      GLPI_DB_HOST: db
+      GLPI_DB_PORT: 3306
+      GLPI_DB_NAME: glpi
+      GLPI_DB_USER: glpi
+      # No need to set GLPI_DB_PASSWORD or GLPI_DB_PASSWORD_FILE.
+      # The secret is automatically detected at /run/secrets/GLPI_DB_PASSWORD.
+
+secrets:
+  db_password:
+    file: ./db_password.txt
+```
 
 ### Timezones support
 
