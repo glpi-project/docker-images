@@ -258,7 +258,7 @@ jobs:
 
       - name: "Docker metadata"
         id: "meta"
-        uses: "docker/metadata-action@v5"
+        uses: "docker/metadata-action@v6"
         with:
           images: |
             ${{ env.DOCKERHUB_IMAGE }}
@@ -359,7 +359,7 @@ jobs:
           password: "${{ secrets.GHCR_ACCESS_TOKEN }}"
       - name: "Docker metadata"
         id: "meta"
-        uses: "docker/metadata-action@v5"
+        uses: "docker/metadata-action@v6"
         with:
           images: |
             ${{ env.DOCKERHUB_IMAGE }}
