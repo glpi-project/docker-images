@@ -231,7 +231,13 @@ ENV \
   GLPI_VAR_DIR=/var/glpi/files \
   GLPI_LOG_DIR=/var/glpi/logs \
   GLPI_SKIP_AUTOINSTALL=false \
-  GLPI_SKIP_AUTOUPDATE=false
+  GLPI_SKIP_AUTOUPDATE=false \
+  GLPI_DB_SSL=false \
+  GLPI_DB_SSL_CA="" \
+  GLPI_DB_SSL_CERT="" \
+  GLPI_DB_SSL_KEY="" \
+  GLPI_DB_SSL_CAPATH="" \
+  GLPI_DB_SSL_CIPHER=""
 
 # Pass the execution to the www-data user
 USER www-data
