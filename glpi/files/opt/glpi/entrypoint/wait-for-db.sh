@@ -20,13 +20,13 @@ until [ $attempts_left -eq 0 ]; do
     # Try a simple database connection check using PHP mysqli
     if php -r "
         \$conn = @new mysqli();
-        if ('$GLPI_DB_SSL' === 'true') {
+        if ('${GLPI_DB_SSL:-false}' === 'true') {
             \$conn->ssl_set(
-                '$GLPI_DB_SSL_KEY'    ?: null,
-                '$GLPI_DB_SSL_CERT'   ?: null,
-                '$GLPI_DB_SSL_CA'     ?: null,
-                '$GLPI_DB_SSL_CAPATH' ?: null,
-                '$GLPI_DB_SSL_CIPHER' ?: null
+                '${GLPI_DB_SSL_KEY:-}'    ?: null,
+                '${GLPI_DB_SSL_CERT:-}'   ?: null,
+                '${GLPI_DB_SSL_CA:-}'     ?: null,
+                '${GLPI_DB_SSL_CAPATH:-}' ?: null,
+                '${GLPI_DB_SSL_CIPHER:-}' ?: null
             );
         }
         @\$conn->real_connect('$GLPI_DB_HOST', '$GLPI_DB_USER', '$GLPI_DB_PASSWORD', '', (int) '$GLPI_DB_PORT');
