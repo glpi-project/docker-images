@@ -33,7 +33,7 @@ RUN apk add --no-cache curl jq
 RUN set -ex; \
     INPUT="${GLPI_VERSION}"; \
     # If input starts with https://, use it as-is \
-    if echo "$INPUT" | grep --quiet '^https://'; then \
+    if echo "$INPUT" | grep -q '^https://'; then \
       URL="$INPUT"; \
     else \
       VERSION="$INPUT"; \
@@ -45,7 +45,7 @@ RUN set -ex; \
       URL="https://github.com/glpi-project/glpi/archive/${VERSION}.tar.gz"; \
     fi; \
     echo "Downloading GLPI from $URL"; \
-    curl --location "$URL" --output /glpi.tar.gz
+    curl --fail --location "$URL" --output /glpi.tar.gz
 
 #####
 # Builder image
