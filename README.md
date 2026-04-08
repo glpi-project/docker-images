@@ -172,8 +172,9 @@ See the [custom scheduled jobs documentation](docs/custom-cron-tasks.md) for usa
 Image maintenance is run and hosted on the GLPI project under a scheduled GitHub workflow.
 
 ### Weekly Security Rebuilds
+[![GLPI nightly and security rebuild](https://github.com/glpi-project/glpi/actions/workflows/docker_rebuild.yml/badge.svg)](https://github.com/glpi-project/glpi/actions/workflows/docker_rebuild.yml)
 
-The images corresponding to the latest release of each supported version of GLPI  are **automatically rebuilt periodically** to incorporate the latest security patches from the underlying Debian and PHP base images.
+The images corresponding to the latest release from each supported version of GLPI  are **automatically rebuilt periodically** to incorporate the latest security patches from the underlying Debian and PHP base images.
 
 **The GLPI application code is never changed during these rebuilds**, only the OS, the PHP runtime, and the system libraries are updated.
 
@@ -184,7 +185,7 @@ Every Docker image has a unique SHA256 digest (e.g., `sha256:abc123...`). Unlike
 This is useful if you need to **rollback** to a known-good image after a new release introduces issues, or to **pin** a production deployment to an exact build.
 
 **Finding the digest:**
-- In the [GitHub Actions workflow summary](https://github.com/glpi-project/docker-images/actions/workflows/glpi.yml) for the build — each run displays the digests and tags
+- In the [GitHub Actions workflow summary](https://github.com/glpi-project/glpi/actions/workflows/docker_rebuild.yml) for the build — each run displays the digests and tags
 - Or using `docker inspect`: `docker inspect --format='{{index .RepoDigests 0}}' glpi/glpi:latest`
 
 **Using a digest in `docker compose`:**
