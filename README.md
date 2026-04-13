@@ -183,6 +183,8 @@ All five variables below are **required** for auto-install and auto-update to wo
 
 Database SSL/TLS configuration:
 
+> Only available for GLPI 11.0.7 and above.
+
 | Variable             | Default   | Description                                                 |
 |:---------------------|:----------|:------------------------------------------------------------|
 | `GLPI_DB_SSL`        | `false`   | Set to `true` to enable SSL/TLS for the database connection |
