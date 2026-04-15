@@ -3,6 +3,7 @@
 # Build Arguments:
 #   BUILDER_IMAGE          - PHP CLI image for building (default: php:cli-alpine)
 #   APP_IMAGE              - PHP Apache image for runtime (default: php:apache)
+#   GLPI_REPO              - GitHub repository to download GLPI from (default: glpi-project/glpi)
 #   GLPI_VERSION           - Version to build: "latest" (default), tag (10.0.18), branch (main), commit, or URL
 #   GLPI_CACHE_KEY         - Cache-busting key for CI workflows (internal use)
 #   GLPI_PATCH_URL         - Space-separated URLs to .diff/.patch files to apply
@@ -17,6 +18,7 @@ ARG APP_IMAGE=php:apache
 #####
 FROM alpine AS downloader
 
+ARG GLPI_REPO=glpi-project/glpi
 # GLPI_VERSION can be:
 # - "latest" (default): resolves to latest stable release
 # - A tag version: e.g., "10.0.18", "11.0.0"
@@ -32,20 +34,21 @@ RUN apk add --no-cache curl jq
 # Resolve version and download source
 RUN set -ex; \
     INPUT="${GLPI_VERSION}"; \
+    REPO="${GLPI_REPO}"; \
     # If input starts with https://, use it as-is \
-    if echo "$INPUT" | grep --quiet '^https://'; then \
+    if echo "$INPUT" | grep -q '^https://'; then \
       URL="$INPUT"; \
     else \
       VERSION="$INPUT"; \
       # If "latest", resolve from GitHub API \
       if [ "$VERSION" = "latest" ]; then \
-        VERSION=$(curl --silent https://api.github.com/repos/glpi-project/glpi/releases/latest | jq --raw-output .tag_name); \
+        VERSION=$(curl --silent "https://api.github.com/repos/${REPO}/releases/latest" | jq --raw-output .tag_name); \
       fi; \
       # Use GitHub's generic archive format (works for branches, tags, and commits)
-      URL="https://github.com/glpi-project/glpi/archive/${VERSION}.tar.gz"; \
+      URL="https://github.com/${REPO}/archive/${VERSION}.tar.gz"; \
     fi; \
     echo "Downloading GLPI from $URL"; \
-    curl --location "$URL" --output /glpi.tar.gz
+    curl --fail --location "$URL" --output /glpi.tar.gz
 
 #####
 # Builder image

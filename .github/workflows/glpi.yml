@@ -16,6 +16,11 @@ on:
   # Reusable by other repos (e.g., glpi-project/glpi)
   workflow_call:
     inputs:
+      glpi-repo:
+        description: "GitHub repository to download GLPI from (owner/repo)"
+        required: false
+        type: string
+        default: "glpi-project/glpi"
       glpi-version:
         description: "GLPI version or branch to build"
         required: true
@@ -90,6 +95,11 @@ on:
         required: false
         type: string
         default: "8.5"
+      glpi-repo:
+        description: "GitHub repository to download GLPI from (owner/repo)"
+        required: false
+        type: string
+        default: "glpi-project/glpi"
       glpi-version:
         description: "GLPI version (tag: '11.0.5'), branch ('main', '11.0/bugfixes'), commit hash, or URL"
         required: true
@@ -126,6 +136,7 @@ jobs:
       cache-key: ${{ steps.set-vars.outputs.cache_key }}
       image-version: ${{ steps.set-vars.outputs.image_version }}
       # Unified inputs for all trigger types
+      glpi-repo: ${{ steps.set-vars.outputs.glpi_repo }}
       glpi-version: ${{ steps.set-vars.outputs.glpi_version }}
       php-version: ${{ steps.set-vars.outputs.php_version }}
       patch-url: ${{ steps.set-vars.outputs.patch_url }}
@@ -137,12 +148,14 @@ jobs:
         id: "set-vars"
         run: |
           # Use inputs when provided, otherwise use defaults (for push/pull_request on this repo)
+          GLPI_REPO="${{ vars.GLPI_REPO || inputs.glpi-repo || 'glpi-project/glpi' }}"
           GLPI_VERSION="${{ inputs.glpi-version || 'main' }}"
           PHP_VERSION="${{ inputs.php-version || '8.5' }}"
           PUSH="${{ inputs.push || 'false' }}"
           PATCH_URL="${{ inputs.patch-url || '' }}"
           IMAGE_TAG="${{ inputs.image-tag || '' }}"
 
+          echo "glpi_repo=$GLPI_REPO" >> $GITHUB_OUTPUT
           echo "glpi_version=$GLPI_VERSION" >> $GITHUB_OUTPUT
           echo "php_version=$PHP_VERSION" >> $GITHUB_OUTPUT
           echo "push=$PUSH" >> $GITHUB_OUTPUT
@@ -166,15 +179,16 @@ jobs:
 
           # Fetch the commit SHA for this version/branch (for cache-busting)
           # Same commit = cache hit, new commit = fresh build
-          if echo "$GLPI_VERSION" | grep --quiet --extended-regexp '^https://'; then
+
+          if echo "$GLPI_VERSION" | grep -q --extended-regexp '^https://'; then
             # For URLs, use a random value to force rebuild, as content behind a URL can change between builds.
             CACHE_KEY="$(head -200 /dev/urandom | sha1sum | cut --fields 1 --delimiter " ")"
           elif [[ "$GLPI_VERSION" = "latest" ]]; then
             # Resolve "latest" to actual tag first, then get commit SHA
-            RESOLVED_TAG=$(curl -s "https://api.github.com/repos/glpi-project/glpi/releases/latest" | jq -r '.tag_name')
-            CACHE_KEY=$(curl -s "https://api.github.com/repos/glpi-project/glpi/commits/$RESOLVED_TAG" | jq -r '.sha // empty')
+            RESOLVED_TAG=$(curl -s "https://api.github.com/repos/${GLPI_REPO}/releases/latest" | jq -r '.tag_name')
+            CACHE_KEY=$(curl -s "https://api.github.com/repos/${GLPI_REPO}/commits/$RESOLVED_TAG" | jq -r '.sha // empty')
           else
-            CACHE_KEY=$(curl -s "https://api.github.com/repos/glpi-project/glpi/commits/$GLPI_VERSION" | jq -r '.sha // empty')
+            CACHE_KEY=$(curl -s "https://api.github.com/repos/${GLPI_REPO}/commits/$GLPI_VERSION" | jq -r '.sha // empty')
           fi
           echo "cache_key=$CACHE_KEY" >> $GITHUB_OUTPUT
 
@@ -214,7 +228,7 @@ jobs:
           fi
 
           # Check if this is the latest release overall
-          LATEST_TAG=$(curl -s "https://api.github.com/repos/glpi-project/glpi/releases/latest" | jq -r '.tag_name')
+          LATEST_TAG=$(curl -s "https://api.github.com/repos/${GLPI_REPO}/releases/latest" | jq -r '.tag_name')
           if [[ "$GLPI_VERSION" = "$LATEST_TAG" ]]; then
             echo "is_latest=true" >> $GITHUB_OUTPUT
           else
@@ -222,7 +236,7 @@ jobs:
           fi
 
           # Fetch all releases from GitHub API (non-prerelease only) for major series check
-          RELEASES=$(curl -s "https://api.github.com/repos/glpi-project/glpi/releases?per_page=100" | \
+          RELEASES=$(curl -s "https://api.github.com/repos/${GLPI_REPO}/releases?per_page=100" | \
             jq -r '[.[] | select(.prerelease == false) | .tag_name]')
 
           # Check if this is the latest in its major series (e.g., latest 11.x.x)
@@ -292,6 +306,7 @@ jobs:
           DOCKER_BUILD_SUMMARY: ${{ runner.debug == '1' }}
         with:
           build-args: |
+            GLPI_REPO=${{ needs.prepare.outputs.glpi-repo }}
             GLPI_VERSION=${{ needs.prepare.outputs.glpi-version }}
             GLPI_PATCH_URL=${{ needs.prepare.outputs.patch-url }}
             GLPI_CACHE_KEY=${{ needs.prepare.outputs.cache-key }}
