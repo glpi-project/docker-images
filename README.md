@@ -23,6 +23,7 @@ This repository contains build files for docker images available in [Github Cont
 - [Custom PHP configuration](#custom-php-configuration)
 - [Managing Cron tasks](#managing-cron-tasks)
 - [Adding custom Cron tasks](#adding-custom-cron-tasks)
+- [Environment variables](#environment-variables)
 - [Image Maintenance Policy](#image-maintenance-policy)
 
 ## How to use this image
@@ -158,15 +159,64 @@ By default, the image includes a background worker that executes GLPI cron tasks
 
 This is especially useful for horizontal scaling or Kubernetes deployments, where you might want a dedicated container for cron tasks while disabling it on Web or API nodes to avoid automatic tasks duplication.
 
-| Variable               | Default | Description                                                  |
-|:-----------------------|:--------|:-------------------------------------------------------------|
-| `GLPI_CRONTAB_ENABLED` | `1`     | Set to `1` to run the cron worker. Set to `0` to disable it. |
+See [environment variables section](#cron) for more details.
 
 ### Adding custom Cron tasks
 
 Since the container runs as the non-root `www-data` user, traditional cron is not available. Instead, this image provides a built-in scheduler script that supports interval-based and daily scheduled tasks through supervisord.
 
 See the [custom scheduled jobs documentation](docs/custom-cron-tasks.md) for usage examples.
+
+## Environment variables
+
+### Database
+
+All five variables below are **required** for auto-install and auto-update to work. If any is missing, both features are disabled and GLPI will present the web-based installation wizard instead.
+
+| Variable           | Example  | Description                     |
+|:-------------------|:---------|:--------------------------------|
+| `GLPI_DB_HOST`     | `db`     | Database hostname or IP address |
+| `GLPI_DB_PORT`     | `3306`   | Database TCP port               |
+| `GLPI_DB_NAME`     | `glpi`   | Database name                   |
+| `GLPI_DB_USER`     | `glpi`   | Database username               |
+| `GLPI_DB_PASSWORD` | `secret` | Database password               |
+
+Database SSL/TLS configuration:
+
+> Only available for GLPI 11.0.7 and above.
+
+| Variable             | Default   | Description                                                 |
+|:---------------------|:----------|:------------------------------------------------------------|
+| `GLPI_DB_SSL`        | `false`   | Set to `true` to enable SSL/TLS for the database connection |
+| `GLPI_DB_SSL_CA`     | _(empty)_ | Path to the Certificate Authority (CA) certificate file     |
+| `GLPI_DB_SSL_CERT`   | _(empty)_ | Path to the client certificate file                         |
+| `GLPI_DB_SSL_KEY`    | _(empty)_ | Path to the client private key file                         |
+| `GLPI_DB_SSL_CAPATH` | _(empty)_ | Path to a directory containing trusted CA certificates      |
+| `GLPI_DB_SSL_CIPHER` | _(empty)_ | Allowed cipher(s) for the SSL connection                    |
+
+### Installation/Update
+
+| Variable                | Default | Description                                                        |
+|:------------------------|:--------|:-------------------------------------------------------------------|
+| `GLPI_SKIP_AUTOINSTALL` | `false` | Set to `true` to skip automatic database installation on first run |
+| `GLPI_SKIP_AUTOUPDATE`  | `false` | Set to `true` to skip automatic database schema updates on restart |
+
+### Cron
+
+| Variable               | Default | Description                                      |
+|:-----------------------|:--------|:-------------------------------------------------|
+| `GLPI_CRONTAB_ENABLED` | `1`     | Set to `0` to disable the background cron worker |
+
+### Path configuration
+
+These are preconfigured and generally do not need to be changed.
+
+| Variable               | Default                 | Description                  |
+|:-----------------------|:------------------------|:-----------------------------|
+| `GLPI_CONFIG_DIR`      | `/var/glpi/config`      | Configuration directory      |
+| `GLPI_VAR_DIR`         | `/var/glpi/files`       | Application data directory   |
+| `GLPI_LOG_DIR`         | `/var/glpi/logs`        | Log files directory          |
+| `GLPI_MARKETPLACE_DIR` | `/var/glpi/marketplace` | Plugin marketplace directory |
 
 ## Image Maintenance Policy
 Image maintenance is run and hosted on the GLPI project under a scheduled GitHub workflow.
