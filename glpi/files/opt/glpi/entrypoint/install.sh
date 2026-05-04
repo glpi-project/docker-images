@@ -2,12 +2,23 @@
 set -e -u -o pipefail
 
 Install_GLPI() {
+    ssl_args=()
+    if [ "${GLPI_DB_SSL:-false}" = "true" ]; then
+        ssl_args+=(--db-ssl)
+        [ -n "${GLPI_DB_SSL_CA:-}"     ] && ssl_args+=(--db-ssl-ca="$GLPI_DB_SSL_CA")
+        [ -n "${GLPI_DB_SSL_CERT:-}"   ] && ssl_args+=(--db-ssl-cert="$GLPI_DB_SSL_CERT")
+        [ -n "${GLPI_DB_SSL_KEY:-}"    ] && ssl_args+=(--db-ssl-key="$GLPI_DB_SSL_KEY")
+        [ -n "${GLPI_DB_SSL_CAPATH:-}" ] && ssl_args+=(--db-ssl-capath="$GLPI_DB_SSL_CAPATH")
+        [ -n "${GLPI_DB_SSL_CIPHER:-}" ] && ssl_args+=(--db-ssl-cipher="$GLPI_DB_SSL_CIPHER")
+    fi
+
     bin/console database:install \
         --db-host="$GLPI_DB_HOST" \
         --db-port="$GLPI_DB_PORT" \
         --db-name="$GLPI_DB_NAME" \
         --db-user="$GLPI_DB_USER" \
         --db-password="$GLPI_DB_PASSWORD" \
+        "${ssl_args[@]}" \
         --no-interaction --quiet
 }
 
