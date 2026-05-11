@@ -194,6 +194,9 @@ RUN apt-get update \
   # install mysql client
   && apt-get install --assume-yes --no-install-recommends --quiet default-mysql-client \
   \
+  # Install ping
+  && apt-get install --assume-yes --no-install-recommends --quiet iputils-ping \
+  \
   # Clean sources list.
   && rm -rf /var/lib/apt/lists/*
 
