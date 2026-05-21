@@ -83,6 +83,11 @@ RUN \
   && echo "apc.enable=1" >> /usr/local/etc/php/conf.d/docker-php-ext-apcu.ini \
   && echo "apc.enable_cli=1" >> /usr/local/etc/php/conf.d/docker-php-ext-apcu.ini \
   \
+  # Install PCOV PHP extension (disabled by default, enabled via PCOV_ENABLED env var).
+  && pecl install pcov \
+  && docker-php-ext-enable pcov \
+  && echo "pcov.enabled=0" >> /usr/local/etc/php/conf.d/docker-php-ext-pcov.ini \
+  \
   # Update PHP configuration.
   && echo "memory_limit = 512M" >> /usr/local/etc/php/conf.d/docker-php-memory.ini \
   \
