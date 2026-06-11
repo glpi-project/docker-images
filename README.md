@@ -37,9 +37,8 @@ This repository includes ready-to-use [`docker-compose.yml`](docker-compose.yml)
 Copy them to your working directory and rename `.env.example` to `.env`:
 
 ```bash
-curl -O https://raw.githubusercontent.com/glpi-project/docker-images/main/docker-compose.yml
-curl -O https://raw.githubusercontent.com/glpi-project/docker-images/main/.env.example
-cp .env.example .env
+curl --fail --remote-name https://raw.githubusercontent.com/glpi-project/docker-images/main/docker-compose.yml --output docker-compose.yml
+curl --fail https://raw.githubusercontent.com/glpi-project/docker-images/main/.env.example --output .env
 ```
 
 Then launch it with:
