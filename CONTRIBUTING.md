@@ -65,10 +65,10 @@ services:
 
 ### Run the Test Environment
 
-We provide a `docker-compose.test.yml` file to test the `glpi` container:
+We provide a `docker-compose.dev.yml` file to build and test the `glpi` container locally:
 
 ```bash
-docker compose --file docker-compose.test.yml up --build
+docker compose --file docker-compose.dev.yml up --build
 ```
 
 ### Verify
@@ -76,7 +76,7 @@ docker compose --file docker-compose.test.yml up --build
 Once the containers are up:
 1. Check the logs to see the installation progress:
     ```bash
-    docker compose --file docker-compose.test.yml logs --follow glpi
+    docker compose --file docker-compose.dev.yml logs --follow glpi
     ```
 2. Wait for the "GLPI installation completed successfully!" message.
 3. Access GLPI at [http://localhost:8080](http://localhost:8080).
@@ -87,5 +87,5 @@ Once the containers are up:
 
 To stop and remove the test containers:
 ```bash
-docker compose --file docker-compose.test.yml down --volumes
+docker compose --file docker-compose.dev.yml down --volumes
 ```
