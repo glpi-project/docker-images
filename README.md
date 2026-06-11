@@ -32,12 +32,12 @@ This repository contains build files for docker images available in [Github Cont
 
 ### via [docker compose](https://github.com/docker/compose)
 
-This repository includes ready-to-use [`docker-compose.yml`](docker-compose.yml) and [`.env.example`](.env.example) files.
+This repository includes ready-to-use [`docker-compose.example.yml`](docker-compose.example.yml) and [`.env.example`](.env.example) files.
 
-Copy them to your working directory and rename `.env.example` to `.env`:
+Copy them to your working directory:
 
 ```bash
-curl --fail --remote-name https://raw.githubusercontent.com/glpi-project/docker-images/main/docker-compose.yml --output docker-compose.yml
+curl --fail https://raw.githubusercontent.com/glpi-project/docker-images/main/docker-compose.example.yml --output docker-compose.yml
 curl --fail https://raw.githubusercontent.com/glpi-project/docker-images/main/.env.example --output .env
 ```
 
