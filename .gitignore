@@ -1,2 +1,5 @@
 glpi/sources/
 glpi-nightly/sources/
+
+.env
+docker-compose.override.yml

@@ -18,6 +18,8 @@ This repository contains build files for docker images available in [Github Cont
 ## Summary
 
 - [How to use this image](#how-to-use-this-image)
+  - [via docker compose](#via-docker-compose)
+  - [via Podman](#via-podman)
 - [Timezones support](#timezones-support)
 - [Volumes](#volumes)
 - [Custom PHP configuration](#custom-php-configuration)
@@ -30,50 +32,13 @@ This repository contains build files for docker images available in [Github Cont
 
 ### via [docker compose](https://github.com/docker/compose)
 
-**docker-compose.yml**
-```yaml
-name: glpi
+This repository includes ready-to-use [`docker-compose.example.yml`](docker-compose.example.yml) and [`.env.example`](.env.example) files.
 
-services:
-  glpi:
-    image: "glpi/glpi:latest"
-    restart: "unless-stopped"
-    volumes:
-       # Using a named volume avoids permission issues on host (automatically managed by Docker)
-       - glpi_data:/var/glpi
-      # For GLPI 10.x, uncomment the following line to create a volume for plugins fetched from the marketplace.
-      # - "./storage/glpi_marketplace:/var/www/glpi/marketplace/:rw"
-    env_file: .env # Pass environment variables from .env file to the container
-    depends_on:
-      - db
-    ports:
-      - "80:80"
+Copy them to your working directory:
 
-  db:
-    image: "mysql"
-    restart: "unless-stopped"
-    volumes:
-       - db_data:/var/lib/mysql
-    environment:
-      MYSQL_RANDOM_ROOT_PASSWORD: "yes"
-      MYSQL_DATABASE: ${GLPI_DB_NAME}
-      MYSQL_USER: ${GLPI_DB_USER}
-      MYSQL_PASSWORD: ${GLPI_DB_PASSWORD}
-
-volumes:
-   glpi_data:
-   db_data:
-```
-
-And an .env file:
-
-**.env**
-```env
-GLPI_DB_HOST=db
-GLPI_DB_PORT=3306
-GLPI_DB_NAME=glpi
-GLPI_DB_USER=glpi
-GLPI_DB_PASSWORD=glpi
+```bash
+curl --fail https://raw.githubusercontent.com/glpi-project/docker-images/main/docker-compose.example.yml --output docker-compose.yml
+curl --fail https://raw.githubusercontent.com/glpi-project/docker-images/main/.env.example --output .env
 ```
 
 Then launch it with:
@@ -99,6 +64,31 @@ If so, when accessing the web interface, installation wizard will ask you to pro
 - Database: `glpi`
 - User: `glpi`
 - Password: `glpi`
+
+### via [Podman](https://podman.io/)
+
+The same `docker-compose.yml` and `.env` files from the docker compose example work with Podman. Use either `podman compose` (Podman 4.7+) or the standalone [`podman-compose`](https://github.com/containers/podman-compose) tool:
+
+```bash
+podman compose up -d
+```
+
+> **Rootless Podman note:** when running without root privileges, binding to port 80 may fail. Either change the host port to an unprivileged one (e.g. `8080:80`), or allow unprivileged port binding:
+> ```bash
+> sudo sysctl net.ipv4.ip_unprivileged_port_start=80
+> ```
+
+To check logs:
+
+```bash
+podman logs <db_container_id>
+```
+
+To run commands on a running container:
+
+```bash
+podman exec -it <glpi_container_id> /var/www/glpi/bin/console database:enable_timezones
+```
 
 ### Timezones support
 
