@@ -23,21 +23,12 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - {base-image: "mariadb", target-image: "mariadb", version: "10.4", config-dir: "/etc/mysql/conf.d"}
-          - {base-image: "mariadb", target-image: "mariadb", version: "10.5", config-dir: "/etc/mysql/conf.d"}
-          - {base-image: "mariadb", target-image: "mariadb", version: "10.6", config-dir: "/etc/mysql/conf.d"}
-          - {base-image: "mariadb", target-image: "mariadb", version: "10.9", config-dir: "/etc/mysql/conf.d"}
-          - {base-image: "mariadb", target-image: "mariadb", version: "10.10", config-dir: "/etc/mysql/conf.d"}
           - {base-image: "mariadb", target-image: "mariadb", version: "10.11", config-dir: "/etc/mysql/conf.d"}
-          - {base-image: "mariadb", target-image: "mariadb", version: "11.0", config-dir: "/etc/mysql/conf.d"}
           - {base-image: "mariadb", target-image: "mariadb", version: "11.4", config-dir: "/etc/mysql/conf.d"}
           - {base-image: "mariadb", target-image: "mariadb", version: "11.8", config-dir: "/etc/mysql/conf.d"}
-          - {base-image: "mysql", target-image: "mysql", version: "5.7", config-dir: "/etc/mysql/conf.d"}
-          - {base-image: "mysql", target-image: "mysql", version: "8.0", config-dir: "/etc/mysql/conf.d"}
+          - {base-image: "mariadb", target-image: "mariadb", version: "12.3", config-dir: "/etc/mysql/conf.d"}
           - {base-image: "mysql", target-image: "mysql", version: "8.4", config-dir: "/etc/mysql/conf.d"}
-          - {base-image: "percona/percona-server", target-image: "percona", version: "5.7", config-dir: "/etc/my.cnf.d"}
-          - {base-image: "percona/percona-server", target-image: "percona", version: "8.0", config-dir: "/etc/my.cnf.d"}
-          - {base-image: "percona/percona-server", target-image: "percona", version: "8.4", config-dir: "/etc/my.cnf.d"}
+          - {base-image: "mysql", target-image: "mysql", version: "9.7", config-dir: "/etc/mysql/conf.d"}
     steps:
       - name: "Set variables"
         run: |
