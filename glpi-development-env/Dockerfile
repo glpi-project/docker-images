@@ -49,6 +49,10 @@ RUN --mount=type=bind,from=ghcr.io/php/pie:bin,source=/pie,target=/usr/local/bin
   && docker-php-ext-configure ldap --with-libdir=lib/x86_64-linux-gnu/ \
   && docker-php-ext-install ldap \
   \
+  # Install mbstring PHP extension (not installed by default since PHP 8.6).
+  && apt install --assume-yes --no-install-recommends --quiet libonig-dev \
+  && docker-php-ext-install mbstring \
+  \
   # Install memcached PHP extension.
   && apt install --assume-yes --no-install-recommends --quiet libmemcached-dev \
   && if [ "$PHP_IS_PRERELEASE" = true ]; then \
