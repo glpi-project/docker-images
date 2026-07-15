@@ -30,6 +30,7 @@ jobs:
           - {base-image: "php:8.3-fpm-trixie", php-version: "8.3"}
           - {base-image: "php:8.4-fpm-trixie", php-version: "8.4"}
           - {base-image: "php:8.5-fpm-trixie", php-version: "8.5"}
+          - {base-image: "php:8.6-rc-fpm-trixie", php-version: "8.6"}
     steps:
       - name: "Set variables"
         run: |
