@@ -77,7 +77,7 @@ RUN --mount=type=bind,from=ghcr.io/php/pie:bin,source=/pie,target=/usr/local/bin
   && docker-php-ext-install bcmath \
   \
   # Install opcache PHP extension (it is already enabled in PHP 8.5+ images).
-  && if [ "$(echo $PHP_VERSION | cut -d '.' -f 1,2)" -ne "8.5" ] && [ "$(echo $PHP_VERSION | cut -d '.' -f 1,2)" -ne "8.6" ]; then \
+  && if [ "$(echo $PHP_VERSION | cut -d '.' -f 1,2)" != "8.5" ] && [ "$(echo $PHP_VERSION | cut -d '.' -f 1,2)" != "8.6" ]; then \
     docker-php-ext-install opcache \
   ; fi \
   \
@@ -121,7 +121,7 @@ RUN --mount=type=bind,from=ghcr.io/php/pie:bin,source=/pie,target=/usr/local/bin
   && if [ "$PHP_MAJOR_VERSION" -lt "8" ]; then \
     # For PHP < 8.x, install bundled extension
     docker-php-ext-install xmlrpc \
-  ; elif [ "$(echo $PHP_VERSION | cut -d '.' -f 1,2)" -ne "8.6" ]; then \
+  ; elif [ "$(echo $PHP_VERSION | cut -d '.' -f 1,2)" != "8.6" ]; then \
     # For PHP 8+, install from Github (extension should be available on PECL but is not)
     #
     # PHP 8.6 is not supported by GLPI 10, the last GLPI version using this extension.
