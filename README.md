@@ -20,6 +20,7 @@ This repository contains build files for docker images available in [Github Cont
 - [How to use this image](#how-to-use-this-image)
   - [via docker compose](#via-docker-compose)
   - [via Podman](#via-podman)
+  - [via Sealos](#via-sealos)
 - [Timezones support](#timezones-support)
 - [Volumes](#volumes)
 - [Custom PHP configuration](#custom-php-configuration)
@@ -89,6 +90,14 @@ To run commands on a running container:
 ```bash
 podman exec -it <glpi_container_id> /var/www/glpi/bin/console database:enable_timezones
 ```
+
+### via [Sealos](https://sealos.io)
+
+Deploy GLPI with a dedicated MySQL database, persistent storage, and HTTPS using the Sealos template:
+
+[![Deploy on Sealos](https://sealos.io/Deploy-on-Sealos.svg)](https://sealos.io/products/app-store/glpi)
+
+Choose an administrator password during deployment, then sign in with the username `glpi`.
 
 ### Timezones support
 
