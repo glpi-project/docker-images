@@ -146,108 +146,88 @@ jobs:
     steps:
       - name: "Set variables"
         id: "set-vars"
-        run: |
+        uses: "actions/github-script@v9"
+        env:
           # Use inputs when provided, otherwise use defaults (for push/pull_request on this repo)
-          GLPI_REPO="${{ vars.GLPI_REPO || inputs.glpi-repo || 'glpi-project/glpi' }}"
-          GLPI_VERSION="${{ inputs.glpi-version || 'main' }}"
-          PHP_VERSION="${{ inputs.php-version || '8.5' }}"
-          PUSH="${{ inputs.push || 'false' }}"
-          PATCH_URL="${{ inputs.patch-url || '' }}"
-          IMAGE_TAG="${{ inputs.image-tag || '' }}"
+          GLPI_REPO: ${{ vars.GLPI_REPO || inputs.glpi-repo || 'glpi-project/glpi' }}
+          GLPI_VERSION: ${{ inputs.glpi-version || 'main' }}
+          PHP_VERSION: ${{ inputs.php-version || '8.5' }}
+          PUSH: ${{ inputs.push || 'false' }}
+          PATCH_URL: ${{ inputs.patch-url || '' }}
+          IMAGE_TAG: ${{ inputs.image-tag || '' }}
+          USE_LEGACY_MP_PATH: ${{ inputs.use-legacy-marketplace-path || 'false' }}
+        with:
+          script: |
+            const glpiRepo    = process.env.GLPI_REPO
+            const glpiVersion = process.env.GLPI_VERSION
+            const imageTag    = process.env.IMAGE_TAG
 
-          echo "glpi_repo=$GLPI_REPO" >> $GITHUB_OUTPUT
-          echo "glpi_version=$GLPI_VERSION" >> $GITHUB_OUTPUT
-          echo "php_version=$PHP_VERSION" >> $GITHUB_OUTPUT
-          echo "push=$PUSH" >> $GITHUB_OUTPUT
-          echo "patch_url=$PATCH_URL" >> $GITHUB_OUTPUT
-          echo "image_tag=$IMAGE_TAG" >> $GITHUB_OUTPUT
+            const [owner, repo] = glpiRepo.split('/')
 
-          # Compute marketplace directory based on boolean use-legacy-marketplace-path input
-          USE_LEGACY_MP_PATH="${{ inputs.use-legacy-marketplace-path || 'false' }}"
-          if [[ "$USE_LEGACY_MP_PATH" = "true" ]]; then
-            echo "marketplace_dir=/var/www/glpi/marketplace" >> $GITHUB_OUTPUT
-          else
-            echo "marketplace_dir=/var/glpi/marketplace" >> $GITHUB_OUTPUT
-          fi
+            // Static outputs
+            core.setOutput('glpi_repo',    glpiRepo)
+            core.setOutput('glpi_version', glpiVersion)
+            core.setOutput('php_version',  process.env.PHP_VERSION)
+            core.setOutput('push',         process.env.PUSH)
+            core.setOutput('patch_url',    process.env.PATCH_URL)
+            core.setOutput('image_tag',    imageTag)
+            core.setOutput('marketplace_dir',
+              process.env.USE_LEGACY_MP_PATH === 'true'
+                ? '/var/www/glpi/marketplace'
+                : '/var/glpi/marketplace'
+            )
 
-          # Determine if glpi-version is a semver tag (e.g., 10.0.18, 11.0.5-rc1)
-          # vs a branch, commit hash, or URL
-          IS_SEMVER=false
-          if echo "$GLPI_VERSION" | grep --quiet --extended-regexp '^[0-9]+\.[0-9]+\.[0-9]+(\-\w+)?$'; then
-            IS_SEMVER=true
-          fi
+            // Sanitize version string for use as an artifact/image name
+            const sanitize = s => s.replace(/[/:]/g, '-').replace(/^https?--/, '')
+            core.setOutput('artifact_prefix', imageTag || sanitize(glpiVersion))
+            core.setOutput('image_version',   imageTag || sanitize(glpiVersion))
 
-          # Fetch the commit SHA for this version/branch (for cache-busting)
-          # Same commit = cache hit, new commit = fresh build
+            // Semver detection (e.g. 10.0.18, 11.0.5-rc1) vs branch/commit/URL
+            const isSemver = /^\d+\.\d+\.\d+(-\w+)?$/.test(glpiVersion)
 
-          if echo "$GLPI_VERSION" | grep -q --extended-regexp '^https://'; then
-            # For URLs, use a random value to force rebuild, as content behind a URL can change between builds.
-            CACHE_KEY="$(head -200 /dev/urandom | sha1sum | cut --fields 1 --delimiter " ")"
-          elif [[ "$GLPI_VERSION" = "latest" ]]; then
-            # Resolve "latest" to actual tag first, then get commit SHA
-            RESOLVED_TAG=$(curl -s "https://api.github.com/repos/${GLPI_REPO}/releases/latest" | jq -r '.tag_name')
-            CACHE_KEY=$(curl -s "https://api.github.com/repos/${GLPI_REPO}/commits/$RESOLVED_TAG" | jq -r '.sha // empty')
-          else
-            CACHE_KEY=$(curl -s "https://api.github.com/repos/${GLPI_REPO}/commits/$GLPI_VERSION" | jq -r '.sha // empty')
-          fi
-          echo "cache_key=$CACHE_KEY" >> $GITHUB_OUTPUT
+            // Cache key: ties a build to a specific commit SHA so unchanged sources hit the cache
+            if (/^https?:\/\//.test(glpiVersion)) {
+              // URLs: content can change without a new tag, so always force a rebuild
+              core.setOutput('cache_key', require('crypto').randomBytes(20).toString('hex'))
+            } else if (glpiVersion === 'latest') {
+              const { data: rel } = await github.rest.repos.getLatestRelease({ owner, repo })
+              core.info(`Resolved "latest" to ${rel.tag_name}`)
+              const { data: commit } = await github.rest.repos.getCommit({ owner, repo, ref: rel.tag_name })
+              core.setOutput('cache_key', commit.sha)
+            } else {
+              const { data: commit } = await github.rest.repos.getCommit({ owner, repo, ref: glpiVersion })
+              core.setOutput('cache_key', commit.sha ?? '')
+            }
 
+            // No latest-tag checks for explicit image-tag overrides or non-semver inputs
+            if (imageTag || !isSemver) {
+              core.setOutput('is_latest',       'false')
+              core.setOutput('is_latest_major', 'false')
+              return
+            }
 
-          # Compute artifact prefix (unique per workflow call)
-          if [[ "$IMAGE_TAG" != '' ]]; then
-            ARTIFACT_PREFIX="$IMAGE_TAG"
-          else
-            # Replace slashes and colons with dashes for branches like 11.0/bugfixes
-            ARTIFACT_PREFIX="$(echo "$GLPI_VERSION" | sed --regexp-extended 's|[/:]|-|g' | sed --regexp-extended 's|https?--||')"
-          fi
-          echo "artifact_prefix=$ARTIFACT_PREFIX" >> $GITHUB_OUTPUT
+            // Prereleases (e.g. 11.0.5-rc1) also skip the latest checks
+            if (/-\w+$/.test(glpiVersion)) {
+              core.setOutput('is_latest',       'false')
+              core.setOutput('is_latest_major', 'false')
+              return
+            }
 
-          # Compute image version for metadata-action
-          if [[ "$IMAGE_TAG" != '' ]]; then
-            IMAGE_VERSION="$IMAGE_TAG"
-          else
-            IMAGE_VERSION="$(echo "$GLPI_VERSION" | sed --regexp-extended 's|[/:]|-|g' | sed --regexp-extended 's|https?--||')"
-          fi
-          echo "image_version=$IMAGE_VERSION" >> $GITHUB_OUTPUT
+            // Latest release overall
+            const { data: latestRelease } = await github.rest.repos.getLatestRelease({ owner, repo })
+            const isLatest = glpiVersion === latestRelease.tag_name
+            core.info(`Latest release: ${latestRelease.tag_name} — is_latest=${isLatest}`)
+            core.setOutput('is_latest', isLatest ? 'true' : 'false')
 
-          # Skip all version checks if:
-          # - image-tag is provided (explicit override)
-          # - glpi-version is not a semver (branch, commit, URL)
-          if [[ "$IMAGE_TAG" != '' ]] || [[ "$IS_SEMVER" != "true" ]]; then
-            echo "is_latest=false" >> $GITHUB_OUTPUT
-            echo "is_latest_major=false" >> $GITHUB_OUTPUT
-            exit 0
-          fi
-
-          # Detect prerelease (contains -rc, -beta, -alpha, etc.)
-          PRERELEASE_FLAG="$( echo "$GLPI_VERSION" | grep --perl-regexp --only-matching '(\-\w+)?$' )"
-          if [[ -n "$PRERELEASE_FLAG" ]]; then
-            echo "is_latest=false" >> $GITHUB_OUTPUT
-            echo "is_latest_major=false" >> $GITHUB_OUTPUT
-            exit 0
-          fi
-
-          # Check if this is the latest release overall
-          LATEST_TAG=$(curl -s "https://api.github.com/repos/${GLPI_REPO}/releases/latest" | jq -r '.tag_name')
-          if [[ "$GLPI_VERSION" = "$LATEST_TAG" ]]; then
-            echo "is_latest=true" >> $GITHUB_OUTPUT
-          else
-            echo "is_latest=false" >> $GITHUB_OUTPUT
-          fi
-
-          # Fetch all releases from GitHub API (non-prerelease only) for major series check
-          RELEASES=$(curl -s "https://api.github.com/repos/${GLPI_REPO}/releases?per_page=100" | \
-            jq -r '[.[] | select(.prerelease == false) | .tag_name]')
-
-          # Check if this is the latest in its major series (e.g., latest 11.x.x)
-          IMAGE_VERSION_MAJOR=$(echo "$GLPI_VERSION" | cut --delimiter=. --fields=1)
-          LATEST_IN_MAJOR=$(echo "$RELEASES" | jq -r --arg major "$IMAGE_VERSION_MAJOR" \
-            '[.[] | select(startswith($major + "."))] | .[0] // empty')
-          if [[ "$GLPI_VERSION" = "$LATEST_IN_MAJOR" ]]; then
-            echo "is_latest_major=true" >> $GITHUB_OUTPUT
-          else
-            echo "is_latest_major=false" >> $GITHUB_OUTPUT
-          fi
+            // Latest in its major
+            const allReleases = await github.paginate(github.rest.repos.listReleases, { owner, repo, per_page: 100 })
+            const major = glpiVersion.split('.')[0]
+            const latestInMajor = allReleases
+              .filter(r => !r.prerelease && r.tag_name.startsWith(major + '.'))
+              .map(r => r.tag_name)[0] ?? ''
+            const isLatestMajor = glpiVersion === latestInMajor
+            core.info(`Latest in ${major}.x : ${latestInMajor || '(none)'} — is_latest_major=${isLatestMajor}`)
+            core.setOutput('is_latest_major', isLatestMajor ? 'true' : 'false')
 
   build:
     name: "Build [${{ matrix.platform.suffix }}]"
