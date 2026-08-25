@@ -41,6 +41,8 @@ jobs:
           echo "OUTPUTS=$OUTPUTS" >> $GITHUB_ENV
       - name: "Checkout"
         uses: "actions/checkout@v7"
+      - name: "Set up QEMU"
+        uses: "docker/setup-qemu-action@v4"
       - name: "Set up Docker Buildx"
         uses: "docker/setup-buildx-action@v4"
       - name: "Login to DockerHub"
@@ -63,5 +65,6 @@ jobs:
           cache-to: "type=gha,mode=max"
           context: "glpi-development-env"
           outputs: "${{ env.OUTPUTS }}"
+          platforms: "linux/amd64,linux/arm64/v8"
           pull: true
           tags: "ghcr.io/glpi-project/glpi-development-env:${{ matrix.php-version }}${{ matrix.latest == 'true' && ',ghcr.io/glpi-project/glpi-development-env:latest' || '' }}"
