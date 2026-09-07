@@ -32,7 +32,7 @@ This repository contains build files for docker images available in [Github Cont
 
 ### via [docker compose](https://github.com/docker/compose)
 
-This repository includes ready-to-use [`docker-compose.example.yml`](docker-compose.example.yml) and [`.env.example`](.env.example) files.
+This repository includes ready-to-use [`docker-compose.example.yml`](https://github.com/glpi-project/docker-images/blob/main/docker-compose.example.yml) and [`.env.example`](https://github.com/glpi-project/docker-images/blob/main/.env.example) files.
 
 Copy them to your working directory:
 
@@ -155,7 +155,7 @@ See [environment variables section](#cron) for more details.
 
 Since the container runs as the non-root `www-data` user, traditional cron is not available. Instead, this image provides a built-in scheduler script that supports interval-based and daily scheduled tasks through supervisord.
 
-See the [custom scheduled jobs documentation](docs/custom-cron-tasks.md) for usage examples.
+See the [custom scheduled jobs documentation](https://github.com/glpi-project/docker-images/blob/main/docs/custom-cron-tasks.md) for usage examples.
 
 ## Environment variables
 
