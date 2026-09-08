@@ -83,8 +83,11 @@ jobs:
           cache-from: "type=gha,scope=glpi-development-env-${{ matrix.php.php-version }}-${{ matrix.platform.suffix }}"
           cache-to: "type=gha,mode=max,scope=glpi-development-env-${{ matrix.php.php-version }}-${{ matrix.platform.suffix }}"
           context: "glpi-development-env"
+          labels: "${{ steps.meta.outputs.labels }}"
           platforms: "${{ matrix.platform.arch }}"
           pull: true
+          sbom: ${{ env.PUSH == 'true' }}
+          provenance: ${{ env.PUSH == 'true' && 'mode=max' || 'false' }}
           outputs: "type=image,name=${{ env.GHCR_IMAGE }},push-by-digest=true,name-canonical=true,push=${{ env.PUSH }}"
 
       - name: "Export digest"
