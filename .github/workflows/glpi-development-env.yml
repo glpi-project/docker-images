@@ -44,6 +44,13 @@ jobs:
       - name: "Checkout"
         uses: "actions/checkout@v7"
 
+      - name: "Docker metadata"
+        id: "meta"
+        uses: "docker/metadata-action@v6"
+        with:
+          images: |
+            ${{ env.GHCR_IMAGE }}
+
       - name: "Set up QEMU"
         uses: "docker/setup-qemu-action@v4"
 
