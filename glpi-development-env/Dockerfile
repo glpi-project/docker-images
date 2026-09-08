@@ -160,8 +160,14 @@ RUN --mount=type=bind,from=ghcr.io/php/pie:bin,source=/pie,target=/usr/local/bin
   # Install misc util packages commonly used by developers
   && apt install --assume-yes --no-install-recommends --quiet htop jq nano sudo vim zsh \
   \
+  # Install libcap2-bin for setcap
+  && apt install --assume-yes --no-install-recommends --quiet libcap2-bin \
+  \
   # Clean sources list
   && rm -rf /var/lib/apt/lists/*
+
+# Allow apache process to bind to port 80 as non-root user
+RUN setcap cap_net_bind_service=+ep /usr/sbin/apache2
 
 # Copy composer binary
 COPY --from=composer /usr/bin/composer /usr/bin/composer
