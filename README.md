@@ -90,6 +90,10 @@ To run commands on a running container:
 podman exec -it <glpi_container_id> /var/www/glpi/bin/console database:enable_timezones
 ```
 
+### via [Easypanel](https://easypanel.io)
+
+[Easypanel](https://easypanel.io) is a self-hosted Docker deployment platform, and GLPI has a one-click deployment template there: https://easypanel.io/templates/glpi - it deploys GLPI alongside a MariaDB database with persistent volumes automatically.
+
 ### Timezones support
 
 If you want to initialize the timezones support for GLPI, we need to first GRANT the glpi user to access the `mysql.time_zone` table. So with the docker container running, you can run the following command:
