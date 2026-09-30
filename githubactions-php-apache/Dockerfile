@@ -57,12 +57,9 @@ RUN --mount=type=bind,from=ghcr.io/php/pie:bin,source=/pie,target=/usr/local/bin
     && (curl --fail --silent --show-error --location https://github.com/php-memcached-dev/php-memcached/archive/refs/heads/master.tar.gz | tar --extract --ungzip --verbose --directory="/tmp/memcached" --strip 1) \
     && docker-php-ext-install /tmp/memcached \
     && rm -rf /tmp/memcached \
-  ; elif [ "$PHP_MAJOR_VERSION" -ge "8" ] && [ "$PHP_MINOR_VERSION" -ge "1" ]; then \
-    # For PHP >= 8.1, use PIE
-    pie install php-memcached/php-memcached \
   ; else \
-    # For PHP < 8.1, use PECL
-    pecl install memcached \
+    # For PHP stable releases, use PIE
+    pie install php-memcached/php-memcached \
   ; fi \
   && docker-php-ext-enable memcached \
   \
@@ -82,12 +79,9 @@ RUN --mount=type=bind,from=ghcr.io/php/pie:bin,source=/pie,target=/usr/local/bin
     && (curl --fail --silent --show-error --location https://github.com/phpredis/phpredis/archive/refs/heads/develop.tar.gz | tar --extract --ungzip --verbose --directory="/tmp/redis" --strip 1) \
     && docker-php-ext-install /tmp/redis \
     && rm -rf /tmp/redis \
-  ; elif [ "$PHP_MAJOR_VERSION" -ge "8" ] && [ "$PHP_MINOR_VERSION" -ge "1" ]; then \
-    # For PHP >= 8.1, use PIE
-    pie install phpredis/phpredis \
   ; else \
-    # For PHP < 8.1, use PECL
-    pecl install redis \
+    # For PHP stable releases, use PIE
+    pie install phpredis/phpredis \
   ; fi \
   && docker-php-ext-enable redis \
   \
@@ -102,12 +96,9 @@ RUN --mount=type=bind,from=ghcr.io/php/pie:bin,source=/pie,target=/usr/local/bin
     && (curl --fail --silent --show-error --location https://github.com/krakjoe/apcu/archive/refs/heads/master.tar.gz | tar --extract --ungzip --verbose --directory="/tmp/apcu" --strip 1) \
     && docker-php-ext-install /tmp/apcu \
     && rm -rf /tmp/apcu \
-  ; elif [ "$PHP_MAJOR_VERSION" -ge "8" ] && [ "$PHP_MINOR_VERSION" -ge "1" ]; then \
-    # For PHP >= 8.1, use PIE
-    pie install apcu/apcu \
   ; else \
-    # For PHP < 8.1, use PECL
-    pecl install apcu \
+    # For PHP stable releases, use PIE
+    pie install apcu/apcu \
   ; fi \
   && docker-php-ext-enable apcu \
   && echo "apc.enable=1" >> /usr/local/etc/php/conf.d/docker-php-ext-apcu.ini \
@@ -120,12 +111,9 @@ RUN --mount=type=bind,from=ghcr.io/php/pie:bin,source=/pie,target=/usr/local/bin
     && (curl --fail --silent --show-error --location https://github.com/krakjoe/pcov/archive/refs/heads/develop.tar.gz | tar --extract --ungzip --verbose --directory="/tmp/pcov" --strip 1) \
     && docker-php-ext-install /tmp/pcov \
     && rm -rf /tmp/pcov \
-  ; elif [ "$PHP_MAJOR_VERSION" -ge "8" ] && [ "$PHP_MINOR_VERSION" -ge "1" ]; then \
-    # For PHP >= 8.1, use PIE
-    pie install pecl/pcov \
   ; else \
-  # For PHP < 8.1, use PECL
-    pecl install pcov \
+    # For PHP stable releases, use PIE
+    pie install pecl/pcov \
   ; fi \
   && docker-php-ext-enable pcov \
   && echo "pcov.enabled=0" >> /usr/local/etc/php/conf.d/docker-php-ext-pcov.ini \
