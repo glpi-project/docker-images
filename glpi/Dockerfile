@@ -7,8 +7,6 @@
 #   GLPI_VERSION           - Version to build: "latest" (default), tag (10.0.18), branch (main), commit, or URL
 #   GLPI_CACHE_KEY         - Cache-busting key for CI workflows (internal use)
 #   GLPI_PATCH_URL         - Space-separated URLs to .diff/.patch files to apply
-#   GLPI_MARKETPLACE_DIR   - Marketplace directory path (default: /var/glpi/marketplace)
-#                            Use /var/www/glpi/marketplace for v10.x builds
 
 ARG BUILDER_IMAGE=php:cli-alpine
 ARG APP_IMAGE=php:apache
@@ -225,15 +223,11 @@ COPY --from=builder --chown=www-data:www-data /usr/src/glpi /var/www/glpi
 RUN mkdir /var/glpi && chown www-data:www-data /var/glpi
 VOLUME /var/glpi
 
-# Marketplace directory configuration
-# v10.x uses /var/www/glpi/marketplace (legacy), v11+ uses /var/glpi/marketplace
-ARG GLPI_MARKETPLACE_DIR=/var/glpi/marketplace
-
 # Define GLPI environment variables
 ENV \
   GLPI_INSTALL_MODE=DOCKER \
   GLPI_CONFIG_DIR=/var/glpi/config \
-  GLPI_MARKETPLACE_DIR=${GLPI_MARKETPLACE_DIR} \
+  GLPI_MARKETPLACE_DIR=/var/glpi/marketplace \
   GLPI_VAR_DIR=/var/glpi/files \
   GLPI_LOG_DIR=/var/glpi/logs \
   GLPI_SKIP_AUTOINSTALL=false \
