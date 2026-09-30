@@ -44,11 +44,6 @@ on:
         required: false
         type: string
         default: ""
-      use-legacy-marketplace-path:
-        description: "Use legacy marketplace path (/var/www/glpi/marketplace) for v10.x builds"
-        required: false
-        type: boolean
-        default: false
       no-cache:
         description: "Skip build cache to force fresh base-image layers (used by security rebuilds)"
         required: false
@@ -114,11 +109,6 @@ on:
         required: false
         type: string
         default: ""
-      use-legacy-marketplace-path:
-        description: "Use legacy marketplace path (/var/www/glpi/marketplace) for v10.x builds"
-        required: false
-        type: boolean
-        default: false
       no-cache:
         description: "Skip build cache to force fresh base-image layers (used by security rebuilds)"
         required: false
@@ -142,7 +132,6 @@ jobs:
       patch-url: ${{ steps.set-vars.outputs.patch_url }}
       image-tag: ${{ steps.set-vars.outputs.image_tag }}
       push: ${{ steps.set-vars.outputs.push }}
-      marketplace-dir: ${{ steps.set-vars.outputs.marketplace_dir }}
     steps:
       - name: "Set variables"
         id: "set-vars"
@@ -155,7 +144,6 @@ jobs:
           PUSH: ${{ inputs.push || 'false' }}
           PATCH_URL: ${{ inputs.patch-url || '' }}
           IMAGE_TAG: ${{ inputs.image-tag || '' }}
-          USE_LEGACY_MP_PATH: ${{ inputs.use-legacy-marketplace-path || 'false' }}
         with:
           script: |
             const glpiRepo    = process.env.GLPI_REPO
@@ -171,11 +159,6 @@ jobs:
             core.setOutput('push',         process.env.PUSH)
             core.setOutput('patch_url',    process.env.PATCH_URL)
             core.setOutput('image_tag',    imageTag)
-            core.setOutput('marketplace_dir',
-              process.env.USE_LEGACY_MP_PATH === 'true'
-                ? '/var/www/glpi/marketplace'
-                : '/var/glpi/marketplace'
-            )
 
             // Sanitize version string for use as an artifact/image name
             const sanitize = s => s.replace(/[/:]/g, '-').replace(/^https?--/, '')
@@ -290,7 +273,6 @@ jobs:
             GLPI_VERSION=${{ needs.prepare.outputs.glpi-version }}
             GLPI_PATCH_URL=${{ needs.prepare.outputs.patch-url }}
             GLPI_CACHE_KEY=${{ needs.prepare.outputs.cache-key }}
-            GLPI_MARKETPLACE_DIR=${{ needs.prepare.outputs.marketplace-dir }}
             BUILDER_IMAGE=php:${{ needs.prepare.outputs.php-version }}-cli-alpine
             APP_IMAGE=php:${{ needs.prepare.outputs.php-version }}-apache
           no-cache: ${{ inputs.no-cache || false }}

@@ -109,9 +109,6 @@ docker exec -it <glpi_container_id> /var/www/glpi/bin/console database:enable_ti
 
 By default, the `glpi/glpi` image provides a volume containing its `config`, `marketplace` and `files` directories.
 
-For GLPI 10.0.x version the marketplace directory is not declared in the volume as the path differs. You may want to create a manual volume for the path `/var/www/glpi/marketplace` if you plan to use it.  
-If you are building your own GLPI 10.0.x image using the `glpi/Dockerfile` file, you have to specify the marketplace path using the `--build-arg GLPI_MARKETPLACE_DIR=/var/www/glpi/marketplace` option.
-
 You can also mount a volume containing your own custom plugins in `/var/www/glpi/plugins`.
 
 ### Custom PHP configuration

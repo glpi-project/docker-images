@@ -23,13 +23,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - {glpi-branch: "10.0/bugfixes", glpi-version: "10.0.x", php-version: "7.4"}
-          - {glpi-branch: "10.0/bugfixes", glpi-version: "10.0.x", php-version: "8.0"}
-          - {glpi-branch: "10.0/bugfixes", glpi-version: "10.0.x", php-version: "8.1"}
-          - {glpi-branch: "10.0/bugfixes", glpi-version: "10.0.x", php-version: "8.2"}
-          - {glpi-branch: "10.0/bugfixes", glpi-version: "10.0.x", php-version: "8.3"}
-          - {glpi-branch: "10.0/bugfixes", glpi-version: "10.0.x", php-version: "8.4"}
-          - {glpi-branch: "10.0/bugfixes", glpi-version: "10.0.x", php-version: "8.5"}
           - {glpi-branch: "11.0/bugfixes", glpi-version: "11.0.x", php-version: "8.2"}
           - {glpi-branch: "11.0/bugfixes", glpi-version: "11.0.x", php-version: "8.3"}
           - {glpi-branch: "11.0/bugfixes", glpi-version: "11.0.x", php-version: "8.4"}
