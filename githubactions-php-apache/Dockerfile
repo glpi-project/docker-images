@@ -95,23 +95,6 @@ RUN --mount=type=bind,from=ghcr.io/php/pie:bin,source=/pie,target=/usr/local/bin
   && apt install --assume-yes --no-install-recommends --quiet libzip-dev \
   && docker-php-ext-install zip \
   \
-  # Install XMLRPC PHP extension.
-  && apt install --assume-yes --no-install-recommends --quiet libxml2-dev \
-  && if [ "$PHP_MAJOR_VERSION" -lt "8" ]; then \
-    # For PHP < 8.x, install bundled extension
-    docker-php-ext-install xmlrpc \
-  ; elif [ "$(echo $PHP_VERSION | cut -d '.' -f 1,2)" != "8.6" ]; then \
-    # For PHP 8+, install from Github (extension should be available on PECL but is not)
-    #
-    # PHP 8.6 is not supported by GLPI 10, the last GLPI version using this extension.
-    # Therefore, no need to install this extension for PHP 8.6.
-    mkdir -p /tmp/xmlrpc \
-    && (curl --fail --silent --show-error --location https://github.com/php/pecl-networking-xmlrpc/archive/0f782ffe52cebd0a65356427b7ab72d48b72d20c/xmlrpc-0f782ff.tar.gz | tar --extract --ungzip --verbose --directory="/tmp/xmlrpc" --strip 1) \
-    && docker-php-ext-configure /tmp/xmlrpc --with-xmlrpc \
-    && docker-php-ext-install /tmp/xmlrpc \
-    && rm -rf /tmp/xmlrpc \
-  ; fi \
-  \
   # Install APCU PHP extension.
   && if [ "$PHP_IS_PRERELEASE" = true ]; then \
     # For PHP prereleases, install from the repository to get the latest commit

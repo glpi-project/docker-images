@@ -116,23 +116,6 @@ RUN --mount=type=bind,from=ghcr.io/php/pie:bin,source=/pie,target=/usr/local/bin
   ; fi \
   && docker-php-ext-enable xdebug \
   \
-  # Install XMLRPC PHP extension.
-  && apt install --assume-yes --no-install-recommends --quiet libxml2-dev \
-  && if [ "$PHP_MAJOR_VERSION" -lt "8" ]; then \
-    # For PHP < 8.x, install bundled extension
-    docker-php-ext-install xmlrpc \
-  ; elif [ "$(echo $PHP_VERSION | cut -d '.' -f 1,2)" != "8.6" ]; then \
-    # For PHP 8+, install from Github (extension should be available on PECL but is not)
-    #
-    # PHP 8.6 is not supported by GLPI 10, the last GLPI version using this extension.
-    # Therefore, no need to install this extension for PHP 8.6.
-    mkdir -p /tmp/xmlrpc \
-    && (curl --fail --silent --show-error --location https://github.com/php/pecl-networking-xmlrpc/archive/ea3c8b6a902a1b24f543aef035edb594211a05b3.tar.gz | tar --extract --ungzip --verbose --directory="/tmp/xmlrpc" --strip 1) \
-    && docker-php-ext-configure /tmp/xmlrpc --with-xmlrpc \
-    && docker-php-ext-install /tmp/xmlrpc \
-    && rm -rf /tmp/xmlrpc \
-  ; fi \
-  \
   # Enable apache mods.
   && a2enmod rewrite \
   \
