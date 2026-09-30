@@ -20,7 +20,7 @@ LABEL \
 RUN --mount=type=bind,from=ghcr.io/php/pie:bin,source=/pie,target=/usr/local/bin/pie \
      PHP_MAJOR_VERSION="$(echo $PHP_VERSION | cut -d '.' -f 1)" \
   && PHP_MINOR_VERSION="$(echo $PHP_VERSION | cut -d '.' -f 2)" \
-  && if [ ! -z "$(echo $PHP_VERSION | cut -d "." -f 3 | grep -P '(alpha|beta|rc)')" ]; then PHP_IS_PRERELEASE=true; else PHP_IS_PRERELEASE=false; fi \
+  && if [ ! -z "$(echo $PHP_VERSION | cut -d "." -f 3 | grep -i -P '(alpha|beta|rc)')" ]; then PHP_IS_PRERELEASE=true; else PHP_IS_PRERELEASE=false; fi \
   \
   # Update package list.
   && apt update \
@@ -102,7 +102,7 @@ RUN --mount=type=bind,from=ghcr.io/php/pie:bin,source=/pie,target=/usr/local/bin
   && if [ "$PHP_IS_PRERELEASE" = true ]; then \
     # For PHP prereleases, install from the repository to get the latest commit
     mkdir -p /tmp/xdebug \
-    && (curl --fail --silent --show-error --location https://github.com/xdebug/xdebug/archive/6e86e8602ddacf3f7473c3bd14c0c8b57d64c10c.tar.gz | tar --extract --ungzip --verbose --directory="/tmp/xdebug" --strip 1) \
+    && (curl --fail --silent --show-error --location https://github.com/xdebug/xdebug/archive/refs/heads/master.tar.gz | tar --extract --ungzip --verbose --directory="/tmp/xdebug" --strip 1) \
     && docker-php-ext-install /tmp/xdebug \
     && rm -rf /tmp/xdebug \
   ; else \

@@ -20,7 +20,7 @@ LABEL \
 RUN --mount=type=bind,from=ghcr.io/php/pie:bin,source=/pie,target=/usr/local/bin/pie \
      PHP_MAJOR_VERSION="$(echo $PHP_VERSION | cut -d '.' -f 1)" \
   && PHP_MINOR_VERSION="$(echo $PHP_VERSION | cut -d '.' -f 2)" \
-  && if [ ! -z "$(echo $PHP_VERSION | cut -d "." -f 3 | grep -P '(alpha|beta|rc)')" ]; then PHP_IS_PRERELEASE=true; else PHP_IS_PRERELEASE=false; fi \
+  && if [ ! -z "$(echo $PHP_VERSION | cut -d "." -f 3 | grep -i -P '(alpha|beta|rc)')" ]; then PHP_IS_PRERELEASE=true; else PHP_IS_PRERELEASE=false; fi \
   \
   # Update package list.
   && apt update \
