@@ -152,9 +152,6 @@ RUN --mount=type=bind,from=ghcr.io/php/pie:bin,source=/pie,target=/usr/local/bin
   # Install gettext used for translation files.
   && apt install --assume-yes --no-install-recommends --quiet gettext \
   \
-  # Install Cypress dependencies
-  && apt install --assume-yes --no-install-recommends --quiet libgtk2.0-0 libgtk-3-0 libgbm-dev libnotify-dev libnss3 libxss1 libasound2 libxtst6 xauth xvfb \
-  \
   # Install Playwright dependencies
   && npx playwright install-deps \
   \
