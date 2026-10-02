@@ -153,7 +153,7 @@ RUN --mount=type=bind,from=ghcr.io/php/pie:bin,source=/pie,target=/usr/local/bin
   && apt install --assume-yes --no-install-recommends --quiet gettext \
   \
   # Install Playwright dependencies
-  && npx playwright install-deps \
+  && npx playwright install-deps chromium \
   \
   # Install ldap utils used by plugin CI workflows.
   && apt install --assume-yes --no-install-recommends --quiet ldap-utils \
