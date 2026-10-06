@@ -61,4 +61,17 @@ jobs:
           context: "githubactions-php-apache"
           outputs: "${{ env.OUTPUTS }}"
           pull: true
+          target: "base"
           tags: "ghcr.io/glpi-project/githubactions-php-apache:${{ matrix.php-version }}"
+      - name: "Build and push (Playwright variant)"
+        uses: "docker/build-push-action@v7"
+        with:
+          build-args: |
+            BASE_IMAGE=${{ matrix.base-image }}
+          cache-from: "type=gha"
+          cache-to: "type=gha,mode=max"
+          context: "githubactions-php-apache"
+          outputs: "${{ env.OUTPUTS }}"
+          pull: true
+          target: "playwright"
+          tags: "ghcr.io/glpi-project/githubactions-php-apache:${{ matrix.php-version }}-playwright"

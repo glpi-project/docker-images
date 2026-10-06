@@ -68,11 +68,21 @@ jobs:
             TAGS="${TAGS},ghcr.io/glpi-project/githubactions-glpi-apache:latest"
           fi
           echo "tags=${TAGS}" >> $GITHUB_OUTPUT
+      - name: "Set base image"
+        id: base-image
+        run: |
+          BASE_IMAGE="ghcr.io/glpi-project/githubactions-php-apache:${{ matrix.php-version }}"
+          # Use the variant that contains the Playwright system dependencies, to make them available to plugins.
+          # Skip for PHP 7.4, 8.0 and 8.1 images as they are no longer built so they don't support this tag.
+          if [[ ! "${{ matrix.php-version }}" =~ ^(7\.4|8\.0|8\.1)$ ]]; then
+            BASE_IMAGE="${BASE_IMAGE}-playwright"
+          fi
+          echo "base-image=${BASE_IMAGE}" >> $GITHUB_OUTPUT
       - name: "Build and push"
         uses: "docker/build-push-action@v7"
         with:
           build-args: |
-            BASE_IMAGE=ghcr.io/glpi-project/githubactions-php-apache:${{ matrix.php-version }}
+            BASE_IMAGE=${{ steps.base-image.outputs.base-image }}
             GLPI_BRANCH=${{ matrix.glpi-branch }}
           no-cache: true
           context: "githubactions-glpi-apache"
