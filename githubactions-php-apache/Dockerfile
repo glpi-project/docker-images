@@ -9,7 +9,7 @@ FROM composer:latest AS composer
 #####
 # Build main image
 #####
-FROM $BASE_IMAGE
+FROM $BASE_IMAGE AS base
 
 LABEL \
   org.opencontainers.image.title="GLPI Github Actions PHP container" \
@@ -152,9 +152,6 @@ RUN --mount=type=bind,from=ghcr.io/php/pie:bin,source=/pie,target=/usr/local/bin
   # Install gettext used for translation files.
   && apt install --assume-yes --no-install-recommends --quiet gettext \
   \
-  # Install Playwright dependencies
-  && npx playwright install-deps chromium \
-  \
   # Install ldap utils used by plugin CI workflows.
   && apt install --assume-yes --no-install-recommends --quiet ldap-utils \
   \
@@ -210,3 +207,25 @@ WORKDIR /var/www/glpi
 # Define GLPI environment variables
 ENV \
   GLPI_ENVIRONMENT_TYPE=testing
+
+#####
+# Variant with Playwright system dependencies
+#####
+FROM base AS playwright
+
+USER root
+
+RUN \
+  # Update package list.
+  apt update \
+  \
+  # Install Playwright dependencies
+  && npx playwright install-deps chromium \
+  \
+  # Clean sources list
+  && rm -rf /var/lib/apt/lists/* \
+  \
+  # Clean npm cache (created by `npx`, not used later)
+  && rm -rf /root/.npm
+
+USER www-data
