@@ -55,8 +55,10 @@ greetings() {
 Update_GLPI() {
     if ! bin/console db:is_up_to_date --no-interaction --quiet; then
         bin/console maintenance:enable --no-interaction --quiet
-        bin/console database:update --no-interaction --quiet
-        bin/console cache:clear --no-interaction --quiet
+        bin/console database:update --no-interaction --quiet ||
+            echo "Error: Database update failed."
+        bin/console cache:clear --no-interaction --quiet ||
+            echo "Warning: cache clearing failed."
         bin/console maintenance:disable --no-interaction --quiet
     fi
 }
