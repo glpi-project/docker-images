@@ -23,9 +23,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - {base-image: "php:7.4-apache-bullseye", php-version: "7.4"}
-          - {base-image: "php:8.0-apache-bullseye", php-version: "8.0"}
-          - {base-image: "php:8.1-apache-trixie", php-version: "8.1"}
           - {base-image: "php:8.2-apache-trixie", php-version: "8.2"}
           - {base-image: "php:8.3-apache-trixie", php-version: "8.3"}
           - {base-image: "php:8.4-apache-trixie", php-version: "8.4"}
@@ -64,4 +61,17 @@ jobs:
           context: "githubactions-php-apache"
           outputs: "${{ env.OUTPUTS }}"
           pull: true
+          target: "base"
           tags: "ghcr.io/glpi-project/githubactions-php-apache:${{ matrix.php-version }}"
+      - name: "Build and push (Playwright variant)"
+        uses: "docker/build-push-action@v7"
+        with:
+          build-args: |
+            BASE_IMAGE=${{ matrix.base-image }}
+          cache-from: "type=gha"
+          cache-to: "type=gha,mode=max"
+          context: "githubactions-php-apache"
+          outputs: "${{ env.OUTPUTS }}"
+          pull: true
+          target: "playwright"
+          tags: "ghcr.io/glpi-project/githubactions-php-apache:${{ matrix.php-version }}-playwright"

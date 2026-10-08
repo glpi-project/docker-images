@@ -17,5 +17,5 @@ RUN apt-get update \
 # Switch back to memcache user
 USER memcache
 
-HEALTHCHECK --interval=10s --retries=5 --timeout=5s \
+HEALTHCHECK --interval=10s --retries=5 --timeout=5s --start-period=30s --start-interval=1s \
   CMD /bin/nc -z 127.0.0.1 11211

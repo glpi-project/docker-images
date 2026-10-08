@@ -29,7 +29,7 @@ RUN \
 COPY ./files/etc/dovecot/local.conf /etc/dovecot/local.conf
 COPY ./files/etc/dovecot/passwd /etc/dovecot/passwd
 
-HEALTHCHECK --interval=10s --retries=5 --timeout=5s \
+HEALTHCHECK --interval=10s --retries=5 --timeout=5s --start-period=30s --start-interval=1s \
   CMD doveadm service status
 
 CMD ["/usr/sbin/dovecot", "-F"]

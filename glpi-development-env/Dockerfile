@@ -20,7 +20,7 @@ LABEL \
 RUN --mount=type=bind,from=ghcr.io/php/pie:bin,source=/pie,target=/usr/local/bin/pie \
      PHP_MAJOR_VERSION="$(echo $PHP_VERSION | cut -d '.' -f 1)" \
   && PHP_MINOR_VERSION="$(echo $PHP_VERSION | cut -d '.' -f 2)" \
-  && if [ ! -z "$(echo $PHP_VERSION | cut -d "." -f 3 | grep -P '(alpha|beta|rc)')" ]; then PHP_IS_PRERELEASE=true; else PHP_IS_PRERELEASE=false; fi \
+  && if [ ! -z "$(echo $PHP_VERSION | cut -d "." -f 3 | grep -i -P '(alpha|beta|rc)')" ]; then PHP_IS_PRERELEASE=true; else PHP_IS_PRERELEASE=false; fi \
   \
   # Update package list.
   && apt update \
@@ -61,12 +61,9 @@ RUN --mount=type=bind,from=ghcr.io/php/pie:bin,source=/pie,target=/usr/local/bin
     && (curl --fail --silent --show-error --location https://github.com/php-memcached-dev/php-memcached/archive/refs/heads/master.tar.gz | tar --extract --ungzip --verbose --directory="/tmp/memcached" --strip 1) \
     && docker-php-ext-install /tmp/memcached \
     && rm -rf /tmp/memcached \
-  ; elif [ "$PHP_MAJOR_VERSION" -ge "8" ] && [ "$PHP_MINOR_VERSION" -ge "1" ]; then \
-    # For PHP >= 8.1, use PIE
-    pie install php-memcached/php-memcached \
   ; else \
-    # For PHP < 8.1, use PECL
-    pecl install memcached \
+    # For PHP stable releases, use PIE
+    pie install php-memcached/php-memcached \
   ; fi \
   && docker-php-ext-enable memcached \
   \
@@ -91,12 +88,9 @@ RUN --mount=type=bind,from=ghcr.io/php/pie:bin,source=/pie,target=/usr/local/bin
     && (curl --fail --silent --show-error --location https://github.com/phpredis/phpredis/archive/refs/heads/develop.tar.gz | tar --extract --ungzip --verbose --directory="/tmp/redis" --strip 1) \
     && docker-php-ext-install /tmp/redis \
     && rm -rf /tmp/redis \
-  ; elif [ "$PHP_MAJOR_VERSION" -ge "8" ] && [ "$PHP_MINOR_VERSION" -ge "1" ]; then \
-    # For PHP >= 8.1, use PIE
-    pie install phpredis/phpredis \
   ; else \
-    # For PHP < 8.1, use PECL
-    pecl install redis \
+    # For PHP stable releases, use PIE
+    pie install phpredis/phpredis \
   ; fi \
   && docker-php-ext-enable redis \
   \
@@ -105,24 +99,22 @@ RUN --mount=type=bind,from=ghcr.io/php/pie:bin,source=/pie,target=/usr/local/bin
   && docker-php-ext-install zip \
   \
   # Install xdebug PHP extension.
-  && if [ "$PHP_MAJOR_VERSION" -lt "8" ]; then \
-    pecl install xdebug-3.1.6 \
-  ; else \
-    # xdebug 3.5.0 is not available on PECL, its distribution is now made through PIE
+  && if [ "$PHP_IS_PRERELEASE" = true ]; then \
+    # For PHP prereleases, install from the repository to get the latest commit
     mkdir -p /tmp/xdebug \
-    && (curl --fail --silent --show-error --location https://github.com/xdebug/xdebug/archive/6e86e8602ddacf3f7473c3bd14c0c8b57d64c10c.tar.gz | tar --extract --ungzip --verbose --directory="/tmp/xdebug" --strip 1) \
+    && (curl --fail --silent --show-error --location https://github.com/xdebug/xdebug/archive/refs/heads/master.tar.gz | tar --extract --ungzip --verbose --directory="/tmp/xdebug" --strip 1) \
     && docker-php-ext-install /tmp/xdebug \
     && rm -rf /tmp/xdebug \
+  ; else \
+    # For PHP stable releases, use PIE
+    pie install xdebug/xdebug \
   ; fi \
   && docker-php-ext-enable xdebug \
   \
   # Install XMLRPC PHP extension.
   && apt install --assume-yes --no-install-recommends --quiet libxml2-dev \
-  && if [ "$PHP_MAJOR_VERSION" -lt "8" ]; then \
-    # For PHP < 8.x, install bundled extension
-    docker-php-ext-install xmlrpc \
-  ; elif [ "$(echo $PHP_VERSION | cut -d '.' -f 1,2)" != "8.6" ]; then \
-    # For PHP 8+, install from Github (extension should be available on PECL but is not)
+  && if [ "$(echo $PHP_VERSION | cut -d '.' -f 1,2)" != "8.6" ]; then \
+    # Install from Github (extension should be available on PECL but is not)
     #
     # PHP 8.6 is not supported by GLPI 10, the last GLPI version using this extension.
     # Therefore, no need to install this extension for PHP 8.6.
