@@ -28,7 +28,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        php:
+        php: &php-versions
           - {base-image: "php:8.2-apache-trixie", php-version: "8.2", latest: "false"}
           - {base-image: "php:8.3-apache-trixie", php-version: "8.3", latest: "false"}
           - {base-image: "php:8.4-apache-trixie", php-version: "8.4", latest: "false"}
@@ -111,12 +111,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        php:
-          - {php-version: "8.2", latest: "false"}
-          - {php-version: "8.3", latest: "false"}
-          - {php-version: "8.4", latest: "false"}
-          - {php-version: "8.5", latest: "true"}
-          - {php-version: "8.6", latest: "false"}
+        php: *php-versions
     steps:
       - name: "Download digests"
         uses: "actions/download-artifact@v8"
