@@ -15,5 +15,7 @@ RUN \
   (test -f /usr/bin/mysql || (test -f /usr/bin/mariadb && ln -s /usr/bin/mariadb /usr/bin/mysql)) \
   && (test -f /usr/bin/mysqladmin || (test -f /usr/bin/mariadb-admin && ln -s /usr/bin/mariadb-admin /usr/bin/mysqladmin))
 
-HEALTHCHECK --interval=10s --retries=5 --timeout=5s \
-  CMD mysqladmin ping
+# Use --host=127.0.0.1 --protocol=tcp to force TCP instead of using the unix socket, which might be ready before external
+# connections are accepted.
+HEALTHCHECK --interval=10s --retries=5 --timeout=5s --start-period=30s --start-interval=1s \
+  CMD mysqladmin ping --host=127.0.0.1 --protocol=tcp
