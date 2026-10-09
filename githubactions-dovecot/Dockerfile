@@ -29,6 +29,18 @@ RUN \
 COPY ./files/etc/dovecot/local.conf /etc/dovecot/local.conf
 COPY ./files/etc/dovecot/passwd /etc/dovecot/passwd
 
+# Debian's default config puts a PAM passdb in front of our passwd-file one.
+# Test users are not system users, so PAM always fails, which add a 2 seconds delay
+# before Dovecot falls back to passwd-file.
+# Disable it and fail the build if PAM is still configured (e.g. if Debian changes this line).
+RUN \
+  sed -i 's/^!include auth-system.conf.ext/#&/' /etc/dovecot/conf.d/10-auth.conf \
+  \
+  # Check the resulting config.
+  && doveconf -n > /tmp/doveconf.txt \
+  && ! grep -qw pam /tmp/doveconf.txt \
+  && rm /tmp/doveconf.txt
+
 HEALTHCHECK --interval=10s --retries=5 --timeout=5s --start-period=30s --start-interval=1s \
   CMD doveadm service status
 
