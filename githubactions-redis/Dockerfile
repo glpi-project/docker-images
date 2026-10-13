@@ -8,5 +8,5 @@ LABEL \
   org.opencontainers.image.url="https://github.com/glpi-project/docker-images" \
   org.opencontainers.image.source="git@github.com:glpi-project/docker-images"
 
-HEALTHCHECK --interval=10s --retries=5 --timeout=5s \
+HEALTHCHECK --interval=10s --retries=5 --timeout=5s --start-period=30s --start-interval=1s \
   CMD redis-cli ping

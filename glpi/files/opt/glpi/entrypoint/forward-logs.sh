@@ -29,13 +29,13 @@ done
 # info log files to stdout
 for log in "${info_logs[@]}"
 do
-    tail -F "$log" > /proc/1/fd/1 &
+    tail -n 0 -F "$log" > /proc/1/fd/1 &
 done
 
 # error log files to stderr
 for log in "${error_logs[@]}"
 do
-    tail -F "$log" > /proc/1/fd/2 &
+    tail -n 0 -F "$log" > /proc/1/fd/2 &
 done
 
 
