@@ -18,6 +18,11 @@ variable "PHP_VERSIONS" {
   default = ["8.2", "8.3", "8.4", "8.5", "8.6"]
 }
 
+# PHP version of the images that also get the `latest` tag, and used to build the GLPI image by default.
+variable "LATEST_PHP_VERSION" {
+  default = "8.5"
+}
+
 # Enables the GitHub Actions cache (used by CI only).
 variable "GHA_CACHE" {
   default = false
@@ -166,7 +171,7 @@ variable "GLPI_MARKETPLACE_DIR" {
 }
 
 variable "GLPI_PHP_VERSION" {
-  default = "8.5"
+  default = LATEST_PHP_VERSION
 }
 
 target "glpi" {

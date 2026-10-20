@@ -8,6 +8,7 @@ on:
       - ".github/workflows/githubactions-php.yml"
       - ".github/actions/bake-php-matrix/**"
       - "githubactions-php/**"
+      - "githubactions-php-apache/**"
       - "githubactions-base/**"
       - "docker-bake.hcl"
   pull_request:
@@ -15,6 +16,7 @@ on:
       - ".github/workflows/githubactions-php.yml"
       - ".github/actions/bake-php-matrix/**"
       - "githubactions-php/**"
+      - "githubactions-php-apache/**"
       - "githubactions-base/**"
       - "docker-bake.hcl"
   schedule:
@@ -76,5 +78,5 @@ jobs:
       - name: "Build and push"
         uses: "docker/bake-action@v7"
         with:
-          targets: "${{ matrix.php.target }}"
+          targets: "${{ matrix.php.target }},githubactions-php-apache-${{ matrix.php.slug }},githubactions-php-apache-playwright-${{ matrix.php.slug }}"
           push: ${{ env.PUSH == 'true' }}

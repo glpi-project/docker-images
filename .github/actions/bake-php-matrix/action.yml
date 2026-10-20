@@ -10,6 +10,9 @@ outputs:
   matrix:
     description: "JSON list of `{target, php-version, slug}` objects, one per PHP version"
     value: ${{ steps.matrix.outputs.matrix }}
+  latest-php-version:
+    description: "Value of the `LATEST_PHP_VERSION` variable of `docker-bake.hcl`"
+    value: ${{ steps.matrix.outputs.latest-php-version }}
 
 runs:
   using: "composite"
@@ -35,3 +38,6 @@ runs:
         fi
         echo "matrix=$matrix" >> "$GITHUB_OUTPUT"
         echo "$matrix"
+
+        latest=$(docker buildx bake --list=type=variables,format=json | jq --raw-output '.[] | select(.name == "LATEST_PHP_VERSION") | .value')
+        echo "latest-php-version=$latest" >> "$GITHUB_OUTPUT"

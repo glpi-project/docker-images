@@ -318,19 +318,12 @@ jobs:
     needs: [prepare, build]
     if: ${{ needs.prepare.outputs.push == 'true' }}
     steps:
-      - name: "Download digests"
-        uses: "actions/download-artifact@v8"
+      # Needed for the local actions (the workflow can be called from another repository)
+      - name: "Checkout"
+        uses: "actions/checkout@v7"
         with:
-          path: "${{ runner.temp }}/digests"
-          pattern: "digests-${{ needs.prepare.outputs.artifact-prefix }}-*"
-          merge-multiple: true
-      - name: "Verify digests"
-        run: |
-          mkdir -p "${{ runner.temp }}/digests"
-          if [ -z "$(ls --almost-all ${{ runner.temp }}/digests)" ]; then
-            echo "::error::No digest files found! Build job may have failed or artifacts expired."
-            exit 1
-          fi
+          repository: ${{ env.DOCKER_IMAGES_REPO }}
+          sparse-checkout: ".github/actions"
       - name: "Set up Docker Buildx"
         uses: "docker/setup-buildx-action@v4"
       - name: "Login to DockerHub"
@@ -366,38 +359,19 @@ jobs:
 
             # Latest
             type=raw,value=latest,enable=${{ needs.prepare.outputs.is-latest == 'true' }}
-      - name: "Create and push manifest"
-        working-directory: "${{ runner.temp }}/digests"
-        env:
-          TAGS: ${{ steps.meta.outputs.tags }}
-        run: |
-          # Read digest files (named like <hash>-<arch>) and prepare source arrays
-          DOCKERHUB_SOURCES=""
-          GHCR_SOURCES=""
-          for file_path in "$PWD"/*; do
-            file_name="${file_path##*/}"
-            hash="${file_name%%-*}"
-            DOCKERHUB_SOURCES="$DOCKERHUB_SOURCES ${{ env.DOCKERHUB_IMAGE }}@sha256:$hash"
-            GHCR_SOURCES="$GHCR_SOURCES ${{ env.GHCR_IMAGE }}@sha256:$hash"
-          done
-
-          # Create manifest for DockerHub
-          DOCKERHUB_TAGS=$(echo "$TAGS" | grep "^${{ env.DOCKERHUB_IMAGE }}" | xargs --replace={} echo "-t {}" | tr '\n' ' ')
-          if [[ -n "$DOCKERHUB_TAGS" ]]; then
-            echo "Creating DockerHub manifest..."
-            docker buildx imagetools create $DOCKERHUB_TAGS $DOCKERHUB_SOURCES
-          fi
-
-          # Create manifest for GHCR
-          GHCR_TAGS=$(echo "$TAGS" | grep "^${{ env.GHCR_IMAGE }}" | xargs --replace={} echo "-t {}" | tr '\n' ' ')
-          if [[ -n "$GHCR_TAGS" ]]; then
-            echo "Creating GHCR manifest..."
-            docker buildx imagetools create $GHCR_TAGS $GHCR_SOURCES
-          fi
+      - name: "Create and push manifests"
+        id: "merge"
+        uses: "./.github/actions/merge-digests"
+        with:
+          pattern: "digests-${{ needs.prepare.outputs.artifact-prefix }}-*"
+          images: |
+            ${{ env.DOCKERHUB_IMAGE }}
+            ${{ env.GHCR_IMAGE }}
+          tags: ${{ steps.meta.outputs.tags }}
       - name: "Job summary"
         uses: "actions/github-script@v9"
         env:
-          DIGESTS_PATH: ${{ runner.temp }}/digests
+          DIGESTS_PATH: ${{ steps.merge.outputs.digests-path }}
           META_TAGS: ${{ steps.meta.outputs.tags }}
           DOCKERHUB_IMAGE: ${{ env.DOCKERHUB_IMAGE }}
         with:

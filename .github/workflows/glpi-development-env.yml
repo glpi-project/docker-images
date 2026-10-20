@@ -2,8 +2,6 @@ name: "GLPI development environment image"
 
 env:
   GHCR_IMAGE: "ghcr.io/glpi-project/glpi-development-env"
-  # PHP version that also gets the `latest` tag
-  LATEST_PHP_VERSION: "8.5"
 
 on:
   push:
@@ -38,6 +36,7 @@ jobs:
     runs-on: "ubuntu-latest"
     outputs:
       matrix: ${{ steps.matrix.outputs.matrix }}
+      latest-php-version: ${{ steps.matrix.outputs.latest-php-version }}
     steps:
       - name: "Checkout"
         uses: "actions/checkout@v7"
@@ -137,19 +136,10 @@ jobs:
       matrix:
         php: ${{ fromJSON(needs.prepare.outputs.matrix) }}
     steps:
-      - name: "Download digests"
-        uses: "actions/download-artifact@v8"
+      - name: "Checkout"
+        uses: "actions/checkout@v7"
         with:
-          path: "${{ runner.temp }}/digests"
-          pattern: "digests-glpi-development-env-${{ matrix.php.php-version }}-*"
-          merge-multiple: true
-      - name: "Verify digests"
-        run: |
-          mkdir -p "${{ runner.temp }}/digests"
-          if [ -z "$(ls --almost-all ${{ runner.temp }}/digests)" ]; then
-            echo "::error::No digest files found for PHP ${{ matrix.php.php-version }}! Build jobs may have failed or artifacts expired."
-            exit 1
-          fi
+          sparse-checkout: ".github/actions"
       - name: "Set up Docker Buildx"
         uses: "docker/setup-buildx-action@v4"
       - name: "Login to Github container registry"
@@ -168,23 +158,10 @@ jobs:
             latest=false
           tags: |
             type=raw,value=${{ matrix.php.php-version }}
-            type=raw,value=latest,enable=${{ matrix.php.php-version == env.LATEST_PHP_VERSION }}
+            type=raw,value=latest,enable=${{ matrix.php.php-version == needs.prepare.outputs.latest-php-version }}
       - name: "Create and push manifest"
-        working-directory: "${{ runner.temp }}/digests"
-        env:
-          TAGS: ${{ steps.meta.outputs.tags }}
-        run: |
-          # Read digest files (named like <hash>-<arch>) and prepare source array
-          GHCR_SOURCES=""
-          for file_path in "$PWD"/*; do
-            file_name="${file_path##*/}"
-            hash="${file_name%%-*}"
-            GHCR_SOURCES="$GHCR_SOURCES ${{ env.GHCR_IMAGE }}@sha256:$hash"
-          done
-
-          # Create manifest for GHCR
-          GHCR_TAGS=$(echo "$TAGS" | grep "^${{ env.GHCR_IMAGE }}" | xargs --replace={} echo "-t {}" | tr '\n' ' ')
-          if [[ -n "$GHCR_TAGS" ]]; then
-            echo "Creating GHCR manifest..."
-            docker buildx imagetools create $GHCR_TAGS $GHCR_SOURCES
-          fi
+        uses: "./.github/actions/merge-digests"
+        with:
+          pattern: "digests-glpi-development-env-${{ matrix.php.php-version }}-*"
+          images: ${{ env.GHCR_IMAGE }}
+          tags: ${{ steps.meta.outputs.tags }}

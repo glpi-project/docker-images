@@ -1,0 +1,67 @@
+name: "Merge digests"
+description: "Creates the multi-platform manifests from the per-platform digests uploaded by the build jobs (`<hash>-<platform>` files). Requires a Docker Buildx setup and a login to the registries."
+
+inputs:
+  pattern:
+    description: "Name pattern of the artifacts containing the digests (e.g. `digests-glpi-11.0-*`)"
+    required: true
+  images:
+    description: "Images (without tag) the digests were pushed to, one per line"
+    required: true
+  tags:
+    description: "Tags to create (`<image>:<tag>`), one per line, as output by `docker/metadata-action`. Tags of images that are not in `images` are ignored."
+    required: true
+
+outputs:
+  digests-path:
+    description: "Directory containing the digest files"
+    value: ${{ steps.path.outputs.path }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: "Set digests path"
+      id: "path"
+      shell: "bash"
+      run: echo "path=$RUNNER_TEMP/digests" >> "$GITHUB_OUTPUT"
+
+    - name: "Download digests"
+      uses: "actions/download-artifact@v8"
+      with:
+        path: "${{ steps.path.outputs.path }}"
+        pattern: "${{ inputs.pattern }}"
+        merge-multiple: true
+
+    - name: "Create and push manifests"
+      shell: "bash"
+      env:
+        DIGESTS_PATH: ${{ steps.path.outputs.path }}
+        IMAGES: ${{ inputs.images }}
+        TAGS: ${{ inputs.tags }}
+      run: |
+        if [ -z "$(ls --almost-all "$DIGESTS_PATH" 2>/dev/null)" ]; then
+          echo "::error::No digest files found for \`${{ inputs.pattern }}\`! Build jobs may have failed or artifacts expired."
+          exit 1
+        fi
+
+        # Digest files are named like <hash>-<platform>
+        hashes=$(ls "$DIGESTS_PATH" | sed 's/-.*//')
+
+        while read -r image; do
+          [ -n "$image" ] || continue
+
+          sources=()
+          for hash in $hashes; do
+            sources+=("$image@sha256:$hash")
+          done
+
+          tags=()
+          while read -r tag; do
+            case "$tag" in "$image":*) tags+=(--tag "$tag") ;; esac
+          done <<< "$TAGS"
+
+          if [ "${#tags[@]}" -gt 0 ]; then
+            echo "Creating manifest for $image..."
+            docker buildx imagetools create "${tags[@]}" "${sources[@]}"
+          fi
+        done <<< "$IMAGES"
