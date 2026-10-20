@@ -49,7 +49,10 @@ jobs:
     runs-on: "ubuntu-26.04"
     needs: [prepare]
     env:
-      PUSH: ${{ github.ref == 'refs/heads/main' && github.repository == 'glpi-project/docker-images' }}
+      # Images are only pushed from the upstream repository, forks must opt in with the `PUSH_IMAGES` repository variable
+      PUSH: ${{ github.ref == 'refs/heads/main' && (github.repository == 'glpi-project/docker-images' || vars.PUSH_IMAGES == 'true') }}
+      # Registry of the images, forks can change it with the `REGISTRY` repository variable
+      REGISTRY: ${{ vars.REGISTRY || 'ghcr.io/glpi-project' }}
       # Secrets are not available on pull requests coming from forks (and Dependabot)
       DOCKER_HUB_LOGIN: ${{ secrets.DOCKER_HUB_TOKEN != '' }}
       GHA_CACHE: "true"

@@ -90,3 +90,16 @@ To stop and remove the test containers:
 ```bash
 docker compose --file docker-compose.dev.yml down --volumes
 ```
+
+## Publishing from a fork
+
+On a fork, the PHP images workflows (`githubactions-php`, `glpi-development-env`) build the images but never push them.
+To publish them on your own registry, define these repository variables (and the `GHCR_USERNAME` / `GHCR_ACCESS_TOKEN`
+secrets) in your fork:
+
+| Variable | Description | Default |
+|:---------|:------------|:--------|
+| `PUSH_IMAGES` | Set to `true` to push the images built from the `main` branch | _(not set, no push)_ |
+| `REGISTRY` | Registry and namespace of the images (e.g. `ghcr.io/my-user`) | `ghcr.io/glpi-project` |
+
+The same variables can be used locally, e.g. `REGISTRY=ghcr.io/my-user docker buildx bake githubactions-php-8-5`.
