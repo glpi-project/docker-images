@@ -3,3 +3,4 @@ glpi-nightly/sources/
 
 .env
 docker-compose.override.yml
+.idea/

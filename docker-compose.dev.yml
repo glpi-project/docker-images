@@ -4,6 +4,8 @@ services:
   glpi:
     build:
       context: ./glpi
+      additional_contexts:
+        php-scripts: ./githubactions-base/scripts
       args:
         GLPI_VERSION: latest
         GLPI_PATCH_URL: ''

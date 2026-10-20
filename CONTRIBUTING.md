@@ -10,34 +10,34 @@ This guide will help you set up your local development environment to test chang
 
 ## Quick Start
 
-The Dockerfile supports automatic source downloading via the `GLPI_VERSION` build argument.  
-By default, it will download the latest stable version.
+The `glpi` image is built with `docker buildx bake` (see `docker-bake.hcl`). It downloads the sources automatically from
+the `GLPI_VERSION` variable. By default, it will download the latest stable version.
 
 ### Build Options
 
 **Build with latest stable version:**
 ```bash
-docker build --build-arg GLPI_VERSION=latest glpi/
+docker buildx bake glpi --load --set glpi.tags=glpi:local
 ```
 
 **Build with a specific version:**
 ```bash
-docker build --build-arg GLPI_VERSION=10.0.18 glpi/
+GLPI_VERSION=10.0.18 docker buildx bake glpi --load --set glpi.tags=glpi:local
 ```
 
 **Build with a branch:**
 ```bash
-docker build --build-arg GLPI_VERSION=11.0/bugfixes glpi/
+GLPI_VERSION=11.0/bugfixes docker buildx bake glpi --load --set glpi.tags=glpi:local
 ```
 
 **Build with a specific commit:**
 ```bash
-docker build --build-arg GLPI_VERSION=2186bc6bd410d8bcb048637b3c0fb86b7e320c0a glpi/
+GLPI_VERSION=2186bc6bd410d8bcb048637b3c0fb86b7e320c0a docker buildx bake glpi --load --set glpi.tags=glpi:local
 ```
 
 **Build with a direct URL:**
 ```bash
-docker build --build-arg GLPI_VERSION=https://github.com/glpi-project/glpi/archive/2186bc6.tar.gz glpi/
+GLPI_VERSION=https://github.com/glpi-project/glpi/archive/2186bc6.tar.gz docker buildx bake glpi --load --set glpi.tags=glpi:local
 ```
 
 ### Applying Patches
@@ -46,10 +46,9 @@ You can apply patches after the source download using the `GLPI_PATCH_URL` build
 
 **Apply patches (space-separated):**
 ```bash
-docker build \
-  --build-arg GLPI_VERSION=11.0.4 \
-  --build-arg "GLPI_PATCH_URL=https://example.com/patch1.diff https://example.com/patch2.diff" \
-  glpi/
+GLPI_VERSION=11.0.4 \
+GLPI_PATCH_URL="https://example.com/patch1.diff https://example.com/patch2.diff" \
+  docker buildx bake glpi --load --set glpi.tags=glpi:local
 ```
 
 **Using docker-compose with patches:**
@@ -58,6 +57,8 @@ services:
   glpi:
     build:
       context: ./glpi
+      additional_contexts:
+        php-scripts: ./githubactions-base/scripts
       args:
         GLPI_VERSION: 11.0.4
         GLPI_PATCH_URL: https://patch-diff.githubusercontent.com/raw/glpi-project/glpi/pull/22381.diff

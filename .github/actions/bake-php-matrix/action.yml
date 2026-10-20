@@ -1,0 +1,37 @@
+name: "Bake PHP matrix"
+description: "Lists the PHP versions of a `docker-bake.hcl` target (matrix target), to avoid declaring them again in the workflows."
+
+inputs:
+  target:
+    description: "Bake target or group that has a PHP version matrix (e.g. `githubactions-php`)"
+    required: true
+
+outputs:
+  matrix:
+    description: "JSON list of `{target, php-version, slug}` objects, one per PHP version"
+    value: ${{ steps.matrix.outputs.matrix }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: "List targets"
+      id: "matrix"
+      shell: "bash"
+      env:
+        TARGET: ${{ inputs.target }}
+      run: |
+        # The PHP version is the `<major>-<minor>` suffix of the target name (e.g. `githubactions-php-8-5`).
+        set -o pipefail
+        matrix=$(docker buildx bake --print "$TARGET" | jq --compact-output --arg target "$TARGET" '
+          [
+            .group[$target].targets[]
+            | capture("(?<major>[0-9]+)-(?<minor>[0-9]+)$") as $v
+            | {target: ., "php-version": "\($v.major).\($v.minor)", slug: "\($v.major)-\($v.minor)"}
+          ]
+        ')
+        if [ -z "$matrix" ] || [ "$matrix" = "[]" ]; then
+          echo "::error::No target found for \`$TARGET\` in docker-bake.hcl"
+          exit 1
+        fi
+        echo "matrix=$matrix" >> "$GITHUB_OUTPUT"
+        echo "$matrix"

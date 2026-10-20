@@ -42,7 +42,8 @@ RUN set -ex; \
       VERSION="$INPUT"; \
       # If "latest", resolve from GitHub API \
       if [ "$VERSION" = "latest" ]; then \
-        VERSION=$(curl --silent "https://api.github.com/repos/${REPO}/releases/latest" | jq --raw-output .tag_name); \
+        VERSION=$(curl --fail --silent --show-error "https://api.github.com/repos/${REPO}/releases/latest" | jq --raw-output '.tag_name // empty'); \
+        if [ -z "$VERSION" ]; then echo "Unable to resolve the latest release of ${REPO}" >&2; exit 1; fi; \
       fi; \
       # Use GitHub's generic archive format (works for branches, tags, and commits)
       URL="https://github.com/${REPO}/archive/${VERSION}.tar.gz"; \
@@ -124,60 +125,11 @@ LABEL \
   org.opencontainers.image.url="https://github.com/glpi-project/docker-images" \
   org.opencontainers.image.source="git@github.com:glpi-project/docker-images"
 
-RUN apt-get update \
-  && PHP_MAJOR_VERSION="$(echo $PHP_VERSION | cut --delimiter='.' --fields=1)" \
-  && PHP_MINOR_VERSION="$(echo $PHP_VERSION | cut --delimiter='.' --fields=2)" \
-  \
-  # Install APCU PHP extension.
-  && pecl install apcu \
-  && docker-php-ext-enable apcu \
-  && echo "apc.enable=1" >> /usr/local/etc/php/conf.d/docker-php-ext-apcu.ini \
-  \
-  # Install bz2 PHP extension.
-  && apt-get install --assume-yes --no-install-recommends --quiet libbz2-dev \
-  && docker-php-ext-install bz2 \
-  \
-  # Install exif extension.
-  && docker-php-ext-install exif \
-  \
-  # Install gd PHP extension.
-  && apt-get install --assume-yes --no-install-recommends --quiet libfreetype6-dev libjpeg-dev libpng-dev \
-  && docker-php-ext-configure gd --with-freetype --with-jpeg \
-  && docker-php-ext-install gd \
-  \
-  # Install intl PHP extension.
-  && apt-get install --assume-yes --no-install-recommends --quiet libicu-dev \
-  && docker-php-ext-configure intl \
-  && docker-php-ext-install intl \
-  \
-  # Install ldap PHP extension.
-  && apt-get install --assume-yes --no-install-recommends --quiet libldap2-dev \
-  && docker-php-ext-configure ldap --with-libdir=lib/x86_64-linux-gnu/ \
-  && docker-php-ext-install ldap \
-  \
-  # Install mysqli PHP extension.
-  && docker-php-ext-install mysqli \
-  \
-  # Install bcmath PHP extension.
-  && docker-php-ext-install bcmath \
-  \
-  # Install opcache PHP extension (it is already enabled in PHP 8.5+ images).
-  && if [ "$PHP_MINOR_VERSION" -ne "8.5" ]; then \
-    docker-php-ext-install opcache \
-  ; fi \
-  \
-  # Install Redis PHP extension.
-  && pecl install redis \
-  && docker-php-ext-enable redis \
-  \
-  # Install soap PHP extension (required for some plugins).
-  && apt-get install --assume-yes --no-install-recommends --quiet libxml2-dev \
-  && docker-php-ext-install soap \
-  \
-  # Install zip PHP extension.
-  && apt-get install --assume-yes --no-install-recommends --quiet libzip-dev \
-  && docker-php-ext-configure zip \
-  && docker-php-ext-install zip \
+# `php-scripts` is a named build context pointing to the `githubactions-base/scripts` directory.
+RUN --mount=type=bind,from=ghcr.io/php/pie:bin,source=/pie,target=/usr/local/bin/pie \
+    --mount=type=bind,from=php-scripts,target=/opt/php-scripts \
+  # Install PHP extensions (the script also updates the APT sources list).
+  APCU_ENABLE_CLI=0 /opt/php-scripts/install-php-extensions.sh apcu bz2 exif gd intl ldap mysqli bcmath opcache redis soap zip \
   \
   # Enable apache mods.
   && a2enmod rewrite \
