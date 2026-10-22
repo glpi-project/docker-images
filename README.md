@@ -126,7 +126,7 @@ The following example sets the memory limit to 256M
 
    ```yaml
    volumes:
-     - "./custom-config.ini:/usr/local/etc/php/conf.d/custom-config.ini:ro"
+     - "./my-custom-config.ini:/usr/local/etc/php/conf.d/my-custom-config.ini:ro"
    ```
 
 3. Apply the changes
