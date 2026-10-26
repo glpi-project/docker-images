@@ -211,7 +211,7 @@ RUN setcap cap_net_bind_service=+ep /usr/sbin/apache2
 COPY ./files/etc/apache2/sites-available/000-default.conf /etc/apache2/sites-available/000-default.conf
 COPY ./files/etc/apache2/conf-available/zzz-glpi.conf /etc/apache2/conf-available/zzz-glpi.conf
 COPY ./files/etc/supervisor/ /etc/supervisor/
-COPY ./files/etc/php/conf.d/glpi.ini $PHP_INI_DIR/conf.d/glpi.ini
+COPY ./files/etc/php/conf.d/glpi.ini $PHP_INI_DIR/conf.d/000-glpi.ini
 COPY ./files/opt/glpi/ /opt/glpi/
 RUN find /opt/glpi -type f -iname "*.sh" -exec chmod +x {} \;
 
