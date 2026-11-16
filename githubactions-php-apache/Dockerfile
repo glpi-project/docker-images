@@ -122,7 +122,7 @@ RUN --mount=type=bind,from=ghcr.io/php/pie:bin,source=/pie,target=/usr/local/bin
   && if [ "$PHP_IS_PRERELEASE" = true ]; then \
     # For PHP prereleases, install from the repository to get the latest commit
     mkdir -p /tmp/pcov \
-    && (curl --fail --silent --show-error --location https://github.com/krakjoe/pcov/archive/refs/heads/develop.tar.gz | tar --extract --ungzip --verbose --directory="/tmp/pcov" --strip 1) \
+    && (curl --fail --silent --show-error --location https://github.com/krakjoe/pcov/archive/f04029fa86ae58c6dfff8049de8433669dbf1394.tar.gz | tar --extract --ungzip --verbose --directory="/tmp/pcov" --strip 1) \
     && docker-php-ext-install /tmp/pcov \
     && rm -rf /tmp/pcov \
   ; else \
