@@ -33,7 +33,7 @@ jobs:
           - {base-image: "php:8.3-apache-trixie", php-version: "8.3", latest: "false"}
           - {base-image: "php:8.4-apache-trixie", php-version: "8.4", latest: "false"}
           - {base-image: "php:8.5-apache-trixie", php-version: "8.5", latest: "true"}
-          - {base-image: "php:8.6-rc-apache-trixie", php-version: "8.6", latest: "false"}
+          - {base-image: "php:8.6-apache-trixie", php-version: "8.6", latest: "false"}
         platform:
           - { arch: "linux/amd64", runner: "ubuntu-26.04", suffix: "amd64" }
           - { arch: "linux/arm64", runner: "ubuntu-26.04-arm", suffix: "arm64" }
